@@ -51,9 +51,9 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
      */
     public LetterRack(char... letters) {
         this.letters = new char[MAX_SIZE];
-        this.size = 0;
+        this.size    = 0;
 
-        if (letters != null) {
+        if (letters != null && letters.length > 0) {
             if (letters.length > MAX_SIZE) {
                 throw new IllegalArgumentException("LetterRack cannot exceed " + MAX_SIZE + " characters");
             }

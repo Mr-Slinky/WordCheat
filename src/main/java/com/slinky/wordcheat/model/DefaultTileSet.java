@@ -289,7 +289,7 @@ public final class DefaultTileSet implements TileSet {
         if (randomIndex < wildcardCount) {
             wildcardCount--;
             remainingTileCount--;
-            return BLANK_TILE;
+            return WILDCARD;
         }
         
         int letterIndex = randomIndex - wildcardCount;

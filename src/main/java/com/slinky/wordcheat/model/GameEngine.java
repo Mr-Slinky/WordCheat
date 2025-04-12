@@ -60,21 +60,33 @@ public class GameEngine {
      * already placed on the board.
      * </p>
      *
-     * @param board the game board; must not be {@code null}
-     * @param tileSet the tile set containing the available letter tiles; must
-     * not be {@code null}
+     * @param board      the game board; must not be {@code null}
+     * @param tileSet    the tile set containing the available letter tiles; must
+     *                   not be {@code null}
      * @param wordFinder the word finder used to generate word suggestions; must
-     * not be {@code null}
-     * @param letters the initial letters for the letter rack; may be empty but
-     * must not be {@code null}
+     *                   not be {@code null}
+     * @param letters    the initial letters for the letter rack; may be empty but
+     *                   must not be {@code null}
      * @throws NullPointerException if {@code board}, {@code tileSet} or
-     * {@code wordFinder} is {@code null}
+     *                              {@code wordFinder} is {@code null}
      */
-    public GameEngine(GameBoard board, TileSet tileSet, WordFinder wordFinder, char[] letters) {
-        this.board = Objects.requireNonNull(board, "GameBoard cannot be null");
-        this.tileSet = Objects.requireNonNull(tileSet, "TileSet cannot be null");
+    public GameEngine(GameBoard board, TileSet tileSet, WordFinder wordFinder, LetterRack letterRack) {
+        this.board      = Objects.requireNonNull(board,      "GameBoard cannot be null");
+        this.tileSet    = Objects.requireNonNull(tileSet,    "TileSet cannot be null");
         this.wordFinder = Objects.requireNonNull(wordFinder, "WordFinder cannot be null");
-        this.letterRack = new LetterRack(letters);
+        this.letterRack = Objects.requireNonNull(letterRack, "LetterRack cannot be null");
+
+        this.scoreCalculated = false;
+
+        // Remove letters that are already on the board from the tile set.
+        removeBoardLettersFromTileSet(false);
+    }
+    
+    public GameEngine(GameBoard board, TileSet tileSet, WordFinder wordFinder) {
+        this.board      = Objects.requireNonNull(board,      "GameBoard cannot be null");
+        this.tileSet    = Objects.requireNonNull(tileSet,    "TileSet cannot be null");
+        this.wordFinder = Objects.requireNonNull(wordFinder, "WordFinder cannot be null");
+        this.letterRack = new LetterRack();
 
         this.scoreCalculated = false;
 
@@ -87,7 +99,7 @@ public class GameEngine {
      * Retrieves a deep copy of the current board matrix.
      *
      * @return a deep copy of the board's matrix representing the current game
-     * state
+     *         state
      */
     public char[][] getMatrix() {
         return board.getMatrix();
@@ -156,7 +168,7 @@ public class GameEngine {
      * @param letter the letter for which to retrieve the remaining tile count
      * @return the remaining tile count for the specified letter
      * @throws IllegalArgumentException if the letter is invalid or unsupported
-     * by the {@code TileSet}
+     *                                  by the {@code TileSet}
      */
     public int getRemainingTileCount(char letter) {
         return tileSet.getRemainingTileCount(letter);
@@ -177,7 +189,7 @@ public class GameEngine {
      *
      * @return the remaining number of blank tiles
      */
-    public int getBlankTilesRemaining() {
+    public int getRemainingWildcardCount() {
         return tileSet.getRemainingWildcardCount();
     }
 
@@ -202,9 +214,9 @@ public class GameEngine {
      *
      * @param letters the letters to add to the rack; must not be {@code null}
      * @throws IllegalArgumentException if the resulting rack size would exceed
-     * the maximum allowed size
-     * @throws IllegalStateException if the {@code TileSet} does not have enough
-     * tiles for a letter
+     *                                  the maximum allowed size
+     * @throws IllegalStateException    if the {@code TileSet} does not have 
+     *                                  enough tiles for a letter
      */
     public void addLettersToRack(char[] letters) {
         letters = Objects.requireNonNull(letters);
@@ -220,7 +232,6 @@ public class GameEngine {
 
         requireNonZeroLetterCount(letters);
 
-        // May throw errors if the rack is full (although this is unlikely due to the above check)
         letterRack.addLetters(letters);
     }
 
@@ -238,14 +249,14 @@ public class GameEngine {
      *
      * @param word the word to check for constructability
      * @return {@code true} if the word can be constructed from the letter rack
-     * (or supplemented by the {@code TileSet}); {@code false} otherwise
+     *         (or supplemented by the {@code TileSet}); {@code false} otherwise
      */
     public boolean canCreateWord(String word) {
         boolean[] used = new boolean[letterRack.getSize()];
         char[] letters = letterRack.getLetters();
 
         for (int i = 0; i < word.length(); i++) {
-            char c = word.charAt(i);
+            char c        = word.charAt(i);
             boolean found = false;
             for (int j = 0; j < letters.length; j++) {
                 if (letters[j] == c && !used[j]) {
@@ -284,7 +295,9 @@ public class GameEngine {
         );
 
         if (!placed) {
-            // Suggestions should only be generated if they are valid; a failure here indicates an error in the suggestion generation logic.
+            // Suggestions should only be generated if they are valid; 
+            // a failure here indicates an error in the suggestion generation 
+            // logic.
             throw new Error("Could not place suggestion " + suggestion);
         }
 
@@ -315,25 +328,18 @@ public class GameEngine {
      * </p>
      *
      * @param newLetters if {@code true}, only newly added letters are removed;
-     * if {@code false}, all letters on the board are removed
+     *                   if {@code false}, all letters on the board are removed
      */
     private void removeBoardLettersFromTileSet(boolean newLetters) {
         for (int row = 0; row < board.getRows(); row++) {
-            if (!board.rowHasLetters(row)) {
-                continue;
-            }
+            if (!board.rowHasLetters(row)) continue;
 
             for (int col = 0; col < board.getCols(); col++) {
-                if (!board.colHasLetters(col)) {
-                    continue;
-                }
+                if (!board.colHasLetters(col)) continue;
 
                 boolean shouldRemove;
-                if (newLetters) {
-                    shouldRemove = board.isNewLetter(row, col);
-                } else {
-                    shouldRemove = board.hasLetterAt(row, col);
-                }
+                if (newLetters) shouldRemove = board.isNewLetter(row, col);
+                else            shouldRemove = board.hasLetterAt(row, col);
 
                 if (shouldRemove) {
                     char letter = board.getLetterAt(row, col);
@@ -356,7 +362,7 @@ public class GameEngine {
      *
      * @param letters the letters to check; must not be {@code null}
      * @throws IllegalStateException if the tile set does not have enough tiles
-     * for a given letter
+     *                               for a given letter
      */
     private void requireNonZeroLetterCount(char[] letters) {
         Map<Character, Integer> frequency = new HashMap<>();
