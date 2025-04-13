@@ -140,13 +140,16 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
                 for (int j = i; j < size - 1; j++) {
                     letters[j] = letters[j + 1];
                 }
+                
                 size--;
                 if (removed == WILDCARD) {
                     wildcardCount--;
                 }
+                
                 return true;
             }
         }
+        
         return false;
     }
 
@@ -166,10 +169,12 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
         for (int j = index; j < size - 1; j++) {
             letters[j] = letters[j + 1];
         }
+        
         size--;
         if (removed == WILDCARD) {
             wildcardCount--;
         }
+        
         return removed;
     }
 
@@ -183,11 +188,13 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
         if (size == 0) {
             throw new IllegalStateException("Cannot pop from an empty rack.");
         }
+        
         char removed = letters[size - 1];
         size--;
         if (removed == WILDCARD) {
             wildcardCount--;
         }
+        
         return removed;
     }
 
@@ -212,6 +219,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
             if (removed == WILDCARD) {
                 wildcardCount--;
             }
+            
             letters[size] = 0;
         }
     }
@@ -312,6 +320,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
                     break;
                 }
             }
+            
             if (!found) {
                 for (int j = 0; j < availableSize; j++) {
                     if (available[j] == WILDCARD) {
@@ -322,10 +331,12 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
                     }
                 }
             }
+            
             if (!found) {
                 return false;
             }
         }
+        
         return true;
     }
 
@@ -357,6 +368,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
                 return true;
             }
         }
+        
         return false;
     }
 
@@ -375,6 +387,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
                 return true;
             }
         }
+        
         return false;
     }
 
@@ -398,6 +411,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index " + index + " out of bounds for " + size);
         }
+        
         return letters[index];
     }
 
@@ -420,9 +434,11 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
         if (start < 0 || end > size) {
             throw new IndexOutOfBoundsException("Bounds " + start + ", " + end + " out of bounds for " + size);
         }
+        
         if (start > end) {
             throw new IllegalArgumentException("Start (" + start + ") cannot be greater than end (" + end + ")");
         }
+        
         return subSeq(start, end);
     }
 
@@ -466,6 +482,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
                 array[j + 1] = array[j];
                 j--;
             }
+            
             array[j + 1] = key;
         }
     }
@@ -486,6 +503,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
                 array[j + 1] = array[j];
                 j--;
             }
+            
             array[j + 1] = key;
         }
     }
@@ -502,6 +520,8 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
         for (int i = start; i < end; i++) {
             outp.append(letters[i]);
         }
+        
         return outp;
     }
+    
 }
