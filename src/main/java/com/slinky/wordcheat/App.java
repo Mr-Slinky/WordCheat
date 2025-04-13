@@ -4,7 +4,7 @@ import com.slinky.wordcheat.model.DefaultScoringModule;
 import com.slinky.wordcheat.language.OxfordDictionary;
 import com.slinky.wordcheat.model.GameBoard;
 import com.slinky.wordcheat.model.LetterRack;
-import com.slinky.wordcheat.model.Suggestion;
+import com.slinky.wordcheat.model.Move;
 import com.slinky.wordcheat.model.WordFinder;
 import java.util.Collections;
 import javafx.application.Application;
@@ -94,9 +94,9 @@ public class App extends Application {
             {' ', ' ', ' ', ' ', ' ', ' ', 'A', 'H', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  3
             {' ', ' ', ' ', ' ', ' ', ' ', 'G', 'I', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  4
             {' ', ' ', ' ', ' ', ' ', ' ', 'O', 'N', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  5
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'L', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  6
-            {'E', 'F', ' ', 'E', 'M', 'E', 'R', 'Y', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  7
-            {'P', 'A', 'N', 'E', 'E', 'R', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  8
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'L', ' ', ' ', 'J', ' ', ' ', ' ', ' '}, //  6
+            {'E', 'F', ' ', 'E', 'M', 'E', 'R', 'Y', ' ', ' ', 'O', ' ', ' ', ' ', ' '}, //  7
+            {'P', 'A', 'N', 'E', 'E', 'R', ' ', ' ', ' ', ' ', 'T', ' ', ' ', ' ', ' '}, //  8
             {'A', 'X', ' ', ' ', ' ', 'R', ' ', ' ', 'F', 'I', 'S', 'H', 'E', 'D', ' '}, //  9
             {'C', ' ', ' ', ' ', ' ', 'A', 'U', 'T', 'O', ' ', ' ', ' ', ' ', ' ', ' '}, // 10
             {'T', ' ', ' ', 'W', 'A', 'N', 'T', 'O', 'N', 'S', ' ', ' ', ' ', ' ', ' '}, // 11
@@ -127,7 +127,7 @@ public class App extends Application {
         };
         
         GameBoard  board      = new GameBoard(mom);
-        LetterRack rack       = new LetterRack("ZIUYIAE".toCharArray());
+        LetterRack rack       = new LetterRack("IUYIAE".toCharArray());
         WordFinder wordFinder = new WordFinder(board, new OxfordDictionary(), new DefaultScoringModule());
         
         var suggestions = wordFinder.getWordSuggestions(rack);
@@ -138,7 +138,7 @@ public class App extends Application {
         
         Collections.sort(suggestions);
         
-        for (Suggestion suggestion : suggestions) {
+        for (Move suggestion : suggestions) {
             System.out.println(suggestion);
         }
         

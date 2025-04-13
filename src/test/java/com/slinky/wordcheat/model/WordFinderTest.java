@@ -40,7 +40,7 @@ public class WordFinderTest {
     static Stream<Arguments> provideTestCaseSetOne() {
         var testBoard = getTestBoard();
         var dictionary = new OxfordDictionary();
-        Suggestion highestScoringWord = new Suggestion("HEADLINE", 54, 3, 3, false);
+        Move highestScoringWord = new Move("HEADLINE", 54, 3, 3, false);
         char[] letters = "HEADIEN".toCharArray();
         
         return Stream.of(
@@ -50,7 +50,7 @@ public class WordFinderTest {
     
     @ParameterizedTest
     @MethodSource("provideTestCaseSetOne")
-    public void testHighestScoringWords(char[][] matrix, Dictionary lexicon, Suggestion highestScoringWord, char[] letters) {
+    public void testHighestScoringWords(char[][] matrix, Dictionary lexicon, Move highestScoringWord, char[] letters) {
         GameBoard board           = new GameBoard(matrix);
         ScoringModule scoreModule = new DefaultScoringModule();
         WordFinder testObject     = new WordFinder(board, lexicon, scoreModule);

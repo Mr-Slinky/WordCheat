@@ -126,7 +126,7 @@ public class GameEngine {
      *
      * @return a sorted list of word {@code Suggestion}s
      */
-    public List<Suggestion> getAllSuggestions() {
+    public List<Move> getAllSuggestions() {
         var suggestionList = wordFinder.getWordSuggestions(letterRack);
         Collections.sort(suggestionList);
 
@@ -144,7 +144,7 @@ public class GameEngine {
      *
      * @return the highest scoring word {@code Suggestion}
      */
-    public Suggestion getHighestSuggestion() {
+    public Move getHighestSuggestion() {
         if (!scoreCalculated) {
             getAllSuggestions();
         }
@@ -286,19 +286,19 @@ public class GameEngine {
      * in the generation of suggestions.
      * </p>
      *
-     * @param suggestion the word suggestion to accept; must not be {@code null}
+     * @param move the word suggestion to accept; must not be {@code null}
      * @throws Error if the word suggestion cannot be placed on the board
      */
-    public void acceptSuggestion(Suggestion suggestion) {
+    public void acceptMove(Move move) {
         boolean placed = board.placeWord(
-                suggestion.word(), suggestion.row(), suggestion.col(), !suggestion.verticallyPlaced()
+                move.word(), move.row(), move.col(), !move.verticallyPlaced()
         );
 
         if (!placed) {
             // Suggestions should only be generated if they are valid; 
             // a failure here indicates an error in the suggestion generation 
             // logic.
-            throw new Error("Could not place suggestion " + suggestion);
+            throw new Error("Could not place suggestion " + move);
         }
 
         removeBoardLettersFromTileSet(true);

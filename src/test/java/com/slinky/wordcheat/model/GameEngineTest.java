@@ -60,9 +60,9 @@ public class GameEngineTest {
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'L', ' ', ' ', ' ', 'J', 'E', 'E', 'R'}, // 11
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Y', ' ', ' ', ' ', 'I', ' ', ' ', ' '}, // 12
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', 'A', 'S', 'T', 'E', 'S', ' '}, // 13
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'O', ' ', ' ', ' '}  // 14
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'O', ' ', ' ', ' '} // 14
           //  0    1    2    3    4    5    6    7    8    9    10   11   12   13   14
-        };
+    };
 
     @BeforeAll
     public static void setUpClass() throws Exception {
@@ -98,15 +98,15 @@ public class GameEngineTest {
     
     @Test
     public void testHighestSuggestion() {
-        assertEquals(new Suggestion("KA", 26, 12, 4,  false), testEngine1.getHighestSuggestion());
-        assertEquals(new Suggestion("NEON", 22, 2, 3, false), testEngine2.getHighestSuggestion());
+        assertEquals(new Move("KA", 26, 12, 4,  false), testEngine1.getHighestSuggestion());
+        assertEquals(new Move("NEON", 22, 2, 3, false), testEngine2.getHighestSuggestion());
     }
     
     @Test
     public void testAcceptHighestSuggestion() {
         int tileCount = testEngine1.getRemainingTileCount();
         var sugLength = testEngine1.getHighestSuggestion().word().length();
-        testEngine1.acceptSuggestion(testEngine1.getHighestSuggestion());
+        testEngine1.acceptMove(testEngine1.getHighestSuggestion());
         int afterTileCount = testEngine1.getRemainingTileCount();
         
         assertEquals(tileCount - sugLength, afterTileCount);
@@ -119,16 +119,18 @@ public class GameEngineTest {
 
     @Test 
     public void pseudoEndToEndTest() {
+        final int rackSize = 7;
+        
         GameBoard  gameBoard = new GameBoard(new char[15][15]);
         TileSet    tileSet   = new DefaultTileSet();
         WordFinder finder    = new WordFinder(gameBoard, new OxfordDictionary(), new DefaultScoringModule());
         
-        char[] letters1 = new char[7];
+        char[] letters1 = new char[rackSize];
         for (int i = 0; i < letters1.length; i++) {
             letters1[i] = tileSet.drawRandomTile();
         }
         
-        char[] letters2 = new char[7];
+        char[] letters2 = new char[rackSize];
         for (int i = 0; i < letters2.length; i++) {
             letters2[i] = tileSet.drawRandomTile();
         }
@@ -136,12 +138,27 @@ public class GameEngineTest {
         LetterRack letterRack   = new LetterRack(letters1);
         LetterRack opponentRack = new LetterRack(letters2);
         
+        // Game created
         GameEngine gameEngine = new GameEngine(gameBoard, tileSet, finder);
-        assertEquals(gameEngine.getMaxTileCount() - 14, gameEngine.getRemainingTileCount());
         
-//        while (gameEngine.getRemainingTileCount() > d0) {
-//            
-//        }
+        int tilesRemoved = 14;
+        // TileSet should be 14 tiles less
+        assertEquals(gameEngine.getMaxTileCount() - tilesRemoved, gameEngine.getRemainingTileCount());
+        
+        var rack = letterRack;
+        while (gameEngine.getRemainingTileCount() > 0) {
+            gameEngine.addLettersToRack(rack.getLetters());
+            gameEngine.acceptMove(gameEngine.getHighestSuggestion());
+            int size = rack.getSize();
+            assertTrue(size <= 5);
+            
+            for (int i = 0; i < rackSize - size; i++) {
+                rack.addLetter(tileSet.drawRandomTile());
+            }
+            
+            rack = (rack == letterRack) ? opponentRack : letterRack;
+        }
+//        
     }
     
 }

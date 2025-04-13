@@ -45,7 +45,7 @@ public class WordFinder {
     /**
      * Stores the highest scoring word suggestion found during the search.
      */
-    private Suggestion highestScoringWord;
+    private Move highestScoringWord;
 
     /**
      * The dictionary used to validate words.
@@ -105,7 +105,7 @@ public class WordFinder {
      * @return a {@code List} of {@code Suggestion} objects representing valid
      *         word placements along with their scores.
      */
-    public List<Suggestion> getWordSuggestions(LetterRack rack) {
+    public List<Move> getWordSuggestions(LetterRack rack) {
         return exhaustiveFind(rack);
     }
 
@@ -122,7 +122,7 @@ public class WordFinder {
      * @return the {@code Suggestion} object representing the highest scoring
      *         word, or {@code null} if no suggestions have been generated.
      */
-    public Suggestion getHighestScoringWord() {
+    public Move getHighestScoringWord() {
         return highestScoringWord;
     }
 
@@ -135,8 +135,8 @@ public class WordFinder {
      * @return a {@code List} of {@code Suggestion} objects representing all
      *         valid word placements found.
      */
-    private List<Suggestion> exhaustiveFind(LetterRack rack) {
-        List<Suggestion> suggestions = new ArrayList<>();
+    private List<Move> exhaustiveFind(LetterRack rack) {
+        List<Move> suggestions = new ArrayList<>();
         var words = wordGen.generateAllWords(rack.getLetters());
         // Strategy one: try all placements for each candidate word.
         for (String word : words) {
@@ -158,8 +158,8 @@ public class WordFinder {
      * @return a {@code List} of {@code Suggestion} objects representing valid
      *         horizontal placements.
      */
-    private List<Suggestion> horizontalPlacements(String word) {
-        List<Suggestion> suggestions = new ArrayList<>();
+    private List<Move> horizontalPlacements(String word) {
+        List<Move> suggestions = new ArrayList<>();
 
         boolean vertical = false; // Horizontal placement
         int rows         = board.getRows();
@@ -192,8 +192,8 @@ public class WordFinder {
      * @return a {@code List} of {@code Suggestion} objects representing valid
      *         vertical placements.
      */
-    private List<Suggestion> verticalPlacements(String word) {
-        List<Suggestion> suggestions = new ArrayList<>();
+    private List<Move> verticalPlacements(String word) {
+        List<Move> suggestions = new ArrayList<>();
         
         boolean vertical = true; // Indicates vertical placements.
         int rows         = board.getRows();
@@ -229,13 +229,13 @@ public class WordFinder {
      * @param suggestions the list of suggestions to which the new suggestion
      *                    will be added.
      */
-    private void addSuggestion(String word, int row, int col, boolean vertical, List<Suggestion> suggestions) {
+    private void addSuggestion(String word, int row, int col, boolean vertical, List<Move> suggestions) {
         int score = scoreModule.calculateScore(board);
         if (score <= 0) {
             return;
         }
         
-        var sug = new Suggestion(word, score, row, col, vertical);
+        var sug = new Move(word, score, row, col, vertical);
         suggestions.add(sug);
         if (highestScoringWord == null || sug.score() > highestScoringWord.score()) {
             highestScoringWord = sug;
@@ -250,8 +250,8 @@ public class WordFinder {
      * @return a {@code List} of {@code Suggestion} objects representing valid
      *         horizontal placements found via anchors.
      */
-    private List<Suggestion> horizontalAnchorFind(LetterRack rack) {
-        List<Suggestion> suggestions = new ArrayList<>();
+    private List<Move> horizontalAnchorFind(LetterRack rack) {
+        List<Move> suggestions = new ArrayList<>();
 
         for (int r = 0; r < board.getRows(); r++) {
             // Skip empty rows.
@@ -301,7 +301,7 @@ public class WordFinder {
      * @param suggestions the list of suggestions to which a valid candidate
      *                    will be added.
      */
-    private void testAndAddHorizontalCandidate(String word, String substring, int row, int col, List<Suggestion> suggestions) {
+    private void testAndAddHorizontalCandidate(String word, String substring, int row, int col, List<Move> suggestions) {
         int substringStart = word.indexOf(substring);
         int c = col - substringStart;
 
@@ -353,8 +353,8 @@ public class WordFinder {
      * @return a {@code List} of {@code Suggestion} objects representing valid
      *         vertical placements found via anchors.
      */
-    private List<Suggestion> verticalAnchorFind(LetterRack rack) {
-        List<Suggestion> suggestions = new ArrayList<>();
+    private List<Move> verticalAnchorFind(LetterRack rack) {
+        List<Move> suggestions = new ArrayList<>();
 
         int rows = board.getRows();
         int cols = board.getCols();
@@ -415,7 +415,7 @@ public class WordFinder {
      * @param suggestions the list of suggestions to which a valid candidate
      *                    will be added.
      */
-    private void testAndAddVerticalCandidate(String word, String substring, int row, int col, List<Suggestion> suggestions) {
+    private void testAndAddVerticalCandidate(String word, String substring, int row, int col, List<Move> suggestions) {
         int substringStart = word.indexOf(substring);
         // Adjust the starting row based on the substring's position.
         int r = row - substringStart;
