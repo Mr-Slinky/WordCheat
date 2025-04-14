@@ -744,6 +744,10 @@ public class GameBoard implements Cloneable {
      * conditions; {@code false} otherwise.
      */
     public boolean isValidState() {
+        if (isEmpty()) {
+            return true;
+        }
+        
         boolean[] rowTracker = new boolean[rows];
         boolean[] colTracker = new boolean[cols];
         int rowCount = 0;
@@ -817,18 +821,14 @@ public class GameBoard implements Cloneable {
     public void reset() {
         // Reset new letter placements for each row and update row flags
         for (int r = 0; r < rows; r++) {
-            if (!rowPopulated[r]) {
-                continue;
-            }
+            if (!rowPopulated[r]) continue;
 
             boolean stillPopulated = false;
             for (int c = 0; c < cols; c++) {
-                if (!colPopulated[c]) {
-                    continue;
-                }
+                if (!colPopulated[c]) continue;
 
                 if (newLetter[r][c]) {
-                    matrix[r][c] = DefaultTileSet.BLANK_TILE;
+                    matrix[r][c]    = DefaultTileSet.BLANK_TILE;
                     hasLetter[r][c] = false;
                     newLetter[r][c] = false;
                 }
@@ -850,6 +850,7 @@ public class GameBoard implements Cloneable {
                     break;
                 }
             }
+            
             colPopulated[c] = stillPopulated;
         }
         
@@ -884,6 +885,7 @@ public class GameBoard implements Cloneable {
      *         invalid state and no changes were made.
      */
     public boolean preserve() {
+//        if (!isEmpty() && !isValidState()) {
         if (!isValidState()) {
             return false;
         }
@@ -970,6 +972,7 @@ public class GameBoard implements Cloneable {
             return false;
         }
 
+        boolean isEmpty = isEmpty();
         // All pre-checks passed; now place each letter.
         // If a cell already contains the correct permanent letter, we skip placement.
         for (int i = 0; i < len; i++) {
@@ -992,13 +995,16 @@ public class GameBoard implements Cloneable {
                 return false;
             }
         }
-
-        if (!isValidState()) {
+        
+        if (isEmpty) {
+            return true;
+        } else if (!isValidState()) {
             reset();
             return false;
+        } else {
+            return true;
         }
         
-        return true;
     }
     
     /**
@@ -1008,12 +1014,14 @@ public class GameBoard implements Cloneable {
      * This method checks for adjacent cells in both horizontal and vertical
      * directions. It returns {@code true} if at least one of the following
      * conditions is met:
+     * 
      * <ul>
      *   <li>The cell to the left or right contains a letter (as determined by
      *       {@link #hasHorizontalNeighbours(int, int)}).</li>
      *   <li>The cell above or below contains a letter (as determined by
      *       {@link #hasVerticalNeighbours(int, int)}).</li>
      * </ul>
+     * 
      * Diagonal neighbours are not considered.
      * </p>
      *
@@ -1028,7 +1036,26 @@ public class GameBoard implements Cloneable {
         return hasHorizontalNeighbours(row, col) || hasVerticalNeighbours(row, col);
     }
 
-
+    /**
+     * Determines if the board has had any letters placed on it yet, whether new
+     * or not.
+     * 
+     * @return {@code true} if the board is empty, {@code false} if not.
+     */
+    public boolean isEmpty() {
+        for (int r = 0; r < rows; r++) {
+            if (!rowPopulated[r]) continue;
+            
+            for (int c = 0; c < cols; c++) {
+                if (hasLetter[r][c] && !newLetter[r][c]) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+    
     /**
      * Extracts all horizontal and vertical words from the board.
      * 
@@ -1116,7 +1143,6 @@ public class GameBoard implements Cloneable {
         List<String> words = getWords();
         for (String word : words) {
             if (dictionary.search(word) < 0) {
-//                System.out.println("Invalid word: " + word); // DEBUG
                 return false;
             }
         }

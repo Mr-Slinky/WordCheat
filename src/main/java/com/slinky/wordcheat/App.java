@@ -5,7 +5,7 @@ import com.slinky.wordcheat.language.OxfordDictionary;
 import com.slinky.wordcheat.model.GameBoard;
 import com.slinky.wordcheat.model.LetterRack;
 import com.slinky.wordcheat.model.Move;
-import com.slinky.wordcheat.model.WordFinder;
+import com.slinky.wordcheat.model.MoveFinder;
 import java.util.Collections;
 import javafx.application.Application;
 
@@ -126,27 +126,27 @@ public class App extends Application {
                 
         };
         
-        GameBoard  board      = new GameBoard(mom);
-        LetterRack rack       = new LetterRack("IUYIAE".toCharArray());
-        WordFinder wordFinder = new WordFinder(board, new OxfordDictionary(), new DefaultScoringModule());
-        
-        var suggestions = wordFinder.getWordSuggestions(rack);
-        if (suggestions.isEmpty()) {
-            System.out.println("No words found");
-            System.exit(0);
-        }
-        
-        Collections.sort(suggestions);
-        
-        for (Move suggestion : suggestions) {
-            System.out.println(suggestion);
-        }
-        
-        var suggestion = wordFinder.getHighestScoringWord();
-        board.placeWord(suggestion.word(), suggestion.row(), suggestion.col(), !suggestion.verticallyPlaced());
-        
-        System.out.println("\nBest solution:\t" + wordFinder.getHighestScoringWord());
-        System.out.println(board);
+//        GameBoard  board      = new GameBoard(mom);
+//        LetterRack rack       = new LetterRack("IUYIAE".toCharArray());
+//        MoveFinder wordFinder = new MoveFinder(board, new OxfordDictionary(), new DefaultScoringModule());
+//        
+//        var suggestions = wordFinder.getMoves(rack);
+//        if (suggestions.isEmpty()) {
+//            System.out.println("No words found");
+//            System.exit(0);
+//        }
+//        
+//        Collections.sort(suggestions);
+//        
+//        for (Move suggestion : suggestions) {
+//            System.out.println(suggestion);
+//        }
+//        
+//        var suggestion = wordFinder.getHighestScoringMove();
+//        board.placeWord(suggestion.word(), suggestion.row(), suggestion.col(), !suggestion.verticallyPlaced());
+//        
+//        System.out.println("\nBest solution:\t" + wordFinder.getHighestScoringMove());
+//        System.out.println(board);
         System.exit(0);
         launch();
     }

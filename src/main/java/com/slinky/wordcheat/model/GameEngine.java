@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A façade that encapsulates all major backend models and provides a
@@ -45,9 +46,10 @@ public class GameEngine {
     private GameBoard  board;
     private LetterRack letterRack;
     private TileSet    tileSet;
-    private WordFinder wordFinder;
+    private MoveFinder moveFinder;
+    private List<Move> moves;
 
-    private boolean scoreCalculated;
+    private boolean movesCalculated;
 
     // =============================[ Constructors ]============================= \\
     /**
@@ -70,25 +72,25 @@ public class GameEngine {
      * @throws NullPointerException if {@code board}, {@code tileSet} or
      *                              {@code wordFinder} is {@code null}
      */
-    public GameEngine(GameBoard board, TileSet tileSet, WordFinder wordFinder, LetterRack letterRack) {
+    public GameEngine(GameBoard board, TileSet tileSet, MoveFinder wordFinder, LetterRack letterRack) {
         this.board      = Objects.requireNonNull(board,      "GameBoard cannot be null");
         this.tileSet    = Objects.requireNonNull(tileSet,    "TileSet cannot be null");
-        this.wordFinder = Objects.requireNonNull(wordFinder, "WordFinder cannot be null");
+        this.moveFinder = Objects.requireNonNull(wordFinder, "WordFinder cannot be null");
         this.letterRack = Objects.requireNonNull(letterRack, "LetterRack cannot be null");
 
-        this.scoreCalculated = false;
+        this.movesCalculated = false;
 
         // Remove letters that are already on the board from the tile set.
         removeBoardLettersFromTileSet(false);
     }
     
-    public GameEngine(GameBoard board, TileSet tileSet, WordFinder wordFinder) {
+    public GameEngine(GameBoard board, TileSet tileSet, MoveFinder wordFinder) {
         this.board      = Objects.requireNonNull(board,      "GameBoard cannot be null");
         this.tileSet    = Objects.requireNonNull(tileSet,    "TileSet cannot be null");
-        this.wordFinder = Objects.requireNonNull(wordFinder, "WordFinder cannot be null");
+        this.moveFinder = Objects.requireNonNull(wordFinder, "WordFinder cannot be null");
         this.letterRack = new LetterRack();
 
-        this.scoreCalculated = false;
+        this.movesCalculated = false;
 
         // Remove letters that are already on the board from the tile set.
         removeBoardLettersFromTileSet(false);
@@ -126,12 +128,16 @@ public class GameEngine {
      *
      * @return a sorted list of word {@code Suggestion}s
      */
-    public List<Move> getAllSuggestions() {
-        var suggestionList = wordFinder.getWordSuggestions(letterRack);
-        Collections.sort(suggestionList);
+    public List<Move> getAllMoves() {
+        if (movesCalculated) {
+            return moves;
+        }
+        
+        moves = moveFinder.getMoves(letterRack);
+        Collections.sort(moves);
 
-        scoreCalculated = true;
-        return suggestionList;
+        movesCalculated = true;
+        return moves;
     }
 
     /**
@@ -144,12 +150,12 @@ public class GameEngine {
      *
      * @return the highest scoring word {@code Suggestion}
      */
-    public Move getHighestSuggestion() {
-        if (!scoreCalculated) {
-            getAllSuggestions();
+    public Move getBestMove() {
+        if (board.isEmpty()) {
+            return moveFinder.getFirstMove(letterRack);
         }
 
-        return wordFinder.getHighestScoringWord();
+        return getAllMoves().get(0);
     }
 
     /**
@@ -204,6 +210,16 @@ public class GameEngine {
 
     // ===========================[ Mutator Methods ]============================ \\
     /**
+     * Set the letter rack for the game board.
+     * 
+     * @param letterRack the new LetterRack instance
+     */
+    public void setLetterRack(LetterRack letterRack) {
+        this.letterRack = Objects.requireNonNull(letterRack);
+        movesCalculated = false;
+    }
+    
+    /**
      * Adds the specified letters to the letter rack.
      * 
      * <p>
@@ -233,6 +249,7 @@ public class GameEngine {
         requireNonZeroLetterCount(letters);
 
         letterRack.addLetters(letters);
+        movesCalculated = false;
     }
 
     // =============================[ API Methods ]============================== \\
@@ -298,11 +315,14 @@ public class GameEngine {
             // Suggestions should only be generated if they are valid; 
             // a failure here indicates an error in the suggestion generation 
             // logic.
-            throw new Error("Could not place suggestion " + move);
+            throw new Error("Critical error: could not place move " + move);
         }
 
         removeBoardLettersFromTileSet(true);
+        removeNewBoardLettersFromRack();
+        
         board.preserve(); // Finalise the move on the board.
+        movesCalculated = false;
     }
 
     /**
@@ -343,13 +363,31 @@ public class GameEngine {
 
                 if (shouldRemove) {
                     char letter = board.getLetterAt(row, col);
-                    // If the letter is a wildcard, use the BLANK_TILE marker
-                    tileSet.removeLetter(board.isWildCard(row, col) ? TileSet.BLANK_TILE : letter);
+                    tileSet.removeLetter(board.isWildCard(row, col) ? TileSet.WILDCARD : letter);
                 }
             }
         }
     }
+    
+    /**
+     * Removes newly placed letters from the rack
+     */
+    private void removeNewBoardLettersFromRack() {
+        for (int row = 0; row < board.getRows(); row++) {
+            if (!board.rowHasLetters(row)) continue;
 
+            for (int col = 0; col < board.getCols(); col++) {
+                if (!board.colHasLetters(col)) continue;
+
+
+                if (board.isNewLetter(row, col)) {
+                    char letter = board.getLetterAt(row, col);
+                    letterRack.removeLetter(board.isWildCard(row, col) ? TileSet.WILDCARD : letter);
+                }
+            }
+        }
+    }
+    
     /**
      * Validates that the {@code TileSet} has sufficient quantity for each of
      * the specified letters.
@@ -375,4 +413,5 @@ public class GameEngine {
             }
         }
     }
+
 }

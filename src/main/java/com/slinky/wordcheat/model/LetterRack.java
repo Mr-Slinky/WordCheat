@@ -1,5 +1,6 @@
 package com.slinky.wordcheat.model;
 
+import static com.slinky.wordcheat.model.TileSet.WILDCARD;
 import com.slinky.wordcheat.util.MainUtil;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -35,7 +36,6 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
 
     // ================================[ Static ]================================ \\
     public static final int MAX_SIZE  = 21;
-    public static final char WILDCARD = '?';
 
     // ================================[ Fields ]================================ \\
     private char[] letters;
@@ -142,6 +142,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
                 }
                 
                 size--;
+                
                 if (removed == WILDCARD) {
                     wildcardCount--;
                 }
