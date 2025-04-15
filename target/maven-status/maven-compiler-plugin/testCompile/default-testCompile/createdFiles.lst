@@ -1,5 +1,4 @@
 com\slinky\wordcheat\language\WordGeneratorTest.class
-com\slinky\wordcheat\model\WordFinderTest.class
 com\slinky\wordcheat\model\DefaultTileSetTest.class
 com\slinky\wordcheat\model\GameEngineTest.class
 com\slinky\wordcheat\model\DefaultScoringModuleTest.class

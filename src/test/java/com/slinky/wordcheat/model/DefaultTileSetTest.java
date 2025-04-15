@@ -1,5 +1,6 @@
 package com.slinky.wordcheat.model;
 
+import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -7,6 +8,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -298,5 +300,50 @@ public class DefaultTileSetTest {
         DefaultTileSet tileSet = new DefaultTileSet();
         assertEquals(expectedLimit, tileSet.getLetterTileCount(letter),
                 "Maximum available tile count for " + letter + " should be " + expectedLimit);
+    }
+    
+    @Test
+    @Disabled
+    void experiment1() {
+        DefaultTileSet tileSet = new DefaultTileSet();
+        
+        String[] freqNames = {"Wild Cards", "1x", "2x", "3x", "4x", "5x", "8x", "10x"};
+        int[] freq      = new int[8];
+        freq[0] = 2; // wild cards
+        
+        int[] counts = new int[26];
+        for (int i = 0; i < counts.length; i++) {
+            counts[i] = tileSet.getLetterTileCount((char) ('A' + i));
+            switch ((char) ('A' + i)) {
+                case 'A', 'E', 'I', 'O', 'T', 'R', 'S':
+                    freq[1]++;
+                    break;
+                case 'D', 'N', 'L', 'U':
+                    freq[2]++;
+                    break;
+                case 'H', 'G', 'Y':
+                    freq[3]++;
+                    break;
+                case 'B', 'C', 'F', 'M', 'P', 'W':
+                    freq[4]++;
+                    break;
+                case 'V', 'K':
+                    freq[5]++;
+                    break;
+                case 'X':
+                    freq[6]++;
+                    break;
+                case 'Q', 'Z', 'J':
+                    freq[7]++;
+                    break;
+                default:
+                    System.out.println("HEH");
+            }
+        }
+        
+        for (int i = 0; i < freq.length; i++) {
+            System.out.println("%-11s: %d".formatted(freqNames[i], freq[i]));
+        }
+        
     }
 }

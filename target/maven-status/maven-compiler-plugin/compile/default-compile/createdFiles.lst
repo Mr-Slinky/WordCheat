@@ -11,6 +11,7 @@ com\slinky\wordcheat\language\Dictionary.class
 com\slinky\wordcheat\view\layouts\WWFLayout.class
 module-info.class
 com\slinky\wordcheat\model\LetterMatrix$1.class
+com\slinky\wordcheat\model\MoveFinder.class
 com\slinky\wordcheat\Controller.class
 com\slinky\wordcheat\view\MatrixView$1.class
 com\slinky\wordcheat\model\LetterRack.class
@@ -21,7 +22,6 @@ com\slinky\wordcheat\model\TileSet.class
 com\slinky\wordcheat\model\Move.class
 com\slinky\wordcheat\model\TileBonus.class
 com\slinky\wordcheat\view\TileView.class
-com\slinky\wordcheat\model\WordFinder.class
 com\slinky\wordcheat\model\DefaultScoringModule$1.class
 com\slinky\wordcheat\view\layouts\RackLayout.class
 com\slinky\wordcheat\App.class

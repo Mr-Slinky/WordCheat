@@ -10,8 +10,8 @@ C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\w
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\LetterRack.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\view\layouts\BoardLayout.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\GameBoard.java
-C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\WordFinder.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\TileBonus.java
+C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\MoveFinder.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\util\MainUtil.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\GameEngine.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\persistence\FilePrep.java

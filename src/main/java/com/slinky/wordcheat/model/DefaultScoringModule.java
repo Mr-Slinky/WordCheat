@@ -39,6 +39,68 @@ public class DefaultScoringModule implements ScoringModule {
         2, 5, 4, 8, 3, 10              // U - Z
     };
     
+    /**
+     * Retrieves the point value for the specified uppercase letter using the
+     * internal scoring array.
+     *
+     * <p>
+     * This method maps characters from 'A' to 'Z' to their corresponding point
+     * values based on the game's scoring rules. Each letter's score is defined
+     * in a static array where the index 0 corresponds to 'A', index 1 to 'B',
+     * and so on up to 'Z'.
+     * </p>
+     *
+     * @param c the uppercase character ('A'–'Z') for which to retrieve the
+     *          point value.
+     * @return the point value associated with the specified letter.
+     * @throws IllegalArgumentException if the character is not in the range
+     *                                  'A'–'Z'.
+     */
+    public static int getPointsOf(char c) {
+        if (c < 'A' || c > 'Z') {
+            throw new IllegalArgumentException("Invalid character: " + c);
+        }
+
+        int index = c - 'A';
+        return POINTS[index];
+    }
+    
+    /**
+     * Returns the frequency distribution of tiles based on their assigned score
+     * values.
+     *
+     * <p>
+     * The frequencies are returned in an array of eight integers corresponding
+     * to the following score groups:
+     * 
+     * <ul>
+     *   <li>Index 0: Wild card tiles (score 0) – the count of wild card
+     *       tiles.</li>
+     *   <li>Index 1: Tiles scoring 1 point (e.g. A, E, I, O, T, R, S).</li>
+     *   <li>Index 2: Tiles scoring 2 points (e.g. D, N, L, U).</li>
+     *   <li>Index 3: Tiles scoring 3 points (e.g. H, G, Y).</li>
+     *   <li>Index 4: Tiles scoring 4 points (e.g. B, C, F, M, P, W).</li>
+     *   <li>Index 5: Tiles scoring 5 points (e.g. V, K).</li>
+     *   <li>Index 6: Tiles scoring 8 points (e.g. X).</li>
+     *   <li>Index 7: Tiles scoring 10 points (e.g. Q, Z, J).</li>
+     * </ul>
+     * 
+     * </p>
+     *
+     * <p>
+     * Note that the natural ordering aligns with the above groups except for
+     * indices 6 and 7, which correspond to the rare higher score tiles.
+     * </p>
+     *
+     * @return an array of eight integers representing the frequency of tiles
+     *         per score group.
+     */
+    public static int[] getScoreFrequencies() {
+        return new int[]{2, 7, 4, 3, 6, 2, 1, 3};
+    }
+
+
+    
     // ================================[ Fields ]================================ \\
     private TileBonus[][] bonusTiles;
 

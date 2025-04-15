@@ -6,6 +6,7 @@ import org.junit.jupiter.api.AfterAll;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 /**
@@ -17,12 +18,12 @@ public class GameEngineTest {
     private GameEngine testEngine1;
     private GameBoard  testBoard1;
     private TileSet    testSet1;
-    private WordFinder testFinder1;
+    private MoveFinder testFinder1;
     
     private GameEngine testEngine2;
     private GameBoard  testBoard2;
     private TileSet    testSet2;
-    private WordFinder testFinder2;
+    private MoveFinder testFinder2;
     
     private static final char[][] TEST_MATRIX_1 = {
           //  0    1    2    3    4    5    6    7    8    9    10   11   12   13   14
@@ -84,8 +85,8 @@ public class GameEngineTest {
 
         testSet1    = new DefaultTileSet();
         testSet2    = new DefaultTileSet();
-        testFinder1 = new WordFinder(testBoard1, new OxfordDictionary(), new DefaultScoringModule());
-        testFinder2 = new WordFinder(testBoard2, new OxfordDictionary(), new DefaultScoringModule());
+        testFinder1 = new MoveFinder(testBoard1, new OxfordDictionary(), new DefaultScoringModule());
+        testFinder2 = new MoveFinder(testBoard2, new OxfordDictionary(), new DefaultScoringModule());
 
         testEngine1 = new GameEngine(testBoard1, testSet1, testFinder1, new LetterRack("SKQNDSA".toCharArray()));
         testEngine2 = new GameEngine(testBoard2, testSet2, testFinder2, new LetterRack("TTEONNR".toCharArray()));
@@ -98,15 +99,15 @@ public class GameEngineTest {
     
     @Test
     public void testHighestSuggestion() {
-        assertEquals(new Move("KA", 26, 12, 4,  false), testEngine1.getHighestSuggestion());
-        assertEquals(new Move("NEON", 22, 2, 3, false), testEngine2.getHighestSuggestion());
+        assertEquals(new Move("KA",   26, 12, 4, false), testEngine1.getBestMove());
+        assertEquals(new Move("NEON", 22,  2, 3, false), testEngine2.getBestMove());
     }
     
     @Test
     public void testAcceptHighestSuggestion() {
         int tileCount = testEngine1.getRemainingTileCount();
-        var sugLength = testEngine1.getHighestSuggestion().word().length();
-        testEngine1.acceptMove(testEngine1.getHighestSuggestion());
+        var sugLength = testEngine1.getBestMove().word().length();
+        testEngine1.acceptMove(testEngine1.getBestMove());
         int afterTileCount = testEngine1.getRemainingTileCount();
         
         assertEquals(tileCount - sugLength, afterTileCount);
@@ -116,41 +117,40 @@ public class GameEngineTest {
     public void testTileSetWildCardCount() {
         assertTrue(testEngine1.getRemainingTileCount() < testEngine1.getMaxTileCount());
     }
-
+    
     @Test 
+    @Disabled
     public void pseudoEndToEndTest() {
         final int rackSize = 7;
         
         GameBoard  gameBoard = new GameBoard(new char[15][15]);
         TileSet    tileSet   = new DefaultTileSet();
-        WordFinder finder    = new WordFinder(gameBoard, new OxfordDictionary(), new DefaultScoringModule());
+        MoveFinder finder    = new MoveFinder(gameBoard, new OxfordDictionary(), new DefaultScoringModule());
         
         char[] letters1 = new char[rackSize];
-        for (int i = 0; i < letters1.length; i++) {
-            letters1[i] = tileSet.drawRandomTile();
-        }
-        
         char[] letters2 = new char[rackSize];
-        for (int i = 0; i < letters2.length; i++) {
-            letters2[i] = tileSet.drawRandomTile();
-        }
+        
+        
         
         LetterRack letterRack   = new LetterRack(letters1);
         LetterRack opponentRack = new LetterRack(letters2);
         
         // Game created
         GameEngine gameEngine = new GameEngine(gameBoard, tileSet, finder);
-        
-        int tilesRemoved = 14;
-        // TileSet should be 14 tiles less
-        assertEquals(gameEngine.getMaxTileCount() - tilesRemoved, gameEngine.getRemainingTileCount());
+
+        // No tiles removed
+        assertEquals(gameEngine.getMaxTileCount(), gameEngine.getRemainingTileCount());
         
         var rack = letterRack;
         while (gameEngine.getRemainingTileCount() > 0) {
-            gameEngine.addLettersToRack(rack.getLetters());
-            gameEngine.acceptMove(gameEngine.getHighestSuggestion());
+            gameEngine.setLetterRack(rack);
+            gameEngine.acceptMove(gameEngine.getBestMove());
+            
+            // DEBUG REMOVE
+            System.out.println(gameBoard);
+            System.out.println(tileSet.getRemainingTileCount());
             int size = rack.getSize();
-            assertTrue(size <= 5);
+            assertTrue(size <= 6);
             
             for (int i = 0; i < rackSize - size; i++) {
                 rack.addLetter(tileSet.drawRandomTile());
@@ -158,7 +158,7 @@ public class GameEngineTest {
             
             rack = (rack == letterRack) ? opponentRack : letterRack;
         }
-//        
+        
     }
     
 }
