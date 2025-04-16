@@ -43,7 +43,7 @@ public record Move(String word, int score, int row, int col, boolean verticallyP
      * </ul>
      * </p>
      */
-    private static final String TO_STRING_TEMPLATE = "[%s] [%3d] %s at (%d, %d)";
+    private static final String TO_STRING_TEMPLATE = "[%s] [%3d] %-15s placed at row %2d, column %2d";
 
     // =============================[ API Methods ]============================== \\
     /**
@@ -67,7 +67,7 @@ public record Move(String word, int score, int row, int col, boolean verticallyP
      */
     @Override
     public String toString() {
-        return TO_STRING_TEMPLATE.formatted((verticallyPlaced ? "V" : "H"), score, word, row, col);
+        return TO_STRING_TEMPLATE.formatted((verticallyPlaced ? "V" : "H"), score, word, row + 1, col + 1);
     }
 
     /**

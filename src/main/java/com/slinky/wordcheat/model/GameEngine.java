@@ -134,7 +134,6 @@ public class GameEngine {
         }
         
         moves = moveFinder.getMoves(letterRack);
-        Collections.sort(moves);
 
         movesCalculated = true;
         return moves;

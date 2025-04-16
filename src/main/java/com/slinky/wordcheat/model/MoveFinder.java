@@ -3,6 +3,7 @@ package com.slinky.wordcheat.model;
 import com.slinky.wordcheat.language.Dictionary;
 import com.slinky.wordcheat.language.WordGenerator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -216,6 +217,8 @@ public class MoveFinder {
 
         suggestions.addAll(verticalAnchorFind(rack));
         suggestions.addAll(horizontalAnchorFind(rack));
+        
+        Collections.sort(suggestions);
         
         return suggestions;
     }

@@ -306,44 +306,12 @@ public class DefaultTileSetTest {
     @Disabled
     void experiment1() {
         DefaultTileSet tileSet = new DefaultTileSet();
+        int[] scoreFrequencies = DefaultScoringModule.getScoreFrequencies();
         
-        String[] freqNames = {"Wild Cards", "1x", "2x", "3x", "4x", "5x", "8x", "10x"};
-        int[] freq      = new int[8];
-        freq[0] = 2; // wild cards
-        
-        int[] counts = new int[26];
-        for (int i = 0; i < counts.length; i++) {
-            counts[i] = tileSet.getLetterTileCount((char) ('A' + i));
-            switch ((char) ('A' + i)) {
-                case 'A', 'E', 'I', 'O', 'T', 'R', 'S':
-                    freq[1]++;
-                    break;
-                case 'D', 'N', 'L', 'U':
-                    freq[2]++;
-                    break;
-                case 'H', 'G', 'Y':
-                    freq[3]++;
-                    break;
-                case 'B', 'C', 'F', 'M', 'P', 'W':
-                    freq[4]++;
-                    break;
-                case 'V', 'K':
-                    freq[5]++;
-                    break;
-                case 'X':
-                    freq[6]++;
-                    break;
-                case 'Q', 'Z', 'J':
-                    freq[7]++;
-                    break;
-                default:
-                    System.out.println("HEH");
-            }
+        for (int i = 0; i < scoreFrequencies.length; i++) {
+            int freq = scoreFrequencies[i];
+            int score = i < 6 ? i : (i == 6 ? 8 : 10);
+            System.out.println("%dx: %d".formatted(score, freq));
         }
-        
-        for (int i = 0; i < freq.length; i++) {
-            System.out.println("%-11s: %d".formatted(freqNames[i], freq[i]));
-        }
-        
     }
 }

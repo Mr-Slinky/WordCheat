@@ -119,7 +119,7 @@ public class DefaultScoringModuleTest {
     @Test
     public void testGetScoreFrequencies() {
         // Expected frequency distribution:
-        // Index 0: Wild cards         => 2
+        // Index 0: Wild cards           => 2
         // Index 1: Letters scoring 1x   => 7  (A, E, I, O, T, R, S)
         // Index 2: Letters scoring 2x   => 4  (D, N, L, U)
         // Index 3: Letters scoring 3x   => 3  (H, G, Y)
