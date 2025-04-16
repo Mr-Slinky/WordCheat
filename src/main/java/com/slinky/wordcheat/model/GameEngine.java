@@ -1,11 +1,9 @@
 package com.slinky.wordcheat.model;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * A façade that encapsulates all major backend models and provides a
@@ -72,11 +70,11 @@ public class GameEngine {
      * @throws NullPointerException if {@code board}, {@code tileSet} or
      *                              {@code wordFinder} is {@code null}
      */
-    public GameEngine(GameBoard board, TileSet tileSet, MoveFinder wordFinder, LetterRack letterRack) {
-        this.board      = Objects.requireNonNull(board,      "GameBoard cannot be null");
-        this.tileSet    = Objects.requireNonNull(tileSet,    "TileSet cannot be null");
-        this.moveFinder = Objects.requireNonNull(wordFinder, "WordFinder cannot be null");
-        this.letterRack = Objects.requireNonNull(letterRack, "LetterRack cannot be null");
+    public GameEngine(TileSet tileSet, MoveFinder wordFinder, LetterRack letterRack) {
+        this.tileSet    = Objects.requireNonNull(tileSet,               "TileSet cannot be null");
+        this.moveFinder = Objects.requireNonNull(wordFinder,            "WordFinder cannot be null");
+        this.letterRack = Objects.requireNonNull(letterRack,            "LetterRack cannot be null");
+        this.board      = Objects.requireNonNull(wordFinder.getBoard(), "GameBoard cannot be null");
 
         this.movesCalculated = false;
 
@@ -84,10 +82,10 @@ public class GameEngine {
         removeBoardLettersFromTileSet(false);
     }
     
-    public GameEngine(GameBoard board, TileSet tileSet, MoveFinder wordFinder) {
-        this.board      = Objects.requireNonNull(board,      "GameBoard cannot be null");
-        this.tileSet    = Objects.requireNonNull(tileSet,    "TileSet cannot be null");
-        this.moveFinder = Objects.requireNonNull(wordFinder, "WordFinder cannot be null");
+    public GameEngine(TileSet tileSet, MoveFinder wordFinder) {
+        this.tileSet    = Objects.requireNonNull(tileSet,               "TileSet cannot be null");
+        this.moveFinder = Objects.requireNonNull(wordFinder,            "WordFinder cannot be null");
+        this.board      = Objects.requireNonNull(wordFinder.getBoard(), "GameBoard cannot be null");
         this.letterRack = new LetterRack();
 
         this.movesCalculated = false;

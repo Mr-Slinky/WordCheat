@@ -2,6 +2,7 @@ package com.slinky.wordcheat.model;
 
 
 import com.slinky.wordcheat.language.OxfordDictionary;
+import java.util.Arrays;
 import org.junit.jupiter.api.AfterAll;
 
 import org.junit.jupiter.api.Test;
@@ -119,7 +120,7 @@ public class GameEngineTest {
     }
     
     @Test 
-    @Disabled
+//    @Disabled
     public void pseudoEndToEndTest() {
         final int rackSize = 7;
         
@@ -130,7 +131,10 @@ public class GameEngineTest {
         char[] letters1 = new char[rackSize];
         char[] letters2 = new char[rackSize];
         
-        
+        int[] scoreFreq = DefaultScoringModule.getScoreTileCounts();
+        System.out.println(Arrays.toString(scoreFreq));
+        int[] freqSet1  = {2, -1, -1, -1, -1, -1, 1, 1};
+        int[] freqSet2  = {0, -1, -1, -1, -1, -1, 0, 2};
         
         LetterRack letterRack   = new LetterRack(letters1);
         LetterRack opponentRack = new LetterRack(letters2);

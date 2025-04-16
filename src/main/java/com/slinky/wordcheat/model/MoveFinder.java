@@ -81,7 +81,17 @@ public class MoveFinder {
 
         wordGen = new WordGenerator(this.dictionary, 2, 15);
     }
-
+    // ===========================[ Accessor Methods ]=========================== \\
+    /**
+     * Retrieves a direct copy of the of game board.
+     * 
+     * @return a direct copy of the of game board.
+     */
+    GameBoard getBoard() {
+        return board;
+    }
+    
+    
     // =============================[ API Methods ]============================== \\
     /**
      * Retrieves a comprehensive list of word suggestions based on the available

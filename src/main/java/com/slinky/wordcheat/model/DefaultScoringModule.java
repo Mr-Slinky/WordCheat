@@ -57,6 +57,10 @@ public class DefaultScoringModule implements ScoringModule {
      *                                  'A'–'Z'.
      */
     public static int getPointsOf(char c) {
+        if (c == TileSet.WILDCARD) {
+            return 0;
+        }
+        
         if (c < 'A' || c > 'Z') {
             throw new IllegalArgumentException("Invalid character: " + c);
         }
@@ -99,8 +103,6 @@ public class DefaultScoringModule implements ScoringModule {
         return new int[]{2, 7, 4, 3, 6, 2, 1, 3};
     }
 
-
-    
     // ================================[ Fields ]================================ \\
     private TileBonus[][] bonusTiles;
 
