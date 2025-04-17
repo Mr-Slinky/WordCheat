@@ -1,6 +1,6 @@
 package com.slinky.wordcheat.model;
 
-import com.slinky.wordcheat.util.MainUtil;
+import com.slinky.wordcheat.util.BoardUtils;
 
 /**
  * Default implementation of the {@code ScoringModule} interface.
@@ -138,22 +138,22 @@ public class DefaultScoringModule implements ScoringModule {
         bonusMatrix[7][11] = TileBonus.DW;
 
         // Populate the board using symmetry.
-        MainUtil.setSym(bonusMatrix, 0, 3, TileBonus.TW);
-        MainUtil.setSym(bonusMatrix, 1, 2, TileBonus.DL);
-        MainUtil.setSym(bonusMatrix, 2, 1, TileBonus.DL);
-        MainUtil.setSym(bonusMatrix, 3, 0, TileBonus.TW);
+        BoardUtils.setSymmetry(bonusMatrix, 0, 3, TileBonus.TW);
+        BoardUtils.setSymmetry(bonusMatrix, 1, 2, TileBonus.DL);
+        BoardUtils.setSymmetry(bonusMatrix, 2, 1, TileBonus.DL);
+        BoardUtils.setSymmetry(bonusMatrix, 3, 0, TileBonus.TW);
 
-        MainUtil.setSym(bonusMatrix, 0, 6, TileBonus.TL);
-        MainUtil.setSym(bonusMatrix, 1, 5, TileBonus.DW);
-        MainUtil.setSym(bonusMatrix, 2, 4, TileBonus.DL);
-        MainUtil.setSym(bonusMatrix, 3, 3, TileBonus.TL);
-        MainUtil.setSym(bonusMatrix, 4, 2, TileBonus.DL);
-        MainUtil.setSym(bonusMatrix, 5, 1, TileBonus.DW);
-        MainUtil.setSym(bonusMatrix, 6, 0, TileBonus.TL);
+        BoardUtils.setSymmetry(bonusMatrix, 0, 6, TileBonus.TL);
+        BoardUtils.setSymmetry(bonusMatrix, 1, 5, TileBonus.DW);
+        BoardUtils.setSymmetry(bonusMatrix, 2, 4, TileBonus.DL);
+        BoardUtils.setSymmetry(bonusMatrix, 3, 3, TileBonus.TL);
+        BoardUtils.setSymmetry(bonusMatrix, 4, 2, TileBonus.DL);
+        BoardUtils.setSymmetry(bonusMatrix, 5, 1, TileBonus.DW);
+        BoardUtils.setSymmetry(bonusMatrix, 6, 0, TileBonus.TL);
 
-        MainUtil.setSym(bonusMatrix, 4, 6, TileBonus.DL);
-        MainUtil.setSym(bonusMatrix, 5, 5, TileBonus.TL);
-        MainUtil.setSym(bonusMatrix, 6, 4, TileBonus.DL);
+        BoardUtils.setSymmetry(bonusMatrix, 4, 6, TileBonus.DL);
+        BoardUtils.setSymmetry(bonusMatrix, 5, 5, TileBonus.TL);
+        BoardUtils.setSymmetry(bonusMatrix, 6, 4, TileBonus.DL);
 
         return bonusMatrix;
     }

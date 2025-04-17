@@ -1,7 +1,8 @@
 package com.slinky.wordcheat.model;
 
 import com.slinky.wordcheat.language.Dictionary;
-import com.slinky.wordcheat.util.MainUtil;
+import com.slinky.wordcheat.util.MatrixUtils;
+import com.slinky.wordcheat.util.ValidationUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -211,7 +212,7 @@ public class GameBoard implements Cloneable {
      * @throws IllegalArgumentException if the provided grid is not rectangular.
      */
     public GameBoard(char[][] letterGrid) {
-        MainUtil.validateMatrix(letterGrid);
+        ValidationUtils.validate(letterGrid);
         this.rows = letterGrid.length;
         this.cols = letterGrid[0].length;
 
@@ -232,7 +233,7 @@ public class GameBoard implements Cloneable {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 char letter = letterGrid[r][c];
-                if (MainUtil.isLetter(letter)) {
+                if (ValidationUtils.isLetter(letter)) {
                     hasLetter[r][c] = true;
                     rowPopulated[r] = true;
                     colPopulated[c] = true;
@@ -299,7 +300,7 @@ public class GameBoard implements Cloneable {
      * @return a deep copy of the letter matrix
      */
     public char[][] getMatrix() {
-        return MainUtil.deepCopyOf(matrix);
+        return MatrixUtils.deepCopy(matrix);
     }
     
     /**
@@ -508,7 +509,7 @@ public class GameBoard implements Cloneable {
      *                                  dimensions do not match the current board.
      */
     public void setBoard(char[][] letterGrid) {
-        MainUtil.validateMatrix(letterGrid, rows, cols);
+        ValidationUtils.validate(letterGrid, rows, cols);
         // Reset flags
         for (int r = 0; r < rows; r++) {
             rowPopulated[r] = false;
@@ -522,7 +523,7 @@ public class GameBoard implements Cloneable {
             }
             for (int c = 0; c < cols; c++) {
                 char letter = letterGrid[r][c];
-                boolean valid = MainUtil.isLetter(letter);
+                boolean valid = ValidationUtils.isLetter(letter);
                 hasLetter[r][c] = valid;
                 matrix[r][c] = valid ? letter : DefaultTileSet.BLANK_TILE;
                 if (valid) {
@@ -938,6 +939,45 @@ public class GameBoard implements Cloneable {
      *         if any precondition fails or if placement is disallowed.
      */
     public boolean placeWord(String word, int row, int col, boolean horizontal) {
+        return placeWord(word, row, col, horizontal, -1);
+    }
+    
+    /**
+     * Attempts to place an entire word on the board starting at the specified
+     * position and extending in the given direction.
+     * 
+     * <p>
+     * This method performs a fail-fast check to ensure that the word will fit
+     * within the board's boundaries. For each letter in the word, it checks
+     * whether:
+     * <ul>
+     *   <li>The target cell is within bounds.</li>
+     *   <li>If a letter already exists in that cell and is permanent (i.e. not a
+     *       new letter), it must match the corresponding character in the word.</li>
+     *   <li>If the cell is empty, it counts towards the number of new placements
+     *       required.</li>
+     * </ul>
+     * 
+     * After the pre-check, the method verifies that adding the required new
+     * letters would not exceed the maximum allowed new placements (defined by
+     * {@code MAX_NEW_TILES}). If all preconditions are met, each letter is
+     * placed using {@link #placeLetterAt(char, int, int)}, updating the board
+     * state accordingly.
+     * </p>
+     *
+     * @param word the word to be placed on the board.
+     * @param row  the starting row index (zero-based) for the first letter of
+     *             the word.
+     * @param col  the starting column index (zero-based) for the first letter of
+     *             the word.
+     * @param horizontal    if {@code true}, the word is placed left-to-right; if
+     *                      {@code false}, it is placed top-to-bottom.
+     * @param wildCardIndex The index of the wildcard within the word. Use -1 if none.
+     * 
+     * @return {@code true} if the word was successfully placed; {@code false}
+     *         if any precondition fails or if placement is disallowed.
+     */
+    public boolean placeWord(String word, int row, int col, boolean horizontal, int wildCardIndex) {
         int len = word.length();
         // Check if the word goes out of bounds.
         if (horizontal) {
@@ -988,6 +1028,11 @@ public class GameBoard implements Cloneable {
                     return false;
                 }
             }
+            
+            if (i == wildCardIndex) {
+                setWildCardPosition(row, col);
+            }
+            
             // Use placeLetterAt to handle the placement and state updates.
             boolean placed = placeLetterAt(word.charAt(i), r, c);
             if (!placed) {
@@ -1004,7 +1049,6 @@ public class GameBoard implements Cloneable {
         } else {
             return true;
         }
-        
     }
     
     /**
@@ -1166,9 +1210,9 @@ public class GameBoard implements Cloneable {
     @Override
     public GameBoard clone() throws CloneNotSupportedException {
         GameBoard cloned    = (GameBoard) super.clone();
-        cloned.matrix       = MainUtil.deepCopyOf(this.matrix);
-        cloned.newLetter    = MainUtil.deepCopyOf(this.newLetter);
-        cloned.hasLetter    = MainUtil.deepCopyOf(this.hasLetter);
+        cloned.matrix       = MatrixUtils.deepCopy(this.matrix);
+        cloned.newLetter    = MatrixUtils.deepCopy(this.newLetter);
+        cloned.hasLetter    = MatrixUtils.deepCopy(this.hasLetter);
         
         cloned.rowPopulated = Arrays.copyOf(this.rowPopulated, this.rowPopulated.length);
         cloned.colPopulated = Arrays.copyOf(this.colPopulated, this.colPopulated.length);

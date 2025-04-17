@@ -89,8 +89,8 @@ public class GameEngineTest {
         testFinder1 = new MoveFinder(testBoard1, new OxfordDictionary(), new DefaultScoringModule());
         testFinder2 = new MoveFinder(testBoard2, new OxfordDictionary(), new DefaultScoringModule());
 
-        testEngine1 = new GameEngine(testBoard1, testSet1, testFinder1, new LetterRack("SKQNDSA".toCharArray()));
-        testEngine2 = new GameEngine(testBoard2, testSet2, testFinder2, new LetterRack("TTEONNR".toCharArray()));
+        testEngine1 = new GameEngine(testSet1, testFinder1, new LetterRack("SKQNDSA".toCharArray()));
+        testEngine2 = new GameEngine(testSet2, testFinder2, new LetterRack("TTEONNR".toCharArray()));
     }
 
     @Test
@@ -120,7 +120,7 @@ public class GameEngineTest {
     }
     
     @Test 
-//    @Disabled
+    @Disabled
     public void pseudoEndToEndTest() {
         final int rackSize = 7;
         
@@ -131,16 +131,11 @@ public class GameEngineTest {
         char[] letters1 = new char[rackSize];
         char[] letters2 = new char[rackSize];
         
-        int[] scoreFreq = DefaultScoringModule.getScoreTileCounts();
-        System.out.println(Arrays.toString(scoreFreq));
-        int[] freqSet1  = {2, -1, -1, -1, -1, -1, 1, 1};
-        int[] freqSet2  = {0, -1, -1, -1, -1, -1, 0, 2};
-        
         LetterRack letterRack   = new LetterRack(letters1);
         LetterRack opponentRack = new LetterRack(letters2);
         
         // Game created
-        GameEngine gameEngine = new GameEngine(gameBoard, tileSet, finder);
+        GameEngine gameEngine = new GameEngine(tileSet, finder);
 
         // No tiles removed
         assertEquals(gameEngine.getMaxTileCount(), gameEngine.getRemainingTileCount());

@@ -1,5 +1,6 @@
 package com.slinky.wordcheat.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +80,7 @@ public class GameEngine {
         this.movesCalculated = false;
 
         // Remove letters that are already on the board from the tile set.
-        removeBoardLettersFromTileSet(false);
+        removeNewBoardLettersFromTileSet(false);
     }
     
     public GameEngine(TileSet tileSet, MoveFinder wordFinder) {
@@ -91,7 +92,7 @@ public class GameEngine {
         this.movesCalculated = false;
 
         // Remove letters that are already on the board from the tile set.
-        removeBoardLettersFromTileSet(false);
+        removeNewBoardLettersFromTileSet(false);
     }
 
     // ===========================[ Accessor Methods ]=========================== \\
@@ -304,8 +305,21 @@ public class GameEngine {
      * @throws Error if the word suggestion cannot be placed on the board
      */
     public void acceptMove(Move move) {
+        int wcIndex = -1;
+        if (letterRack.hasWildcard()) {
+            String rack = letterRack.toString();
+            String word = move.word();
+            
+            char[] wordLetters = word.toCharArray();
+            for (int i = 0; i < wordLetters.length; i++) {
+                if (rack.contains(wordLetters[i] + "")) {
+                    wordLetters[i] = 0;
+                }
+            }
+        }
+        
         boolean placed = board.placeWord(
-                move.word(), move.row(), move.col(), !move.verticallyPlaced()
+                move.word(), move.row(), move.col(), !move.verticallyPlaced(), wcIndex
         );
 
         if (!placed) {
@@ -315,7 +329,7 @@ public class GameEngine {
             throw new Error("Critical error: could not place move " + move);
         }
 
-        removeBoardLettersFromTileSet(true);
+        removeNewBoardLettersFromTileSet(true);
         removeNewBoardLettersFromRack();
         
         board.preserve(); // Finalise the move on the board.
@@ -334,6 +348,66 @@ public class GameEngine {
         tileSet.reset();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder outp   = new StringBuilder();
+        final String newLine = System.lineSeparator();
+        
+        final String cellTemplate    = "|%c";
+        final String tileSetTemplate = "%c (%2d) ";
+        
+        char letter = 'A';
+        for (int r = 0; r < board.getRows(); r++) {
+            for (int c = 0; c < board.getCols(); c++) {
+                outp.append(cellTemplate.formatted(board.getLetterAt(r, c)));
+            }
+            outp.append("|");
+
+            if (r < 13) {
+                outp.append("\t    ");
+                outp.append(tileSetTemplate.formatted(letter, tileSet.getRemainingTileCount(letter)));
+                letter++;
+                outp.append(tileSetTemplate.formatted(letter, tileSet.getRemainingTileCount(letter)));
+                letter++;
+            }
+
+            outp.append(newLine);
+        }
+        
+        outp.append(newLine);
+        for (Character character : letterRack) {
+            outp.append(cellTemplate.formatted(character));
+        }
+        
+        return outp.append("|").toString();
+    }
+    
+    /**
+     * Returns the index in the target word where the letter was not found in
+     * the rack and had to be substituted with a wildcard ('?').
+     *
+     * @param rack the array of available letters, possibly containing a
+     *             wildcard ('?').
+     * @param word the target word to test against the rack.
+     * @return the index in the word that corresponds to the wildcard usage.
+     * @throws IllegalArgumentException if no mismatch is found or multiple
+     *                                  mismatches exist.
+     */
+    public int getWildcardIndex(char[] rack, char[] word) {
+        var rackLetters = toList(rack);
+        var wordLetters = toList(word);
+        
+        int mismatchIndex = -1;
+        for (int i = 0; i < word.length; i++) {
+            char letter = wordLetters.get(i);
+            if (rackLetters.contains(letter)) {
+                rackLetters.remove(letter);
+            }
+        }
+        
+        return mismatchIndex;
+    }
+    
     // ============================[ Helper Methods ]============================ \\
     /**
      * Removes letters present on the board from the {@code TileSet}.
@@ -347,7 +421,7 @@ public class GameEngine {
      * @param newLetters if {@code true}, only newly added letters are removed;
      *                   if {@code false}, all letters on the board are removed
      */
-    private void removeBoardLettersFromTileSet(boolean newLetters) {
+    private void removeNewBoardLettersFromTileSet(boolean newLetters) {
         for (int row = 0; row < board.getRows(); row++) {
             if (!board.rowHasLetters(row)) continue;
 
@@ -375,7 +449,6 @@ public class GameEngine {
 
             for (int col = 0; col < board.getCols(); col++) {
                 if (!board.colHasLetters(col)) continue;
-
 
                 if (board.isNewLetter(row, col)) {
                     char letter = board.getLetterAt(row, col);
@@ -409,6 +482,15 @@ public class GameEngine {
                 throw new IllegalStateException("Not enough '%c' tiles available".formatted(entry.getKey()));
             }
         }
+    }
+    
+    private List<Character> toList(char[] arr) {
+        List<Character> list = new ArrayList<>(arr.length);
+        for (char c : arr) {
+            list.add(c);
+        }
+        
+        return list;
     }
 
 }

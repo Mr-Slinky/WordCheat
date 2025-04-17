@@ -1,7 +1,9 @@
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\language\OxfordDictionary.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\view\TileView.java
+C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\util\BoardUtils.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\view\layouts\RackLayout.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\language\Dictionary.java
+C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\util\MatrixUtils.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\LetterMatrix.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\language\WordGenerator.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\TileSet.java
@@ -12,7 +14,6 @@ C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\w
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\GameBoard.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\TileBonus.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\MoveFinder.java
-C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\util\MainUtil.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\GameEngine.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\persistence\FilePrep.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\view\CellType.java
@@ -23,6 +24,8 @@ C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\w
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\persistence\Persistence.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\view\layouts\SetLayout.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\model\DefaultTileSet.java
+C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\util\ValidationUtils.java
+C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\util\PermutationUtils.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\view\layouts\WWFLayout.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\com\slinky\wordcheat\GameController.java
 C:\Users\Kheagen\Documents\NetBeansProjects\WordCheat\src\main\java\module-info.java

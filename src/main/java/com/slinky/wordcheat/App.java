@@ -37,7 +37,7 @@ public class App extends Application {
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  4
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  5
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  6
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  7
+            {' ', ' ', ' ', 'M', 'Y', 'N', 'A', 'S', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  7
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  8
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  9
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, // 10
@@ -47,12 +47,18 @@ public class App extends Application {
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}  // 14
         });
         
-        var tileSet    = new DefaultTileSet();
-        var scoreMod   = new DefaultScoringModule();
-        var moveFinder = new MoveFinder(gameMatrix, new OxfordDictionary(), scoreMod);
+        var tileSet     = new DefaultTileSet();
+        var scoreMod    = new DefaultScoringModule();
+        var moveFinder  = new MoveFinder(gameMatrix, new OxfordDictionary(), scoreMod);
         
-        GameEngine game1 = new GameEngine(tileSet, moveFinder);
-        game1.addLettersToRack("".toCharArray());
+        GameEngine game = new GameEngine(tileSet, moveFinder);
+        game.addLettersToRack("ITREPI?".toCharArray());
+        
+        System.out.println(game);
+        System.out.format("\n%s\n\n", game.getBestMove());
+        game.acceptMove(game.getBestMove());
+        
+        System.out.println(game);
         
         System.exit(0);
         launch();

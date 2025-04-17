@@ -78,8 +78,7 @@ public class MoveFinder {
         this.board       = Objects.requireNonNull(gameBoard,     "GameMatrix cannot be null");
         this.dictionary  = Objects.requireNonNull(dictionary,    "Dictionary cannot be null");
         this.scoreModule = Objects.requireNonNull(scoringModule, "ScoreModule cannot be null");
-
-        wordGen = new WordGenerator(this.dictionary, 2, 15);
+        this.wordGen     = new WordGenerator(this.dictionary, 2, 15);
     }
     // ===========================[ Accessor Methods ]=========================== \\
     /**

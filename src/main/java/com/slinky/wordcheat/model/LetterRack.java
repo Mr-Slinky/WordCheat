@@ -1,7 +1,7 @@
 package com.slinky.wordcheat.model;
 
 import static com.slinky.wordcheat.model.TileSet.WILDCARD;
-import com.slinky.wordcheat.util.MainUtil;
+import com.slinky.wordcheat.util.ValidationUtils;
 import java.util.Comparator;
 import java.util.Iterator;
 
@@ -110,7 +110,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
         }
         
         letter = Character.toUpperCase(letter);
-        if (!(MainUtil.isLetter(letter) || letter == WILDCARD)) {
+        if (!(ValidationUtils.isLetter(letter) || letter == WILDCARD)) {
             throw new IllegalArgumentException("Invalid character: " + letter);
         }
         

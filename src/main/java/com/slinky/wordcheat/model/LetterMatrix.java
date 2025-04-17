@@ -1,6 +1,7 @@
 package com.slinky.wordcheat.model;
 
-import com.slinky.wordcheat.util.MainUtil;
+import com.slinky.wordcheat.util.MatrixUtils;
+import com.slinky.wordcheat.util.ValidationUtils;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -37,7 +38,7 @@ public class LetterMatrix implements Iterable<Character> {
      *                   grid.
      */
     public LetterMatrix(char[][] letterGrid) {
-        MainUtil.validateMatrix(letterGrid);
+        ValidationUtils.validate(letterGrid);
         this.rows = letterGrid.length;
         this.cols = letterGrid[0].length;
         
@@ -130,7 +131,7 @@ public class LetterMatrix implements Iterable<Character> {
      */
     @Override
     public String toString() {
-        return MainUtil.matrixToString(matrix);
+        return MatrixUtils.toString(matrix);
     }
 
     /**
