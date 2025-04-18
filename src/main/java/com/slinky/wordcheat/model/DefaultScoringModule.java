@@ -77,10 +77,6 @@ public class DefaultScoringModule implements ScoringModule {
     private TileBonus[][] bonusTiles;
 
     // =============================[ Constructors ]============================= \\
-    public DefaultScoringModule(TileBonus[][] bonusTiles) {
-        this.bonusTiles = bonusTiles == null ? getClassicBonusLayout() : bonusTiles;
-    }
-
     public DefaultScoringModule() {
         this.bonusTiles = getClassicBonusLayout();
     }

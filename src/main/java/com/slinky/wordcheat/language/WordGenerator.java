@@ -1,5 +1,6 @@
 package com.slinky.wordcheat.language;
 
+import com.slinky.wordcheat.model.TileSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -23,11 +24,6 @@ import java.util.Set;
  * @version 1.0
  */
 public class WordGenerator {
-
-    /**
-     * Represents the wildcard character that can stand in for any letter.
-     */
-    private static final char WILDCARD = '?';
 
     // ================================[ Fields ]================================ \\
     /**
@@ -122,12 +118,12 @@ public class WordGenerator {
 
         for (int i = 0; i < letters.length; i++) {
             // For non-wildcard letters, skip duplicate letters on the same recursion level.
-            if (letters[i] != WILDCARD && i > 0 && letters[i] == letters[i - 1] && !used[i - 1]) {
+            if (letters[i] != TileSet.WILDCARD && i > 0 && letters[i] == letters[i - 1] && !used[i - 1]) {
                 continue;
             }
 
             if (!used[i]) {
-                if (letters[i] == WILDCARD) {
+                if (letters[i] == TileSet.WILDCARD) {
                     // For a wildcard, try every letter from A to Z.
                     for (char sub = 'A'; sub <= 'Z'; sub++) {
                         currentWord.append(sub);

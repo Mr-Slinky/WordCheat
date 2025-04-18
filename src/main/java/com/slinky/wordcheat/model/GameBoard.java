@@ -1,6 +1,5 @@
 package com.slinky.wordcheat.model;
 
-import com.slinky.wordcheat.language.Dictionary;
 import com.slinky.wordcheat.util.MatrixUtils;
 import com.slinky.wordcheat.util.ValidationUtils;
 import java.util.ArrayList;
@@ -1133,39 +1132,6 @@ public class GameBoard implements Cloneable {
     }
 
     /**
-     * Checks whether all horizontal and vertical words on the board are valid
-     * according to the provided dictionary.
-     * 
-     * <p>
-     * The method extracts all words from the board using {@link #getWords()}
-     * and then verifies each word against the dictionary. The dictionary is
-     * expected to have a {@code search(String word)} method which returns a
-     * value &lt; 0 if the word is not found.
-     * </p>
-     *
-     * @param dictionary a {@code OxfordDictionary} instance used to validate words;
-     *                   must not be null.
-     * @return {@code true} if all extracted words are valid; {@code false} if
-     *         at least one word is invalid.
-     * @throws IllegalArgumentException if the provided dictionary is
-     *                                  {@code null}.
-     */
-    public boolean areAllWordsValid(Dictionary dictionary) {
-        if (dictionary == null) {
-            throw new IllegalArgumentException("Dictionary cannot be null");
-        }
-
-        List<String> words = getWords();
-        for (String word : words) {
-            if (dictionary.search(word) < 0) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-
-    /**
      * Creates and returns a deep copy of the current {@code GameBoard}
      * instance.
      * 
@@ -1196,42 +1162,6 @@ public class GameBoard implements Cloneable {
         cloned.lastNewLetterCol  = this.lastNewLetterCol;
 
         return cloned;
-    }
-
-    /**
-     * Serializes the permanent state of the board into a JSON-formatted string.
-     * 
-     * <p>
-     * This method constructs a JSON object containing the board's character
-     * matrix. Cells that contain new letters are represented by the blank tile
-     * ({@link DefaultTileSet#BLANK_TILE}), thereby preserving only the permanent
-     * board state. The resulting JSON string is structured with a single key
-     * "matrix" mapping to a two-dimensional array of string values.
-     * </p>
-     *
-     * @return a JSON representation of the board's permanent state.
-     */
-    public String toJson() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"matrix\": [");
-        for (int r = 0; r < rows; r++) {
-            sb.append("[");
-            for (int c = 0; c < cols; c++) {
-                char ch = (newLetter[r][c]) ? DefaultTileSet.BLANK_TILE : matrix[r][c];
-                sb.append("\"").append(ch).append("\"");
-                if (c < cols - 1) {
-                    sb.append(",");
-                }
-            }
-            
-            sb.append("]");
-            if (r < rows - 1) {
-                sb.append(",");
-            }
-        }
-        
-        sb.append("]}");
-        return sb.toString();
     }
 
     /**

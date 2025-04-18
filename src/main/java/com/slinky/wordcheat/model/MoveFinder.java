@@ -2,539 +2,296 @@ package com.slinky.wordcheat.model;
 
 import com.slinky.wordcheat.language.Dictionary;
 import com.slinky.wordcheat.language.WordGenerator;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * The {@code WordFinder} class is the central component responsible for
- * identifying and generating a list of possible word suggestions that may be
- * played on a game board given a set of available letters.
- *
+ * Generates valid Scrabble move suggestions based on the current board state
+ * and an array of available letters.
+ * 
  * <p>
- * This class leverages a provided dictionary to confirm the validity of words
- * and a word generator to produce candidate words from a given letter rack. It
- * performs exhaustive searches for both horizontal and vertical word
- * placements, and additionally examines anchor positions where words may
- * connect with pre-existing letters on the board.
+ * <code>MoveFinder</code> uses a {@link Dictionary} to verify word validity
+ * and a {@link WordGenerator} to enumerate candidate words. It supports both
+ * straight placements and anchor-based extensions in horizontal or vertical
+ * orientation. Generated moves are scored via a {@link ScoringModule} and
+ * returned in descending order of score.
  * </p>
  *
- * <p>
- * This class uses a brute force approach with many micro-optimisations aimed at
- * reducing the search space and amount of computations performed, such as
- * binary searches, row and column skipping
- * </p>
- *
- * @author Kheagen Haskins
+ * @see GameBoard
+ * @see ScoringModule
+ * @see Dictionary
+ * @see WordGenerator
  */
 public class MoveFinder {
 
-    // ================================[ Fields ]================================ \\
-    /**
-     * The game board representing the current state of the board including
-     * placed letters.
-     */
-    private final GameBoard board;
-
-    /**
-     * The scoring module used to calculate the score for word placements.
-     */
+    private final GameBoard     board;
     private final ScoringModule scoreModule;
+    private final Dictionary    dictionary;
+    private final WordGenerator wordGen;
 
     /**
-     * The dictionary used to validate words.
-     */
-    private Dictionary dictionary;
-
-    /**
-     * The word generator used to produce candidate words from the available
-     * letters.
-     */
-    private WordGenerator wordGen;
-
-    // =============================[ Constructors ]============================= \\
-    /**
-     * Constructs a new {@code WordFinder} with the specified game board,
-     * dictionary and scoring module.
+     * Constructs a MoveFinder for the specified board, dictionary, and scoring
+     * rules.
      *
-     * <p>
-     * The constructor initialises the {@code WordFinder} with the given
-     * parameters and creates an instance of the word generator, restricting
-     * candidate word lengths to between 2 and 15 characters.
-     * </p>
-     *
-     * @param gameBoard     the game board representing the current state of the
-     *                      board; must not be {@code null}.
-     * @param dictionary    the dictionary used for validating words; must not be
-     *                      {@code null}.
-     * @param scoringModule the scoring module for computing the score of word
-     *                      placements; must not be {@code null}.
-     * @throws NullPointerException if any of the provided parameters are
-     *                              {@code null}.
+     * @param gameBoard     the game board; must not be null
+     * @param dictionary    the dictionary for validating words; must not be null
+     * @param scoringModule the scoring module to compute move scores; must not
+     *                      be null
+     * @throws NullPointerException if any argument is null
      */
-    public MoveFinder(GameBoard gameBoard, Dictionary dictionary, ScoringModule scoringModule) {
-        this.board       = Objects.requireNonNull(gameBoard,     "GameMatrix cannot be null");
+    public MoveFinder(GameBoard gameBoard,
+                      Dictionary dictionary,
+                      ScoringModule scoringModule) {
+        this.board       = Objects.requireNonNull(gameBoard,     "GameBoard cannot be null");
         this.dictionary  = Objects.requireNonNull(dictionary,    "Dictionary cannot be null");
-        this.scoreModule = Objects.requireNonNull(scoringModule, "ScoreModule cannot be null");
-        this.wordGen     = new WordGenerator(this.dictionary, 2, 15);
+        this.scoreModule = Objects.requireNonNull(scoringModule, "ScoringModule cannot be null");
+        int maxDim = Math.max(gameBoard.getCols(), gameBoard.getRows());
+        this.wordGen     = new WordGenerator(this.dictionary, 2, maxDim);
     }
+
     // ===========================[ Accessor Methods ]=========================== \\
     /**
-     * Retrieves a direct copy of the of game board.
-     * 
-     * @return a direct copy of the of game board.
+     * Returns the underlying game board instance.
+     *
+     * @return the {@link GameBoard} in use
      */
-    GameBoard getBoard() {
+    public GameBoard getBoard() {
         return board;
     }
-    
-    
+
     // =============================[ API Methods ]============================== \\
     /**
-     * Retrieves a comprehensive list of word suggestions based on the available
-     * letters provided by the letter rack.
-     *
+     * Generates and scores all valid moves for the given rack letters.
      * <p>
-     * This method performs an exhaustive search across the game board,
-     * analysing possible horizontal and vertical placements as well as anchor
-     * positions where new words can connect with existing letters. It combines
-     * candidate words generated from the letter rack with potential placements
-     * on the board, validating each word using the provided dictionary and
-     * calculating its score with the scoring module.
+     * Considers both linear placements and anchor-based extensions in
+     * horizontal and vertical orientations. Results are sorted descending by score.
      * </p>
      *
-     * @param rack the {@code LetterRack} containing the available letters for
-     *             generating candidate words.
-     * @return a {@code List} of {@code Suggestion} objects representing valid
-     *         word placements along with their scores.
+     * @param rackLetters the array of available letters; must not be null
+     * @return a sorted list of valid {@link Move} instances (highest score first)
+     * @throws NullPointerException if {@code rackLetters} is null
      */
-    public List<Move> getMoves(LetterRack rack) {
-        return exhaustiveFind(rack);
+    public List<Move> getMoves(char[] rackLetters) {
+        Objects.requireNonNull(rackLetters, "rackLetters cannot be null");
+        List<Move> suggestions = new ArrayList<>();
+        for (String word : wordGen.generateAllWords(rackLetters)) {
+            suggestions.addAll(linearPlacements(word, true));   // horizontal
+            suggestions.addAll(linearPlacements(word, false));  // vertical
+        }
+        suggestions.addAll(anchorPlacements(rackLetters, true));
+        suggestions.addAll(anchorPlacements(rackLetters, false));
+        Collections.sort(suggestions);
+        return suggestions;
     }
 
     /**
-     * Finds the best first move when the board is empty using a seven-letter
-     * rack. It generates all moves from the rack (without filtering by word
-     * length) and tests each move so that it intersects cell (7, 7). The move
-     * with the highest score is returned.
+     * Determines the best opening move when the board is empty.
+     * <p>
+     * Places each candidate word so it crosses the central cell, validates
+     * board crossings, scores them, and returns the top move.
+     * </p>
      *
-     * @param rack the LetterRack containing the available seven letters.
-     * @return the best Move that intersects cell (7, 7), or {@code null} if no
-     *         valid move is found.
-     * @throws IllegalStateException if the board is not empty.
+     * @param rackLetters an array of seven letters for the first move; must not
+     *                    be null
+     * @return the highest-scoring {@link Move} intersecting center, or null if
+     *         none found
+     * @throws NullPointerException if {@code rackLetters} is null
+     * @throws IllegalStateException if the board is not empty
      */
-    public Move getFirstMove(LetterRack rack) {
-        // Ensure the board is empty before attempting a first move.
+    public Move getFirstMove(char[] rackLetters) {
+        Objects.requireNonNull(rackLetters, "rackLetters cannot be null");
         if (!board.isEmpty()) {
             throw new IllegalStateException("Board must be empty for the first move.");
         }
-
-        // Generate all candidate words from the seven-letter rack.
-        List<String> candidateWords = wordGen.generateAllWords(rack.getLetters());
-        if (candidateWords == null || candidateWords.isEmpty()) {
+        List<String> candidateWords = wordGen.generateAllWords(rackLetters);
+        if (candidateWords.isEmpty()) {
             return null;
         }
 
         List<Move> validMoves = new ArrayList<>();
-        // Define the centre cell coordinates (row 7, column 7).
-        final int centreRow = 7;
-        final int centreCol = 7;
+        int centre            = board.getCols() / 2;
 
-        // Try horizontal placements.
-        // For a horizontal placement, the word is placed on row 7 and must extend across column 7.
         for (String word : candidateWords) {
-            // The starting column is chosen so that the placement covers the centre column.
-            int startCmin = Math.max(0, centreCol - word.length() + 1);
-            int startCmax = Math.min(centreCol, board.getCols() - word.length());
-            for (int c = startCmin; c <= startCmax; c++) {
-                // Verify that column 7 lies within the word's span.
-                if (c <= centreCol && (c + word.length() > centreCol)) {
-                    if (board.placeWord(word, centreRow, c, true)) { // 'true' indicates horizontal placement.
-                        if (board.areAllWordsValid(dictionary)) {
-                            int score = scoreModule.calculateScore(board);
-                            if (score > 0) {
-                                validMoves.add(new Move(word, score, centreRow, c, false));
-                            }
-                        }
-                    }
-                    
-                    board.reset();
+            int len = word.length();
+            int minC = Math.max(0, centre - len + 1);
+            int maxC = Math.min(centre, board.getCols() - len);
+            // horizontal
+            for (int c = minC; c <= maxC; c++) {
+                if (board.placeWord(word, centre, c, true) && areAllWordsValid()) {
+                    int score = scoreModule.calculateScore(board);
+                    if (score > 0) validMoves.add(new Move(word, score, centre, c, false));
                 }
+                board.reset();
+            }
+            // vertical
+            int minR = Math.max(0, centre - len + 1);
+            int maxR = Math.min(centre, board.getRows() - len);
+            for (int r = minR; r <= maxR; r++) {
+                if (board.placeWord(word, r, centre, false) && areAllWordsValid()) {
+                    int score = scoreModule.calculateScore(board);
+                    if (score > 0) validMoves.add(new Move(word, score, r, centre, true));
+                }
+                board.reset();
             }
         }
 
-        // Try vertical placements.
-        // For a vertical placement, the word is placed in column 7 and must span row 7.
-        for (String word : candidateWords) {
-            // The starting row is chosen so that the placement covers the centre row.
-            int startRmin = Math.max(0, centreRow - word.length() + 1);
-            int startRmax = Math.min(centreRow, board.getRows() - word.length());
-            for (int r = startRmin; r <= startRmax; r++) {
-                // Verify that row 7 lies within the word's span.
-                if (r <= centreRow && (r + word.length() > centreRow)) {
-                    if (board.placeWord(word, r, centreCol, false)) { // 'false' indicates vertical placement.
-                        if (board.areAllWordsValid(dictionary)) {
-                            int score = scoreModule.calculateScore(board);
-                            if (score > 0) {
-                                validMoves.add(new Move(word, score, r, centreCol, true));
-                            }
-                        }
-                    }
-                    
-                    board.reset();
-                }
-            }
-        }
-
-        // If no valid move could be found, return null.
         if (validMoves.isEmpty()) {
             return null;
         }
-
-        // Choose and return the move with the highest score.
-        Move bestMove = validMoves.get(0);
-        for (Move m : validMoves) {
-            if (m.score() > bestMove.score()) {
-                bestMove = m;
-            }
-        }
         
-        return bestMove;
+        Collections.sort(validMoves);
+        return validMoves.get(0);
     }
 
-
-    
     // ============================[ Helper Methods ]============================ \\
     /**
-     * Performs an exhaustive search for valid word placements based on the
-     * available letters.
-     *
-     * @param rack the {@code LetterRack} containing the available letters.
-     * @return a {@code List} of {@code Suggestion} objects representing all
-     *         valid word placements found.
+     * Performs straight-line (horizontal/vertical) placements of a single word.
      */
-    private List<Move> exhaustiveFind(LetterRack rack) {
-        List<Move> suggestions = new ArrayList<>();
-        var words = wordGen.generateAllWords(rack.getLetters());
-        // Strategy one: try all placements for each candidate word.
-        for (String word : words) {
-            suggestions.addAll(horizontalPlacements(word));
-            suggestions.addAll(verticalPlacements(word));
-        }
+    private List<Move> linearPlacements(String word, boolean horizontal) {
+        List<Move> moves = new ArrayList<>();
+        int pLimit       = horizontal ? board.getRows() : board.getCols();
+        int sLimit       = horizontal ? board.getCols() : board.getRows();
 
-        suggestions.addAll(verticalAnchorFind(rack));
-        suggestions.addAll(horizontalAnchorFind(rack));
-        
-        Collections.sort(suggestions);
-        
-        return suggestions;
-    }
+        for (int p = 0; p < pLimit; p++) {
+            boolean hasLine = horizontal ? board.rowHasLetters(p) : board.colHasLetters(p);
+            boolean hasBefore = p > 0 && (horizontal
+                                     ? board.rowHasLetters(p - 1)
+                                     : board.colHasLetters(p - 1));
+            boolean hasAfter = p < pLimit - 1 && (horizontal
+                                     ? board.rowHasLetters(p + 1)
+                                     : board.colHasLetters(p + 1));
+            if (!(hasLine || hasBefore || hasAfter)) continue;
 
-    /**
-     * Searches for all valid horizontal placements of the given word on the
-     * game board.
-     *
-     * @param word the candidate word to be placed horizontally.
-     * @return a {@code List} of {@code Suggestion} objects representing valid
-     *         horizontal placements.
-     */
-    private List<Move> horizontalPlacements(String word) {
-        List<Move> suggestions = new ArrayList<>();
-
-        boolean vertical = false; // Horizontal placement
-        int rows         = board.getRows();
-        int cols         = board.getCols();
-        for (int r = 0; r < rows; r++) {
-            boolean has      = board.rowHasLetters(r);
-            boolean hasAbove = r > 0 && board.rowHasLetters(r - 1);
-            boolean hasBelow = r < rows - 1 && board.rowHasLetters(r + 1);
-            if (!(has || hasAbove || hasBelow)) continue;
-
-            for (int c = 0; c <= cols - word.length(); c++) {
-                if (board.placeWord(word, r, c, !vertical)) {
-                    if (board.areAllWordsValid(dictionary)) {
-                        addMove(word, r, c, vertical, suggestions);
-                    }
+            for (int s = 0; s <= sLimit - word.length(); s++) {
+                int row = horizontal ? p : s;
+                int col = horizontal ? s : p;
+                if (board.placeWord(word, row, col, horizontal) && areAllWordsValid()) {
+                    int score = scoreModule.calculateScore(board);
+                    if (score > 0) moves.add(new Move(word, score, row, col, !horizontal));
                 }
-
                 board.reset();
             }
         }
-
-        return suggestions;
+        
+        return moves;
     }
 
     /**
-     * Searches for all valid vertical placements of the given word on the game
-     * board.
-     *
-     * @param word the candidate word to be placed vertically.
-     * @return a {@code List} of {@code Suggestion} objects representing valid
-     *         vertical placements.
+     * Performs anchor-based expansions using existing board letters.
      */
-    private List<Move> verticalPlacements(String word) {
-        List<Move> suggestions = new ArrayList<>();
-        
-        int rows = board.getRows();
-        int cols = board.getCols();
+    private List<Move> anchorPlacements(char[] rackLetters, boolean horizontal) {
+        List<Move> moves = new ArrayList<>();
+        int pLimit       = horizontal ? board.getRows() : board.getCols();
+        int sLimit       = horizontal ? board.getCols() : board.getRows();
 
-        boolean vertical = true; // Indicates vertical placements.
-        for (int c = 0; c < cols; c++) {
-            boolean has      = board.colHasLetters(c);
-            boolean hasLeft  = c > 0 && board.colHasLetters(c - 1);
-            boolean hasRight = c < cols - 1 && board.colHasLetters(c + 1);
-            if (!(has || hasLeft || hasRight)) continue;
-            // For vertical placements, iterate over possible starting rows.
-            for (int r = 0; r <= rows - word.length(); r++) {
-                if (board.placeWord(word, r, c, !vertical) && board.areAllWordsValid(dictionary)) {
-                    addMove(word, r, c, vertical, suggestions);
+        // Iterate over each row (if horizontal) or column (if vertical) that has letters
+        for (int primaryIndex = 0; primaryIndex < pLimit; primaryIndex++) {
+            if (!(horizontal ? board.rowHasLetters(primaryIndex) : board.colHasLetters(primaryIndex))) continue;
+
+            // Scan along the line to find anchor points
+            for (int secondaryIndex = 0; secondaryIndex < sLimit; secondaryIndex++) {
+                // Skip positions directly following an existing letter to avoid duplicate extensions
+                boolean hasLetterBefore = horizontal
+                    ? (secondaryIndex > 0 && board.hasLetterAt(primaryIndex, secondaryIndex - 1))
+                    : (secondaryIndex > 0 && board.hasLetterAt(secondaryIndex - 1, primaryIndex));
+                if (hasLetterBefore) continue;
+
+                // Check for an anchor letter at this position
+                boolean isAnchor = horizontal
+                    ? board.hasLetterAt(primaryIndex, secondaryIndex)
+                    : board.hasLetterAt(secondaryIndex, primaryIndex);
+                if (!isAnchor) continue;
+
+                // Extract the contiguous anchor substring
+                String anchor = extractAnchor(primaryIndex, secondaryIndex, horizontal);
+
+                // Extend the rack letters with anchor letters for candidate generation
+                char[] extendedRack = Arrays.copyOf(rackLetters, rackLetters.length + anchor.length());
+                for (int i = 0; i < anchor.length(); i++) {
+                    extendedRack[rackLetters.length + i] = anchor.charAt(i);
                 }
 
-                board.reset();
+                // Generate candidate words containing the anchor
+                List<String> candidates = wordGen.generateAllWords(extendedRack).stream()
+                    .filter(w -> w.contains(anchor) && !w.equalsIgnoreCase(anchor))
+                    .collect(Collectors.toList());
+
+                // Test each candidate for valid placement
+                for (String cand : candidates) {
+                    testAndAdd(cand, anchor, primaryIndex, secondaryIndex, horizontal, moves);
+                }
             }
-        }
-
-        return suggestions;
-    }
-
-    /**
-     * Adds a new word suggestion to the list of suggestions and updates the
-     * highest scoring word if necessary.
-     *
-     * @param word        the word to be added as a suggestion.
-     * @param row         the starting row index (zero-based) for the word placement.
-     * @param col         the starting column index (zero-based) for the word placement.
-     * @param vertical    {@code true} if the word is placed vertically,
-     *                    {@code false} if horizontally.
-     * @param suggestions the list of suggestions to which the new suggestion
-     *                    will be added.
-     */
-    private void addMove(String word, int row, int col, boolean vertical, List<Move> suggestions) {
-        int score = scoreModule.calculateScore(board);
-        if (score <= 0) {
-            return;
         }
         
-        var sug = new Move(word, score, row, col, vertical);
-        suggestions.add(sug);
+        return moves;
     }
 
     /**
-     * Searches for valid horizontal word placements by analysing anchor
-     * positions on the game board.
-     *
-     * @param rack the {@code LetterRack} containing the available letters.
-     * @return a {@code List} of {@code Suggestion} objects representing valid
-     *         horizontal placements found via anchors.
+     * Extracts the contiguous anchor substring from the board starting at the
+     * given line and position.
      */
-    private List<Move> horizontalAnchorFind(LetterRack rack) {
-        List<Move> suggestions = new ArrayList<>();
-
-        for (int r = 0; r < board.getRows(); r++) {
-            // Skip empty rows.
-            if (!board.rowHasLetters(r)) {
-                continue;
-            }
-
-            for (int c = 0; c < board.getCols(); c++) {
-                // Skip empty columns.
-                if (!board.colHasLetters(c)) {
-                    continue;
-                }
-                // If a letter exists to the left, this prefix has already been explored.
-                if (c > 0 && board.hasLetterAt(r, c - 1)) {
-                    continue;
-                }
-
-                if (board.hasLetterAt(r, c)) {
-                    String substring = horizontalSubstringFrom(r, c);
-                    rack.addLetters(substring);
-                    var candidates = wordGen.generateAllWords(rack.getLetters())
-                            .stream()
-                            .parallel()
-                            .filter(word -> word.contains(substring) && !word.equalsIgnoreCase(substring))
-                            .collect(Collectors.toList());
-                    for (String candidate : candidates) {
-                        testAndAddHorizontalCandidate(candidate, substring, r, c, suggestions);
-                    }
-
-                    rack.remove(substring.length());
-                }
-            }
+    private String extractAnchor(int lineIndex, int startIndex, boolean horizontal) {
+        StringBuilder sb = new StringBuilder();
+        int limit        = horizontal ? board.getCols() : board.getRows();
+        // Walk along the line until a blank cell is encountered
+        for (int offset = startIndex; offset < limit; offset++) {
+            boolean hasLetter = horizontal
+                ? board.hasLetterAt(lineIndex, offset)
+                : board.hasLetterAt(offset, lineIndex);
+            if (!hasLetter) break;
+            // Append the letter at the current position
+            char ch = horizontal
+                ? board.getLetterAt(lineIndex, offset)
+                : board.getLetterAt(offset, lineIndex);
+            sb.append(ch);
         }
-
-        return suggestions;
+        
+        return sb.toString();
     }
 
     /**
-     * Tests a horizontal candidate word for validity and adds it as a
-     * suggestion if appropriate.
-     *
-     * @param word        the candidate word to be tested.
-     * @param substring   the substring extracted from the board that must be
-     *                    contained in the candidate word.
-     * @param row         the row index of the anchor cell.
-     * @param col         the column index of the anchor cell.
-     * @param suggestions the list of suggestions to which a valid candidate
-     *                    will be added.
+     * Tests a candidate word containing an anchor and adds valid moves to the list.
      */
-    private void testAndAddHorizontalCandidate(String word, String substring, int row, int col, List<Move> suggestions) {
-        int substringStart = word.indexOf(substring);
-        int c = col - substringStart;
+    private void testAndAdd(String word,
+                            String anchor,
+                            int lineIndex,
+                            int anchorPos,
+                            boolean horizontal,
+                            List<Move> out) {
+        // Determine how far back to place the word so that the anchor aligns
+        int anchorStart = word.indexOf(anchor);
+        int row = horizontal ? lineIndex : anchorPos - anchorStart;
+        int col = horizontal ? anchorPos - anchorStart : lineIndex;
+        // Skip invalid starting positions
+        if (row < 0 || col < 0) return;
 
-        // Test if the word can fit within the board boundaries.
-        if (c < 0) {
-            return;
-        } else if (c + word.length() > board.getCols()) {
-            return;
+        // Validate that the word fits within board boundaries
+        boolean fits = horizontal
+            ? col + word.length() <= board.getCols()
+            : row + word.length() <= board.getRows();
+        if (!fits) return;
+
+        // Attempt to place the word and verify validity
+        if (board.placeWord(word, row, col, horizontal) && areAllWordsValid()) {
+            int score = scoreModule.calculateScore(board);
+            if (score > 0) out.add(new Move(word, score, row, col, !horizontal));
         }
-
-        if (board.placeWord(word, row, c, true)) {
-            if (board.areAllWordsValid(dictionary)) {
-                addMove(word, row, c, false, suggestions);
-            }
-        }
-
+        // Reset the board to its previous state
         board.reset();
     }
-
+    
     /**
-     * Extracts a horizontal substring starting from the specified cell on the
-     * board.
+     * Checks that every word on the board exists in the dictionary.
      *
-     * @param row the row index (zero-based) from which to begin extraction.
-     * @param col the column index (zero-based) from which to begin extraction.
-     * @return the contiguous horizontal substring starting at the specified
-     *         cell.
+     * @return true if all board-extracted words are valid; false otherwise
      */
-    private String horizontalSubstringFrom(int row, int col) {
-        StringBuilder prefix = new StringBuilder();
-
-        int r = row;
-        int c = col;
-        while (board.hasLetterAt(r, c)) {
-            prefix.append(board.getLetterAt(r, c++));
-            if (c == board.getCols()) {
-                return prefix.toString();
+    private boolean areAllWordsValid() {
+        for (String w : board.getWords()) {
+            if (dictionary.search(w) < 0) {
+                return false;
             }
         }
-
-        return prefix.toString();
+        
+        return true;
     }
-
-    /**
-     * Searches for valid vertical word placements by analysing anchor positions
-     * on the game board.
-     *
-     * @param rack the {@code LetterRack} containing the available letters.
-     * @return a {@code List} of {@code Suggestion} objects representing valid
-     *         vertical placements found via anchors.
-     */
-    private List<Move> verticalAnchorFind(LetterRack rack) {
-        List<Move> suggestions = new ArrayList<>();
-
-        int rows = board.getRows();
-        int cols = board.getCols();
-
-        for (int c = 0; c < cols; c++) {
-            // Skip columns that are completely empty.
-            if (!board.colHasLetters(c)) {
-                continue;
-            }
-
-            for (int r = 0; r < rows; r++) {
-                // Skip rows that are empty in this column.
-                if (!board.rowHasLetters(r)) {
-                    continue;
-                }
-                // If there is a letter above, the vertical prefix has already been explored.
-                if (r > 0 && board.hasLetterAt(r - 1, c)) {
-                    continue;
-                }
-
-                    if (board.hasLetterAt(r, c)) {
-                    String substring = verticalSubstringFrom(r, c);
-                    rack.addLetters(substring);
-                    var candidates = wordGen.generateAllWords(rack.getLetters())
-                            .stream()
-                            .parallel()
-                            .filter(word -> word.contains(substring) && !word.equalsIgnoreCase(substring))
-                            .collect(Collectors.toList());
-                    for (String candidate : candidates) {
-                        testAndAddVerticalCandidate(candidate, substring, r, c, suggestions);
-                    }
-
-                    rack.remove(substring.length());
-                }
-            }
-        }
-
-        return suggestions;
-    }
-
-    /**
-     * Tests a vertical candidate word for validity and adds it as a suggestion
-     * if appropriate.
-     *
-     * <p>
-     * The method adjusts the starting row based on the location of the provided
-     * substring within the candidate word. It then verifies that the candidate
-     * word fits vertically on the board and that the placement is valid
-     * according to the dictionary. If the candidate word passes these checks, a
-     * new suggestion is added.
-     * </p>
-     *
-     * @param word        the candidate word to test.
-     * @param substring   the vertical substring extracted from the board that
-     *                    must be contained in the candidate word.
-     * @param row         the row index of the anchor cell.
-     * @param col         the column index of the anchor cell.
-     * @param suggestions the list of suggestions to which a valid candidate
-     *                    will be added.
-     */
-    private void testAndAddVerticalCandidate(String word, String substring, int row, int col, List<Move> suggestions) {
-        int substringStart = word.indexOf(substring);
-        // Adjust the starting row based on the substring's position.
-        int r = row - substringStart;
-
-        if (word.equalsIgnoreCase("mojito")) {
-            System.out.println("");
-        }
-
-        // Check if the word fits vertically.
-        if (r < 0 || r + word.length() > board.getRows()) {
-            return;
-        }
-
-        // Attempt to place the word vertically (horizontal flag set to false).
-        if (board.placeWord(word, r, col, false)) {
-            if (board.areAllWordsValid(dictionary)) {
-                addMove(word, r, col, true, suggestions);
-            }
-        }
-
-        board.reset();
-    }
-
-    /**
-     * Extracts a contiguous vertical substring starting from the specified cell
-     * on the board.
-     *
-     * @param row the row index (zero-based) from which to begin extraction.
-     * @param col the column index (zero-based) from which to begin extraction.
-     * @return the contiguous vertical substring starting at the specified cell.
-     */
-    private String verticalSubstringFrom(int row, int col) {
-        StringBuilder prefix = new StringBuilder();
-        int r = row;
-        while (r < board.getRows() && board.hasLetterAt(r, col)) {
-            prefix.append(board.getLetterAt(r, col));
-            r++;
-        }
-
-        return prefix.toString();
-    }
-
 }

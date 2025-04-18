@@ -131,7 +131,7 @@ public class GameEngine {
             return moves;
         }
         
-        moves = moveFinder.getMoves(letterRack);
+        moves = moveFinder.getMoves(letterRack.getLetters());
 
         movesCalculated = true;
         return moves;
@@ -149,7 +149,7 @@ public class GameEngine {
      */
     public Move getBestMove() {
         if (board.isEmpty()) {
-            return moveFinder.getFirstMove(letterRack);
+            return moveFinder.getFirstMove(letterRack.getLetters());
         }
 
         return getAllMoves().get(0);
