@@ -40,36 +40,6 @@ public class DefaultScoringModule implements ScoringModule {
     };
     
     /**
-     * Retrieves the point value for the specified uppercase letter using the
-     * internal scoring array.
-     *
-     * <p>
-     * This method maps characters from 'A' to 'Z' to their corresponding point
-     * values based on the game's scoring rules. Each letter's score is defined
-     * in a static array where the index 0 corresponds to 'A', index 1 to 'B',
-     * and so on up to 'Z'.
-     * </p>
-     *
-     * @param c the uppercase character ('A'–'Z') for which to retrieve the
-     *          point value.
-     * @return the point value associated with the specified letter.
-     * @throws IllegalArgumentException if the character is not in the range
-     *                                  'A'–'Z'.
-     */
-    public static int getPointsOf(char c) {
-        if (c == TileSet.WILDCARD) {
-            return 0;
-        }
-        
-        if (c < 'A' || c > 'Z') {
-            throw new IllegalArgumentException("Invalid character: " + c);
-        }
-
-        int index = c - 'A';
-        return POINTS[index];
-    }
-    
-    /**
      * Returns the frequency distribution of tiles based on their assigned score
      * values.
      *
@@ -182,6 +152,37 @@ public class DefaultScoringModule implements ScoringModule {
         
         int score = scoreRows(board) + scoreColumns(board);
         return score + (newTileCount == GameBoard.MAX_NEW_TILES ? BINGO : 0);
+    }
+    
+    /**
+     * Retrieves the point value for the specified uppercase letter using the
+     * internal scoring array.
+     *
+     * <p>
+     * This method maps characters from 'A' to 'Z' to their corresponding point
+     * values based on the game's scoring rules. Each letter's score is defined
+     * in a static array where the index 0 corresponds to 'A', index 1 to 'B',
+     * and so on up to 'Z'.
+     * </p>
+     *
+     * @param c the uppercase character ('A'–'Z') for which to retrieve the
+     *          point value.
+     * @return the point value associated with the specified letter.
+     * @throws IllegalArgumentException if the character is not in the range
+     *                                  'A'–'Z'.
+     */
+    @Override
+    public int getPointsOf(char c) {
+        if (c == TileSet.WILDCARD) {
+            return 0;
+        }
+        
+        if (c < 'A' || c > 'Z') {
+            throw new IllegalArgumentException("Invalid character: " + c);
+        }
+
+        int index = c - 'A';
+        return POINTS[index];
     }
 
     // ============================[ Helper Methods ]============================ \\

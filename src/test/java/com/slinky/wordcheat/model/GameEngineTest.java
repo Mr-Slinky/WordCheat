@@ -119,45 +119,24 @@ public class GameEngineTest {
         assertTrue(testEngine1.getRemainingTileCount() < testEngine1.getMaxTileCount());
     }
     
-    @Test 
-    @Disabled
-    public void pseudoEndToEndTest() {
-        final int rackSize = 7;
-        
-        GameBoard  gameBoard = new GameBoard(new char[15][15]);
-        TileSet    tileSet   = new DefaultTileSet();
-        MoveFinder finder    = new MoveFinder(gameBoard, new OxfordDictionary(), new DefaultScoringModule());
-        
-        char[] letters1 = new char[rackSize];
-        char[] letters2 = new char[rackSize];
-        
-        LetterRack letterRack   = new LetterRack(letters1);
-        LetterRack opponentRack = new LetterRack(letters2);
-        
-        // Game created
-        GameEngine gameEngine = new GameEngine(tileSet, finder);
-
-        // No tiles removed
-        assertEquals(gameEngine.getMaxTileCount(), gameEngine.getRemainingTileCount());
-        
-        var rack = letterRack;
-        while (gameEngine.getRemainingTileCount() > 0) {
-            gameEngine.setLetterRack(rack);
-            gameEngine.acceptMove(gameEngine.getBestMove());
-            
-            // DEBUG REMOVE
-            System.out.println(gameBoard);
-            System.out.println(tileSet.getRemainingTileCount());
-            int size = rack.getSize();
-            assertTrue(size <= 6);
-            
-            for (int i = 0; i < rackSize - size; i++) {
-                rack.addLetter(tileSet.drawRandomTile());
-            }
-            
-            rack = (rack == letterRack) ? opponentRack : letterRack;
-        }
-        
-    }
-    
 }
+//        // Create tile pool of equal points to extract from
+//        int[] scoreCounts = new int[8];
+//        for (char c = 'A'; c <= 'Z'; c++) {
+//            int points = scoreMod.getPointsOf(c);
+//            switch (points) {
+//                case 1, 2, 3, 4, 5:
+//                    scoreCounts[points] += tileSet.getTileMaxCount(c);
+//                    break;
+//                case 8:
+//                    scoreCounts[6] += tileSet.getTileMaxCount(c);
+//                    break;
+//                case 10:
+//                    scoreCounts[7] += tileSet.getTileMaxCount(c);
+//                    break;
+//                default:
+//                    throw new RuntimeException("Unknow point value %d for %c".formatted(points, c));
+//            }
+//        }
+//        
+//        System.out.println(Arrays.toString(scoreCounts));

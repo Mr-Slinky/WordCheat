@@ -1,7 +1,7 @@
 package com.slinky.wordcheat.model;
 
 /**
- * Functional interface for scoring modules.
+ * Interface for scoring modules.
  * 
  * <p>
  * This interface allows different scoring strategies to be swapped in or even
@@ -11,7 +11,6 @@ package com.slinky.wordcheat.model;
  *
  * @see Board
  */
-@FunctionalInterface
 public interface ScoringModule {
     
     /**
@@ -26,5 +25,22 @@ public interface ScoringModule {
      * @return the total score based on the board's current state.
      */
     int calculateScore(GameBoard board);
+    
+    /**
+     * Retrieves the point value for the specified letter using the internal
+     * scoring array.
+     *
+     * <p>
+     * This method maps characters from 'A' to 'Z' to their corresponding point
+     * values based on the game's scoring rules. 
+     * </p>
+     *
+     * @param c the uppercase character ('A'–'Z') for which to retrieve the
+     *          point value.
+     * @return the point value associated with the specified letter.
+     * @throws IllegalArgumentException if the character is not in the range
+     *                                  'A'–'Z'.
+     */
+    int getPointsOf(char c);
     
 }

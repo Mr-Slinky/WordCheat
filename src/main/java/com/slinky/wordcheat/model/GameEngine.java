@@ -1,6 +1,5 @@
 package com.slinky.wordcheat.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,23 +63,23 @@ public class GameEngine {
      * @param board      the game board; must not be {@code null}
      * @param tileSet    the tile set containing the available letter tiles; must
      *                   not be {@code null}
-     * @param wordFinder the word finder used to generate word suggestions; must
+     * @param moveFinder the word finder used to generate word suggestions; must
      *                   not be {@code null}
      * @param letters    the initial letters for the letter rack; may be empty but
      *                   must not be {@code null}
      * @throws NullPointerException if {@code board}, {@code tileSet} or
      *                              {@code wordFinder} is {@code null}
      */
-    public GameEngine(TileSet tileSet, MoveFinder wordFinder, LetterRack letterRack) {
+    public GameEngine(TileSet tileSet, MoveFinder moveFinder, LetterRack letterRack) {
         this.tileSet    = Objects.requireNonNull(tileSet,               "TileSet cannot be null");
-        this.moveFinder = Objects.requireNonNull(wordFinder,            "WordFinder cannot be null");
+        this.moveFinder = Objects.requireNonNull(moveFinder,            "WordFinder cannot be null");
         this.letterRack = Objects.requireNonNull(letterRack,            "LetterRack cannot be null");
-        this.board      = Objects.requireNonNull(wordFinder.getBoard(), "GameBoard cannot be null");
+        this.board      = Objects.requireNonNull(moveFinder.getBoard(), "GameBoard cannot be null");
 
         this.movesCalculated = false;
 
         // Remove letters that are already on the board from the tile set.
-        removeNewBoardLettersFromTileSet(false);
+        removeBoardLettersFromTileSet(false);
     }
     
     public GameEngine(TileSet tileSet, MoveFinder wordFinder) {
@@ -92,7 +91,7 @@ public class GameEngine {
         this.movesCalculated = false;
 
         // Remove letters that are already on the board from the tile set.
-        removeNewBoardLettersFromTileSet(false);
+        removeBoardLettersFromTileSet(false);
     }
 
     // ===========================[ Accessor Methods ]=========================== \\
@@ -305,35 +304,61 @@ public class GameEngine {
      * @throws Error if the word suggestion cannot be placed on the board
      */
     public void acceptMove(Move move) {
-        int wcIndex = -1;
-        if (letterRack.hasWildcard()) {
-            String rack = letterRack.toString();
-            String word = move.word();
-            
-            char[] wordLetters = word.toCharArray();
-            for (int i = 0; i < wordLetters.length; i++) {
-                if (rack.contains(wordLetters[i] + "")) {
-                    wordLetters[i] = 0;
-                }
-            }
-        }
-        
         boolean placed = board.placeWord(
-                move.word(), move.row(), move.col(), !move.verticallyPlaced(), wcIndex
+                move.word(), move.row(), move.col(), !move.verticallyPlaced()
         );
 
         if (!placed) {
             // Suggestions should only be generated if they are valid; 
             // a failure here indicates an error in the suggestion generation 
             // logic.
-            throw new Error("Critical error: could not place move " + move);
+            throw new IllegalStateException("Critical error: could not place move " + move);
         }
 
-        removeNewBoardLettersFromTileSet(true);
-        removeNewBoardLettersFromRack();
-        
-        board.preserve(); // Finalise the move on the board.
+        // Remove letters from the rack and handle any wildcards
+        for (int row = 0; row < board.getRows(); row++) {
+            if (!board.rowHasLetters(row)) continue;
+
+            for (int col = 0; col < board.getCols(); col++) {
+                if (!board.colHasLetters(col)) continue;
+
+                if (board.isNewLetter(row, col)) {
+                    char letter        = board.getLetterAt(row, col);
+                    boolean isWildCard = false;
+                    boolean removed    = letterRack.removeLetter(letter) || (isWildCard = letterRack.removeLetter(TileSet.WILDCARD));
+                    if (!removed) {
+                        throw new IllegalStateException(
+                                "Could not remove %c from LetterRack. Does not seem to be a Wildcard"
+                                .formatted(letter)
+                        );
+                    }
+                    
+                    if (isWildCard) {
+                        board.setWildCardPosition(row, col);
+                    }
+                }
+            }
+        }
+
+        removeBoardLettersFromTileSet(true);
+        board.preserve(); // Finalise the move on the board. Must be called last
         movesCalculated = false;
+    }
+    
+    /**
+     * Delegate Method
+     */
+    public void setWildCardPosition(int row, int col) {
+        board.setWildCardPosition(row, col);
+        tileSet.addLetter(board.getLetterAt(row, col));
+        tileSet.removeLetter(TileSet.WILDCARD);
+    }
+    
+    /**
+    * Delegate Method
+    */
+    public void setWildCardPosition(int row, int col, int index) {
+        board.setWildCardPosition(row, col, index);
     }
 
     /**
@@ -354,7 +379,7 @@ public class GameEngine {
         final String newLine = System.lineSeparator();
         
         final String cellTemplate    = "|%c";
-        final String tileSetTemplate = "%c (%2d) ";
+        final String tileSetTemplate = "%c (%2d)\t";
         
         char letter = 'A';
         for (int r = 0; r < board.getRows(); r++) {
@@ -369,43 +394,23 @@ public class GameEngine {
                 letter++;
                 outp.append(tileSetTemplate.formatted(letter, tileSet.getRemainingTileCount(letter)));
                 letter++;
+            } else if (r == 14) {
+                outp.append("\t    ");
+                outp.append("Wildcards left: %d".formatted(tileSet.getRemainingWildcardCount()));
             }
 
             outp.append(newLine);
         }
         
         outp.append(newLine);
-        for (Character character : letterRack) {
-            outp.append(cellTemplate.formatted(character));
-        }
-        
-        return outp.append("|").toString();
-    }
-    
-    /**
-     * Returns the index in the target word where the letter was not found in
-     * the rack and had to be substituted with a wildcard ('?').
-     *
-     * @param rack the array of available letters, possibly containing a
-     *             wildcard ('?').
-     * @param word the target word to test against the rack.
-     * @return the index in the word that corresponds to the wildcard usage.
-     * @throws IllegalArgumentException if no mismatch is found or multiple
-     *                                  mismatches exist.
-     */
-    public int getWildcardIndex(char[] rack, char[] word) {
-        var rackLetters = toList(rack);
-        var wordLetters = toList(word);
-        
-        int mismatchIndex = -1;
-        for (int i = 0; i < word.length; i++) {
-            char letter = wordLetters.get(i);
-            if (rackLetters.contains(letter)) {
-                rackLetters.remove(letter);
+        if (!letterRack.isEmpty()) {
+            for (Character character : letterRack) {
+                outp.append(cellTemplate.formatted(character));
             }
+            outp.append("|");
         }
-        
-        return mismatchIndex;
+
+        return outp.toString();
     }
     
     // ============================[ Helper Methods ]============================ \\
@@ -421,7 +426,7 @@ public class GameEngine {
      * @param newLetters if {@code true}, only newly added letters are removed;
      *                   if {@code false}, all letters on the board are removed
      */
-    private void removeNewBoardLettersFromTileSet(boolean newLetters) {
+    private void removeBoardLettersFromTileSet(boolean newLetters) {
         for (int row = 0; row < board.getRows(); row++) {
             if (!board.rowHasLetters(row)) continue;
 
@@ -435,24 +440,6 @@ public class GameEngine {
                 if (shouldRemove) {
                     char letter = board.getLetterAt(row, col);
                     tileSet.removeLetter(board.isWildCard(row, col) ? TileSet.WILDCARD : letter);
-                }
-            }
-        }
-    }
-    
-    /**
-     * Removes newly placed letters from the rack
-     */
-    private void removeNewBoardLettersFromRack() {
-        for (int row = 0; row < board.getRows(); row++) {
-            if (!board.rowHasLetters(row)) continue;
-
-            for (int col = 0; col < board.getCols(); col++) {
-                if (!board.colHasLetters(col)) continue;
-
-                if (board.isNewLetter(row, col)) {
-                    char letter = board.getLetterAt(row, col);
-                    letterRack.removeLetter(board.isWildCard(row, col) ? TileSet.WILDCARD : letter);
                 }
             }
         }
@@ -484,13 +471,4 @@ public class GameEngine {
         }
     }
     
-    private List<Character> toList(char[] arr) {
-        List<Character> list = new ArrayList<>(arr.length);
-        for (char c : arr) {
-            list.add(c);
-        }
-        
-        return list;
-    }
-
 }

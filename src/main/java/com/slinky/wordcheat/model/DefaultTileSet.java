@@ -378,7 +378,7 @@ public final class DefaultTileSet implements TileSet {
      * @throws IllegalArgumentException if the letter is not in the range A-Z.
      */
     @Override
-    public int getLetterTileCount(char letter) {
+    public int getTileMaxCount(char letter) {
         letter    = validateLetter(letter);
         int index = letter - 'A';
         

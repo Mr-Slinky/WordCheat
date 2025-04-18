@@ -173,7 +173,7 @@ public class GameBoard implements Cloneable {
      * The largest row index that has received a new letter.
      * 
      * <p>
-     * Initialized to {@code -1} and updated upon placement of new letters.
+     * Initialised to {@code -1} and updated upon placement of new letters.
      * </p>
      */
     private int lastNewLetterRow = -1;
@@ -540,6 +540,7 @@ public class GameBoard implements Cloneable {
      * @param col 
      */
     public void setWildCardPosition(int row, int col) {
+        validateBounds(row, col);
         if (wildCardCount >= wildCardLimit) {
             throw new WildcardLimitReachedException(
                     "Cannot place wildcard at %d, %d; GameBoard already has %d wildcards"
@@ -547,8 +548,21 @@ public class GameBoard implements Cloneable {
             );
         }
         
-        wildCardPositions[wildCardCount][0] = row;
-        wildCardPositions[wildCardCount][1] = col;
+        setWildCardPosition(row, col, wildCardCount);
+    }
+    
+    /**
+     * 
+     * @param row
+     * @param col 
+     */
+    public void setWildCardPosition(int row, int col, int index) {
+        if (index < 0 || index > wildCardLimit) {
+            throw new IllegalArgumentException("Index %d out of bounds for %d".formatted(index));
+        }
+        
+        wildCardPositions[index][0] = row;
+        wildCardPositions[index][1] = col;
     }
 
     /**
@@ -933,51 +947,12 @@ public class GameBoard implements Cloneable {
      *             the word.
      * @param col  the starting column index (zero-based) for the first letter of
      *             the word.
-     * @param horizontal if {@code true}, the word is placed left-to-right; if
-     *                   {@code false}, it is placed top-to-bottom.
+     * @param horizontal    if {@code true}, the word is placed left-to-right; if
+     *                      {@code false}, it is placed top-to-bottom.
      * @return {@code true} if the word was successfully placed; {@code false}
      *         if any precondition fails or if placement is disallowed.
      */
     public boolean placeWord(String word, int row, int col, boolean horizontal) {
-        return placeWord(word, row, col, horizontal, -1);
-    }
-    
-    /**
-     * Attempts to place an entire word on the board starting at the specified
-     * position and extending in the given direction.
-     * 
-     * <p>
-     * This method performs a fail-fast check to ensure that the word will fit
-     * within the board's boundaries. For each letter in the word, it checks
-     * whether:
-     * <ul>
-     *   <li>The target cell is within bounds.</li>
-     *   <li>If a letter already exists in that cell and is permanent (i.e. not a
-     *       new letter), it must match the corresponding character in the word.</li>
-     *   <li>If the cell is empty, it counts towards the number of new placements
-     *       required.</li>
-     * </ul>
-     * 
-     * After the pre-check, the method verifies that adding the required new
-     * letters would not exceed the maximum allowed new placements (defined by
-     * {@code MAX_NEW_TILES}). If all preconditions are met, each letter is
-     * placed using {@link #placeLetterAt(char, int, int)}, updating the board
-     * state accordingly.
-     * </p>
-     *
-     * @param word the word to be placed on the board.
-     * @param row  the starting row index (zero-based) for the first letter of
-     *             the word.
-     * @param col  the starting column index (zero-based) for the first letter of
-     *             the word.
-     * @param horizontal    if {@code true}, the word is placed left-to-right; if
-     *                      {@code false}, it is placed top-to-bottom.
-     * @param wildCardIndex The index of the wildcard within the word. Use -1 if none.
-     * 
-     * @return {@code true} if the word was successfully placed; {@code false}
-     *         if any precondition fails or if placement is disallowed.
-     */
-    public boolean placeWord(String word, int row, int col, boolean horizontal, int wildCardIndex) {
         int len = word.length();
         // Check if the word goes out of bounds.
         if (horizontal) {
@@ -1027,10 +1002,6 @@ public class GameBoard implements Cloneable {
                     reset();
                     return false;
                 }
-            }
-            
-            if (i == wildCardIndex) {
-                setWildCardPosition(row, col);
             }
             
             // Use placeLetterAt to handle the placement and state updates.

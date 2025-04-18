@@ -148,7 +148,7 @@ public interface TileSet {
      * @return the maximum number of tiles available for the specified letter.
      * @throws IllegalArgumentException if the letter is not in the range A-Z.
      */
-    public int getLetterTileCount(char letter);
+    public int getTileMaxCount(char letter);
     
     public static class InvalidTileRemovalException extends IllegalStateException {
         

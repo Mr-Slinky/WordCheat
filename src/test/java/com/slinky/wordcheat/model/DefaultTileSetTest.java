@@ -1,6 +1,5 @@
 package com.slinky.wordcheat.model;
 
-import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -298,20 +297,8 @@ public class DefaultTileSetTest {
     @DisplayName("Test getLetterTileCount(char) for letters A–Z")
     void testGetLetterTileCount(char letter, int expectedLimit) {
         DefaultTileSet tileSet = new DefaultTileSet();
-        assertEquals(expectedLimit, tileSet.getLetterTileCount(letter),
+        assertEquals(expectedLimit, tileSet.getTileMaxCount(letter),
                 "Maximum available tile count for " + letter + " should be " + expectedLimit);
     }
     
-    @Test
-    @Disabled
-    void experiment1() {
-        DefaultTileSet tileSet = new DefaultTileSet();
-        int[] scoreFrequencies = DefaultScoringModule.getScoreFrequencies();
-        
-        for (int i = 0; i < scoreFrequencies.length; i++) {
-            int freq = scoreFrequencies[i];
-            int score = i < 6 ? i : (i == 6 ? 8 : 10);
-            System.out.println("%dx: %d".formatted(score, freq));
-        }
-    }
 }

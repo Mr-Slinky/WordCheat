@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.slinky.wordcheat.model.LetterRackTest
 -------------------------------------------------------------------------------
-Tests run: 152, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.140 s -- in com.slinky.wordcheat.model.LetterRackTest
+Tests run: 152, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.134 s -- in com.slinky.wordcheat.model.LetterRackTest
