@@ -20,8 +20,8 @@
 *.rar
 
 # directories
-/target/
-/nbproject/
+target/
+nbproject/
 
 #Files
 nbactions.xml

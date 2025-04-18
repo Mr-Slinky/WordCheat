@@ -1,8 +1,5 @@
 package com.slinky.wordcheat.util;
 
-import com.slinky.wordcheat.model.GameBoard;
-import com.slinky.wordcheat.model.TileBonus;
-
 /**
  * Utility class for operations on a GameBoard and related bonus matrices.
  *
@@ -17,76 +14,54 @@ public final class BoardUtils {
     private BoardUtils() { }
 
     /**
-     * Finds the exclusive or inclusive column bound of a contiguous letter
-     * sequence on a {@link GameBoard} row, starting from an anchor cell.
+     * Sets a value at the specified (row, col) in a 2D matrix
+     * and mirrors it across all four quadrants for symmetry.
      *
      * <p>
-     * If {@code toRight} is true, searches rightwards until an empty cell or
-     * the board edge is reached, returning the first empty column index
-     * (exclusive). Otherwise searches leftwards until the edge or empty cell,
-     * returning the first occupied column index (inclusive) for the sequence
-     * start.
+     * The element at (row, col) will also be placed at:
+     * <ul>
+     *   <li>(row,      cols - 1 - col)</li>
+     *   <li>(rows - 1 - row, col)</li>
+     *   <li>(rows - 1 - row, cols - 1 - col)</li>
+     * </ul>
      * </p>
      *
-     * @param board    the game board to inspect; must not be null
-     * @param row      the zero-based row index of the anchor cell
-     * @param col      the zero-based column index of the anchor cell
-     * @param toRight  {@code true} to search rightwards for the word end,
-     *                 {@code false} to search leftwards for the word start
-     * @return the column index where the contiguous letters end (if right)
-     *         or begin (if left); will be within [0, board.getCols()]
-     * @throws IllegalArgumentException if {@code row} or {@code col}
-     *         are outside the board boundaries
+     * @param <T>    the element type of the matrix
+     * @param matrix a non‑null, rectangular 2D array
+     * @param row    zero‑based row index for the primary placement
+     * @param col    zero‑based column index for the primary placement
+     * @param value  the value to assign symmetrically
+     * @throws IllegalArgumentException if matrix is null, non‑rectangular,
+     *                                  or row/col are out of range
      */
-    public static int findColumnBound(GameBoard board, int row, int col, boolean toRight) {
-        int maxCols = board.getCols();
-        if (row < 0 || row >= board.getRows() || col < 0 || col >= maxCols) {
-            throw new IllegalArgumentException(
-                "Row or column index out of bounds: (" + row + ", " + col + ")");
+    public static <T> void setSymmetry(T[][] matrix, int row, int col, T value) {
+        if (matrix == null || matrix.length == 0
+         || matrix[0] == null || matrix[0].length == 0) {
+            throw new IllegalArgumentException("Matrix must be non‑null and non‑empty");
         }
 
-        int bound = col;
-        if (toRight) {
-            while (bound < maxCols && board.hasLetterAt(row, bound)) {
-                bound++;
-            }
-        } else {
-            while (bound > 0 && board.hasLetterAt(row, bound - 1)) {
-                bound--;
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+        // verify rectangular
+        for (int r = 1; r < rows; r++) {
+            if (matrix[r].length != cols) {
+                throw new IllegalArgumentException("Non‑rectangular matrix");
             }
         }
-        return bound;
-    }
 
-    /**
-     * Sets a {@link TileBonus} at a specified position in a bonus matrix and
-     * mirrors it across all four quadrants for symmetry.
-     *
-     * <p>
-     * The bonus at (row, col) will be duplicated to (row, cols-1-col),
-     * (rows-1-row, col), and (rows-1-row, cols-1-col).
-     * </p>
-     *
-     * @param bonusMatrix the 2D bonus matrix; non-null, rectangular
-     * @param row         the zero-based row index for the primary bonus
-     * @param col         the zero-based column index for the primary bonus
-     * @param type        the TileBonus to assign symmetrically
-     * @throws IllegalArgumentException if indices are out of range
-     */
-    public static void setSymmetry(TileBonus[][] bonusMatrix,
-                                   int row, int col,
-                                   TileBonus type) {
-        int rows = bonusMatrix.length;
-        int cols = bonusMatrix[0].length;
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
             throw new IllegalArgumentException(
                 "Row or column index out of bounds: (" + row + ", " + col + ")");
         }
 
-        bonusMatrix[row][col] = type;
-        bonusMatrix[row][cols - 1 - col] = type;
-        bonusMatrix[rows - 1 - row][col] = type;
-        bonusMatrix[rows - 1 - row][cols - 1 - col] = type;
+        // primary
+        matrix[row][col] = value;
+        // mirror horizontally
+        matrix[row][cols - 1 - col] = value;
+        // mirror vertically
+        matrix[rows - 1 - row][col] = value;
+        // mirror both
+        matrix[rows - 1 - row][cols - 1 - col] = value;
     }
     
 }
