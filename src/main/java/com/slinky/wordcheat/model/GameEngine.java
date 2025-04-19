@@ -25,14 +25,6 @@ import java.util.Objects;
  * valid move (suggestion) to update the game state.
  * </p>
  *
- * <pre>
- * GameEngine engine = new GameEngine(board, tileSet, wordFinder, startingLetters);
- * char[][] currentMatrix = engine.getMatrix(); // deep copy of the board state
- * engine.addLettersToRack(newLetters);         // add letters to the rack
- * List&lt;Suggestion&gt; suggestions = engine.getAllSuggestions(); // get word suggestions
- * engine.acceptSuggestion(suggestion);         // accept a suggestion and update state
- * </pre>
- *
  * @author Kheagen Haskins
  */
 public class GameEngine {

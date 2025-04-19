@@ -1,95 +1,90 @@
 package com.slinky.wordcheat.persistence;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.slinky.wordcheat.model.GameBoard;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import com.slinky.wordcheat.language.Dictionary;
+import com.slinky.wordcheat.language.OxfordDictionary;
+import com.slinky.wordcheat.model.DefaultScoringModule;
+import com.slinky.wordcheat.model.GameEngine;
+import com.slinky.wordcheat.model.ScoringModule;
+
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
- * Handles saving and loading the state of the application.
- *
- * @author Kheagen Haskins
+ * Utility class for saving and loading {@link GameEngine} instances
+ * to/from JSON files in the user’s home directory.
+ * 
+ * <p>
+ * Files are stored under <code>~/.wordcheat/saves/&lt;filename&gt;.json</code>.
+ * Jackson is configured to ignore unknown properties on load and
+ * to pretty‑print on save.
+ * </p>
  */
 public final class Persistence {
 
-    // ================================[ Static ]================================ \\
-    private static final Path ROOT;
-    private static final ObjectMapper mapper = new ObjectMapper();
-    // Dedicated single-thread executor to perform I/O off the main thread.
-    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static final Path SAVE_DIR = Paths.get(
+        System.getProperty("user.home"), ".wordcheat", "saves"
+    );
+
+    private static final ObjectMapper READ_MAPPER = new ObjectMapper()
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+    private static final ObjectMapper WRITE_MAPPER = new ObjectMapper()
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
     static {
-        // Retrieve the %LOCALAPPDATA% environment variable.
-        String localAppData = System.getenv("LOCALAPPDATA");
-        if (localAppData == null) {
-            throw new IllegalStateException("LOCALAPPDATA environment variable not set.");
-        }
-
-        ROOT = Paths.get(localAppData, "WordCheat");
         try {
-            Files.createDirectories(ROOT);
+            Files.createDirectories(SAVE_DIR);
         } catch (IOException e) {
-            throw new RuntimeException("Could not create application directory: " + ROOT, e);
+            throw new UncheckedIOException(
+                "Could not create save directory: " + SAVE_DIR, e
+            );
         }
     }
 
-    // =============================[ Constructors ]============================= \\
-    private Persistence() {} // Prevent instantiation
+    private Persistence() {}
 
-    // ===========================[ API Methods ]============================== \\
     /**
-     * Reads the game board state from a JSON file.
+     * Loads a saved {@link GameEngine} from a JSON file.
      *
-     * @param filename the name of the JSON file in the application's directory.
-     * @return the game board constructed from the JSON data.
-     * @throws IOException if there is an error reading the file.
+     * @param filename the base name of the save file (without “.json”)
+     * @return a reconstructed GameEngine in the same state as when saved
+     * @throws IOException if the file cannot be read or parsed
      */
-    public static GameBoard fromJson(String filename) throws IOException {
-        Path filePath = ROOT.resolve(filename);
-        String json   = Files.readString(filePath);
-        // For this example we assume the game board is stored as a 2D char array.
-        char[][] matrix = mapper.readValue(json, char[][].class);
-        return new GameBoard(matrix);
+    public static GameEngine loadGame(String filename) throws IOException {
+        Path file = SAVE_DIR.resolve(filename + ".json");
+        // Deserialize snapshot
+        GameEngineSnapshot snapshot = READ_MAPPER.readValue(
+            file.toFile(), GameEngineSnapshot.class
+        );
+
+        // Rebuild external dependencies
+        Dictionary dict       = new OxfordDictionary();
+        ScoringModule scoring = new DefaultScoringModule();
+
+        // Reconstruct and return engine
+        return snapshot.toEngine(dict, scoring);
     }
 
     /**
-     * Saves the game board state to a JSON file asynchronously. The write
-     * operation is performed on a dedicated thread to avoid blocking the main
-     * thread.
+     * Saves the current state of a {@link GameEngine} to a JSON file.
      *
-     * @param board the current game board state.
-     * @param filename the target filename for saving the state.
+     * @param engine   the GameEngine to persist
+     * @param filename the base name of the save file (without “.json”)
+     * @throws IOException if the file cannot be written
      */
-    public static void toJsonAsync(GameBoard board, String filename) {
-        executor.submit(() -> {
-            try {
-                // Serialise the game board's state. For this example, assume board.getMatrix() returns a 2D char array.
-                String json   = mapper.writeValueAsString(board.getMatrix());
-                Path filePath = ROOT.resolve(filename);
-                // Create a temporary file in the same directory.
-                Path tempFile = Files.createTempFile(ROOT, "temp", ".json");
-                // Write JSON to the temporary file.
-                Files.writeString(tempFile, json);
-                // Atomically move the temporary file to the target file location.
-                Files.move(tempFile, filePath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                // Handle exceptions (e.g. log the error).
-                e.printStackTrace();
-            }
-        });
+    public static void saveGame(GameEngine engine, String filename) throws IOException {
+        Path file = SAVE_DIR.resolve(filename + ".json");
+        // Create snapshot and write
+        GameEngineSnapshot snapshot = GameEngineSnapshot.fromEngine(engine);
+        WRITE_MAPPER.writeValue(file.toFile(), snapshot);
     }
-
-    // ============================[ Helper Methods ]============================ \\
-    /**
-     * Shuts down the dedicated executor. Call this when the application is
-     * closing.
-     */
-    public static void shutdown() {
-        executor.shutdown();
-    }
+    
 }

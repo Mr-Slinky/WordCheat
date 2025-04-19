@@ -49,19 +49,19 @@ public class App extends Application {
 //            0    1    2    3    4    5    6    7    8    9    10   11   12   13   14
         });
         
-        var mom = new GameBoard(new char[][]{
+        var gameMatrix = new GameBoard(new char[][]{
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  0
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  1
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  2
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  3
             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  4
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'H', 'E', 'W', 'E', 'R'}, //  5
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', 'H', 'E', 'W', 'E', 'R'}, //  5
             {' ', ' ', ' ', ' ', ' ', 'I', ' ', 'U', 'N', 'A', 'I', 'D', 'E', 'D', ' '}, //  6
-            {' ', ' ', ' ', 'M', 'Y', 'N', 'A', 'S', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  7
+            {' ', ' ', ' ', 'M', 'Y', 'N', 'A', 'S', ' ', 'B', ' ', ' ', ' ', ' ', ' '}, //  7
             {' ', ' ', ' ', 'I', ' ', 'T', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  8
-            {' ', ' ', ' ', 'S', ' ', 'R', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  9
-            {' ', ' ', ' ', 'T', ' ', 'E', ' ', ' ', 'Q', 'I', ' ', ' ', ' ', ' ', ' '}, // 10
-            {' ', ' ', ' ', 'H', ' ', 'P', 'L', 'A', 'I', 'D', ' ', ' ', ' ', ' ', ' '}, // 11
+            {' ', ' ', ' ', 'S', ' ', 'R', ' ', ' ', ' ', 'K', 'N', 'E', 'E', 'L', 'S'}, //  9
+            {' ', ' ', ' ', 'T', ' ', 'E', ' ', ' ', 'Q', 'I', ' ', ' ', ' ', ' ', 'Y'}, // 10
+            {' ', ' ', ' ', 'H', ' ', 'P', 'L', 'A', 'I', 'D', ' ', ' ', ' ', ' ', 'N'}, // 11
             {' ', ' ', ' ', 'R', ' ', 'I', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, // 12
             {' ', ' ', ' ', 'O', ' ', 'D', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, // 13
             {' ', ' ', ' ', 'W', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}  // 14
@@ -90,10 +90,10 @@ public class App extends Application {
         
         var tileSet     = new DefaultTileSet();
         var scoreMod    = new DefaultScoringModule();
-        var moveFinder  = new MoveFinder(mom, new OxfordDictionary(), scoreMod);
+        var moveFinder  = new MoveFinder(gameMatrix, new OxfordDictionary(), scoreMod);
         
         GameEngine game = new GameEngine(tileSet, moveFinder);
-        game.addLettersToRack("ANKLEIE".toCharArray());
+        game.addLettersToRack("AIYONAS".toCharArray());
         game.setWildCardPosition( 8, 3); // mom
         game.setWildCardPosition(13, 5); // mom
         
