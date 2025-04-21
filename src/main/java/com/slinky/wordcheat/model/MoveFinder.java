@@ -24,11 +24,13 @@ import java.util.stream.Collectors;
  */
 public class MoveFinder {
 
+    // =============================[ Fields ]============================== \\
     private final GameBoard     board;
     private final ScoringModule scoreModule;
     private final Dictionary    dictionary;
     private final WordGenerator wordGen;
 
+    // ==========================[ Constructors ]=========================== \\
     /**
      * Constructs a MoveFinder for the specified board, dictionary, and scoring
      * rules.

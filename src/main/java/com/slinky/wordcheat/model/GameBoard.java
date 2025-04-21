@@ -294,6 +294,14 @@ public class GameBoard implements Cloneable {
     }
     
     /**
+     * 
+     * @return 
+     */
+    public int[][] getWildCardPositions() {
+        return wildCardPositions;
+    }
+    
+    /**
      * Creates a deep copy of the letter matrix.
      * 
      * @return a deep copy of the letter matrix
@@ -548,6 +556,7 @@ public class GameBoard implements Cloneable {
         }
         
         setWildCardPosition(row, col, wildCardCount);
+        wildCardCount++;
     }
     
     /**

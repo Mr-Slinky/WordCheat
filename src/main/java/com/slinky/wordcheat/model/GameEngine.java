@@ -196,6 +196,14 @@ public class GameEngine {
     public int getWildcardCount() {
         return board.getWildcardCount();
     }
+    
+    /**
+     * 
+     * @return 
+     */
+    public int[][] getWildCardPositions() {
+        return board.getWildCardPositions();
+    }
 
     // ===========================[ Mutator Methods ]============================ \\
     /**
@@ -351,6 +359,8 @@ public class GameEngine {
     */
     public void setWildCardPosition(int row, int col, int index) {
         board.setWildCardPosition(row, col, index);
+        tileSet.addLetter(board.getLetterAt(row, col));
+        tileSet.removeLetter(TileSet.WILDCARD);
     }
 
     /**

@@ -1,11 +1,8 @@
 package com.slinky.wordcheat;
 
-import com.slinky.wordcheat.language.OxfordDictionary;
-import com.slinky.wordcheat.model.DefaultScoringModule;
-import com.slinky.wordcheat.model.DefaultTileSet;
-import com.slinky.wordcheat.model.GameBoard;
 import com.slinky.wordcheat.model.GameEngine;
-import com.slinky.wordcheat.model.MoveFinder;
+import com.slinky.wordcheat.persistence.Persistence;
+import java.io.IOException;
 import javafx.application.Application;
 
 import javafx.stage.Stage;
@@ -29,79 +26,18 @@ public class App extends Application {
     }
 
     public static void main(String[] args) {
-        var gameMatrix1 = new GameBoard(new char[][]{
-//            0    1    2    3    4    5    6    7    8    9    10   11   12   13   14
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  0
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  1
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  2
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  3
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  4
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  5
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'R', ' ', ' ', ' ', ' '}, //  6
-            {' ', ' ', ' ', ' ', ' ', ' ', 'D', 'R', 'I', 'V', 'E', 'R', ' ', ' ', ' '}, //  7
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'G', ' ', ' ', ' ', ' '}, //  8
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'I', ' ', ' ', ' ', ' '}, //  9
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'S', ' ', ' ', ' ', ' '}, // 10
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'T', ' ', ' ', ' ', ' '}, // 11
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'E', ' ', ' ', ' ', ' '}, // 12
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'R', ' ', ' ', ' ', ' '}, // 13
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}  // 14
-//            0    1    2    3    4    5    6    7    8    9    10   11   12   13   14
-        });
+        GameEngine engine = null;
+        try {
+            engine = Persistence.loadGame("mom");
+        } catch (IOException ex) {
+            System.out.println("Error: " + ex.getMessage());
+            System.exit(1);
+        }
         
-        var gameMatrix = new GameBoard(new char[][]{
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  0
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  1
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  2
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  3
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  4
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', 'H', 'E', 'W', 'E', 'R'}, //  5
-            {' ', ' ', ' ', ' ', ' ', 'I', ' ', 'U', 'N', 'A', 'I', 'D', 'E', 'D', ' '}, //  6
-            {' ', ' ', ' ', 'M', 'Y', 'N', 'A', 'S', ' ', 'B', ' ', ' ', ' ', ' ', ' '}, //  7
-            {' ', ' ', ' ', 'I', ' ', 'T', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  8
-            {' ', ' ', ' ', 'S', ' ', 'R', ' ', ' ', ' ', 'K', 'N', 'E', 'E', 'L', 'S'}, //  9
-            {' ', ' ', ' ', 'T', ' ', 'E', ' ', ' ', 'Q', 'I', ' ', ' ', ' ', ' ', 'Y'}, // 10
-            {' ', ' ', ' ', 'H', ' ', 'P', 'L', 'A', 'I', 'D', ' ', ' ', ' ', ' ', 'N'}, // 11
-            {' ', ' ', ' ', 'R', ' ', 'I', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, // 12
-            {' ', ' ', ' ', 'O', ' ', 'D', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, // 13
-            {' ', ' ', ' ', 'W', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}  // 14
-        });
-        
-        var gameMatrix3 = new GameBoard(new char[][]{
-//            0    1    2    3    4    5    6    7    8    9    10   11   12   13   14
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  0
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  1
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  2
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'A', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  3
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'W', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  4
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'A', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  5
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'R', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  6
-            {' ', ' ', ' ', ' ', 'H', 'O', 'M', 'E', 'L', 'A', 'N', 'D', ' ', ' ', ' '}, //  7
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  8
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, //  9
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, // 10
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, // 11
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, // 12
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, // 13
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}  // 14
-//            0    1    2    3    4    5    6    7    8    9    10   11   12   13   14
-        });
-        
-        
-        var tileSet     = new DefaultTileSet();
-        var scoreMod    = new DefaultScoringModule();
-        var moveFinder  = new MoveFinder(gameMatrix, new OxfordDictionary(), scoreMod);
-        
-        GameEngine game = new GameEngine(tileSet, moveFinder);
-        game.addLettersToRack("AIYONAS".toCharArray());
-        game.setWildCardPosition( 8, 3); // mom
-        game.setWildCardPosition(13, 5); // mom
-        
-        System.out.println(game);
-        System.out.format("\n%s\n\n", game.getBestMove());
-        game.acceptMove(game.getBestMove());
-        
-        System.out.println(game);
+        System.out.println(engine);
+        System.out.println(engine.getBestMove());
+        engine.acceptMove(engine.getBestMove());
+        System.out.println(engine);
         
         System.exit(0);
         launch();
