@@ -33,11 +33,12 @@ public class GameEngine {
     private static final int MAX_RACK_SIZE = 7;
 
     // ================================[ Fields ]================================ \\
-    private GameBoard  board;
-    private LetterRack letterRack;
-    private TileSet    tileSet;
-    private MoveFinder moveFinder;
-    private List<Move> moves;
+    private GameBoard     board;
+    private LetterRack    letterRack;
+    private TileSet       tileSet;
+    private MoveFinder    moveFinder;
+    private List<Move>    moves;
+    private ScoringModule scoreMod;
 
     private boolean movesCalculated;
 
@@ -63,11 +64,12 @@ public class GameEngine {
      *                              {@code wordFinder} is {@code null}
      */
     public GameEngine(TileSet tileSet, MoveFinder moveFinder, LetterRack letterRack) {
-        this.tileSet    = Objects.requireNonNull(tileSet,               "TileSet cannot be null");
-        this.moveFinder = Objects.requireNonNull(moveFinder,            "WordFinder cannot be null");
-        this.letterRack = Objects.requireNonNull(letterRack,            "LetterRack cannot be null");
-        this.board      = Objects.requireNonNull(moveFinder.getBoard(), "GameBoard cannot be null");
-
+        this.tileSet    = Objects.requireNonNull(tileSet,       "TileSet cannot be null");
+        this.moveFinder = Objects.requireNonNull(moveFinder, "WordFinder cannot be null");
+        this.letterRack = Objects.requireNonNull(letterRack, "LetterRack cannot be null");
+        this.board      = Objects.requireNonNull(moveFinder.getBoard(),             "GameBoard cannot be null");
+        this.scoreMod   = Objects.requireNonNull(moveFinder.getScoringModule(), "ScoringModule cannot be null");
+        
         this.movesCalculated = false;
 
         // Remove letters that are already on the board from the tile set.
@@ -75,8 +77,8 @@ public class GameEngine {
     }
     
     public GameEngine(TileSet tileSet, MoveFinder wordFinder) {
-        this.tileSet    = Objects.requireNonNull(tileSet,               "TileSet cannot be null");
-        this.moveFinder = Objects.requireNonNull(wordFinder,            "WordFinder cannot be null");
+        this.tileSet    = Objects.requireNonNull(tileSet,       "TileSet cannot be null");
+        this.moveFinder = Objects.requireNonNull(wordFinder, "WordFinder cannot be null");
         this.board      = Objects.requireNonNull(wordFinder.getBoard(), "GameBoard cannot be null");
         this.letterRack = new LetterRack();
 
@@ -204,7 +206,16 @@ public class GameEngine {
     public int[][] getWildCardPositions() {
         return board.getWildCardPositions();
     }
-
+    
+    /**
+     * 
+     * @param letter
+     * @return 
+     */
+    public int getScoreOf(char letter) {
+        return scoreMod.getPointsOf(letter);
+    }
+    
     // ===========================[ Mutator Methods ]============================ \\
     /**
      * Set the letter rack for the game board.
@@ -304,16 +315,7 @@ public class GameEngine {
      * @throws Error if the word suggestion cannot be placed on the board
      */
     public void acceptMove(Move move) {
-        boolean placed = board.placeWord(
-                move.word(), move.row(), move.col(), !move.verticallyPlaced()
-        );
-
-        if (!placed) {
-            // Suggestions should only be generated if they are valid; 
-            // a failure here indicates an error in the suggestion generation 
-            // logic.
-            throw new IllegalStateException("Critical error: could not place move " + move);
-        }
+        placeMove(move);
 
         // Remove letters from the rack and handle any wildcards
         for (int row = 0; row < board.getRows(); row++) {
@@ -343,6 +345,20 @@ public class GameEngine {
         removeBoardLettersFromTileSet(true);
         board.preserve(); // Finalise the move on the board. Must be called last
         movesCalculated = false;
+    }
+    
+    public GameBoard previewMove(Move move) {
+        placeMove(move);
+        
+        GameBoard clone = null;
+        try {
+            clone = board.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        board.reset();
+        return clone;
     }
     
     /**
@@ -470,6 +486,19 @@ public class GameEngine {
             if (tileSet.getRemainingTileCount(entry.getKey()) < entry.getValue()) {
                 throw new IllegalStateException("Not enough '%c' tiles available".formatted(entry.getKey()));
             }
+        }
+    }
+    
+    private void placeMove(Move move) {
+        boolean placed = board.placeWord(
+                move.word(), move.row(), move.col(), !move.verticallyPlaced()
+        );
+
+        if (!placed) {
+            // Suggestions should only be generated if they are valid; 
+            // a failure here indicates an error in the suggestion generation 
+            // logic.
+            throw new IllegalStateException("Critical error: could not place move " + move);
         }
     }
     

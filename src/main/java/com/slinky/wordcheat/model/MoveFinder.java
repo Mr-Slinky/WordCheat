@@ -57,10 +57,14 @@ public class MoveFinder {
      *
      * @return the {@link GameBoard} in use
      */
-    public GameBoard getBoard() {
+    GameBoard getBoard() {
         return board;
     }
 
+    ScoringModule getScoringModule() {
+        return scoreModule;
+    }
+    
     // =============================[ API Methods ]============================== \\
     /**
      * Generates and scores all valid moves for the given rack letters.

@@ -1,4 +1,4 @@
-package com.slinky.wordcheat.persistence;
+package com.slinky.wordcheat.io;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -1,4 +1,4 @@
-package com.slinky.wordcheat.persistence;
+package com.slinky.wordcheat.io;
 
 
 

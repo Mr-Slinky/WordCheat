@@ -7,49 +7,107 @@ import com.slinky.wordcheat.model.DefaultTileSet;
 import com.slinky.wordcheat.model.GameBoard;
 import com.slinky.wordcheat.model.GameEngine;
 import com.slinky.wordcheat.model.MoveFinder;
-import com.slinky.wordcheat.persistence.Persistence;
+import com.slinky.wordcheat.model.TileBonus;
+import com.slinky.wordcheat.io.Persistence;
+import com.slinky.wordcheat.view.BoardView;
 import java.io.IOException;
+import javafx.scene.layout.Pane;
 
 /**
  *
  * @author Kheagen
  */
-public class GameController {
+public final class GameController {
 
     // ================================[ Static ]================================ \\
     
     // ================================[ Fields ]================================ \\
+    private String     filename;
     private GameEngine engine; 
+    private Pane       mainView;
     
     // =============================[ Constructors ]============================= \\
-    public GameController() {
-        GameBoard gameBoard      = new GameBoard(new char[15][15]);
-        MoveFinder moveFinder    = new MoveFinder(
-                                           gameBoard, 
-                                           new OxfordDictionary(), 
-                                           new DefaultScoringModule()
-                                   );
-        engine = new GameEngine(new DefaultTileSet(), moveFinder);
-    } // End of Constructor
-    
-    public GameController(String filename) throws IOException {
-        this.engine = Persistence.loadGame(filename);
+    public GameController(String filename) {
+        this.filename = filename;
+        
+        initEngine();
+        initMainView();
     }
     
     // ===========================[ Accessor Methods ]=========================== \\
+    public String getFilename() {
+        return filename;
+    }
     
-    // ===========================[ Mutator Methods ]============================ \\
+    public Pane getMainView() {
+        return mainView;
+    }
 
     // =============================[ API Methods ]============================== \\
-    public void save(String filename) throws IOException {
+    public void save() throws IOException {
         Persistence.saveGame(engine, filename);
     }
     
-    public void load(String filename) throws IOException {
+    public void load() throws IOException {
         this.engine = Persistence.loadGame(filename);
     }
+    
+    public void printTopFiveMoves() {
+        var moves = engine.getAllMoves();
+        int e = Math.min(5, moves.size());
+        for (int i = 0; i < e; i++) {
+            var topMove = moves.get(i);
+            System.out.println(topMove);
+            System.out.println(engine.previewMove(topMove));
+        }
+    }
+    
     // ============================[ Helper Methods ]============================ \\
+    private GameEngine createNewGame(String filename) {
+        this.filename = filename;
+        GameBoard gameBoard   = new GameBoard(new char[15][15]);
+        MoveFinder moveFinder = new MoveFinder(
+                                        gameBoard,
+                                        new OxfordDictionary(),
+                                        new DefaultScoringModule()
+                                );
 
+        System.out.println("New game created: " + filename); // DEBUG REMOVE
+        return new GameEngine(new DefaultTileSet(), moveFinder);
+    }
+    
     // ============================[ Helper Classes ]============================ \\
-
+    private void initEngine() {
+        try {
+            engine = Persistence.saveExists(filename) ? Persistence.loadGame(filename)
+                                                      : createNewGame(filename);
+        } catch (IOException e) {
+            engine = createNewGame(filename);
+        }
+    }
+    
+    private void initMainView() {
+        char[][] matrix = engine.getMatrix();
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+        // Init scores
+        int[][] scores = new int[rows][cols];
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                scores[r][c] = engine.getScoreOf(matrix[r][c]);
+            }
+        }
+        // Init bonuses
+        var bonusMatrix = DefaultScoringModule.getClassicBonusLayout();
+        String[][] bonuses = new String[rows][cols];
+        for (int r = 0; r < bonusMatrix.length; r++) {
+            TileBonus[] bonusRow  = bonusMatrix[r];
+            for (int c = 0; c < bonusRow.length; c++) {
+                TileBonus bonus = bonusRow[c];
+                bonuses[r][c] = bonus == null ? null : bonus.toString();
+            }
+        }
+        
+        mainView = new BoardView(engine.getMatrix(), scores, bonuses);
+    }
 }

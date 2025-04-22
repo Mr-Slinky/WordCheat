@@ -1,4 +1,4 @@
-package com.slinky.wordcheat.persistence;
+package com.slinky.wordcheat.io;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,11 +51,22 @@ public final class Persistence {
     }
 
     private Persistence() {}
-
+    
+    /**
+     * Checks whether a save file exists for the given name.
+     *
+     * @param filename the base name of the save file (without ".json")
+     * @return {@code true} if ~/.wordcheat/saves/&lt;filename&gt;.json exists
+     */
+    public static boolean saveExists(String filename) {
+        Path file = SAVE_DIR.resolve(filename + ".json");
+        return Files.exists(file);
+    }
+    
     /**
      * Loads a saved {@link GameEngine} from a JSON file.
      *
-     * @param filename the base name of the save file (without “.json”)
+     * @param filename the base name of the save file (without ".json")
      * @return a reconstructed GameEngine in the same state as when saved
      * @throws IOException if the file cannot be read or parsed
      */
@@ -78,7 +89,7 @@ public final class Persistence {
      * Saves the current state of a {@link GameEngine} to a JSON file.
      *
      * @param engine   the GameEngine to persist
-     * @param filename the base name of the save file (without “.json”)
+     * @param filename the base name of the save file (without ".json:")
      * @throws IOException if the file cannot be written
      */
     public static void saveGame(GameEngine engine, String filename) throws IOException {

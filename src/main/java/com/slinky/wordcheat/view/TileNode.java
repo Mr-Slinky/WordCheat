@@ -62,8 +62,10 @@ public final class TileNode extends StackPane {
     private Color wildcardFill   = Color.web("#FFE082");
     private double cornerRadius  = 6;
     private Font   letterFont    = Font.font("Inter", 18);
+    private Font   bonusFont     = Font.font("Inter", 16);
     private Font   scoreFont     = Font.font("Inter", 10);
-
+    private Color  textFill      = Color.BLACK;
+    
     // ==========================[ Constructors ]=========================== \\
     /**
      * Create a tile with the default size.
@@ -160,63 +162,97 @@ public final class TileNode extends StackPane {
      *
      * @param l the letter to display, or ' ' to clear
      */
-    public void setLetter(char l) { this.letter = l; }
+    public void setLetter(char l) {
+        this.letter = l;
+    }
 
     /**
      * Set the score for this tile.
      *
      * @param s the score value
      */
-    public void setScore(int s) { this.score = s; }
+    public void setScore(int s) {
+        this.score = s;
+    }
 
     /**
      * Set the bonus text for this tile when empty.
      *
      * @param b the bonus text, or null to clear
      */
-    public void setBonus(String b) { this.bonus = b; }
+    public void setBonus(String b) {
+        this.bonus = b;
+    }
 
     /**
      * Set this tile as a wildcard or standard.
      *
      * @param w true to mark as wildcard, false otherwise
      */
-    public void setWildcard(boolean w) { this.wildcard = w; }
+    public void setWildcard(boolean w) {
+        this.wildcard = w;
+    }
 
     /**
      * Set the fill colour used for the background when not a wildcard.
      *
      * @param c the background fill colour
      */
-    public void setBackgroundFill(Color c) { this.backgroundFill = c; }
+    public void setBackgroundFill(Color c) {
+        this.backgroundFill = c;
+    }
 
     /**
      * Set the fill colour used for the background when a wildcard.
      *
      * @param c the wildcard fill colour
      */
-    public void setWildcardFill(Color c) { this.wildcardFill = c; }
+    public void setWildcardFill(Color c) {
+        this.wildcardFill = c;
+    }
 
     /**
      * Set the corner radius for the tile background.
      *
      * @param r the corner radius in pixels
      */
-    public void setCornerRadius(double r) { this.cornerRadius = r; }
+    public void setCornerRadius(double r) {
+        this.cornerRadius = r;
+    }
 
     /**
      * Set the font used for the letter and bonus labels.
      *
      * @param f the Font to use
      */
-    public void setLetterFont(Font f) { this.letterFont = f; }
+    public void setLetterFont(Font f) {
+        this.letterFont = f;
+    }
 
     /**
      * Set the font used for the score label.
      *
      * @param f the Font to use
      */
-    public void setScoreFont(Font f) { this.scoreFont = f; }
+    public void setScoreFont(Font f) {
+        this.scoreFont = f;
+    }
+    
+    /**
+     * Set the font used for the bonus label.
+     *
+     * @param f the Font to use
+     */
+    public void setBonusFont(Font f) {
+        this.bonusFont = f;
+    }
+    
+    /**
+     * Set the foreground (text) color for letter, score, and bonus labels.
+     */
+    public void setTextFill(Color c) {
+        this.textFill = c;
+    }
 
     // ==========================[ API Methods ]============================ \\
     /**
@@ -230,8 +266,12 @@ public final class TileNode extends StackPane {
         background.setFill(wildcard ? wildcardFill : backgroundFill);
 
         letterLbl.setFont(letterFont);
-        bonusLbl.setFont(letterFont);
-        scoreLbl.setFont(scoreFont);
+        bonusLbl .setFont(bonusFont);
+        scoreLbl .setFont(scoreFont);
+
+        letterLbl.setTextFill(textFill);
+        bonusLbl .setTextFill(textFill);
+        scoreLbl .setTextFill(textFill);
     }
 
     /**
@@ -243,8 +283,8 @@ public final class TileNode extends StackPane {
         boolean hasLetter = letter != ' ';
 
         letterLbl.setText(hasLetter ? String.valueOf(letter) : "");
-        scoreLbl.setText(hasLetter && !wildcard ? String.valueOf(score) : "");
-        bonusLbl.setText(!hasLetter && bonus != null ? bonus : "");
+        scoreLbl .setText(hasLetter  && !wildcard ? String.valueOf(score) : "");
+        bonusLbl .setText(hasLetter || bonus == null ? "" : bonus);
 
         background.setFill(wildcard ? wildcardFill : backgroundFill);
     }

@@ -174,7 +174,7 @@ public class DefaultScoringModule implements ScoringModule {
         }
         
         if (c < 'A' || c > 'Z') {
-            throw new IllegalArgumentException("Invalid character: " + c);
+            return 0;
         }
 
         int index = c - 'A';
