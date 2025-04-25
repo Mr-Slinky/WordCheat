@@ -1,5 +1,8 @@
 package com.slinky.wordcheat.view;
 
+import static com.slinky.wordcheat.view.FontConstants.BONUS_FONT;
+import static com.slinky.wordcheat.view.FontConstants.SMALL_FONT;
+import static com.slinky.wordcheat.view.FontConstants.TILE_FONT;
 import javafx.geometry.Insets;
 import javafx.scene.effect.InnerShadow;
 import javafx.scene.paint.Color;
@@ -14,9 +17,6 @@ import javafx.scene.paint.Color;
 public final class TileFactory {
 
     // =============================[ Static ]============================== \
-    /** Default tile color. */
-    public static final Color DEFAULT_COLOR   = Color.rgb(243, 193, 120);
-    
     public static final int TILE_SIZE = 40;
     
     // Prevent instantiation
@@ -33,7 +33,7 @@ public final class TileFactory {
      * @return styled TileNode with default color
      */
     public static TileNode createBoardTile(int row, int col, String text) {
-        return createBoardTile(row, col, text, DEFAULT_COLOR);
+        return createBoardTile(row, col, text, ColorConstants.DEFAULT_TILE_COLOR);
     }
 
     /**
@@ -61,9 +61,25 @@ public final class TileFactory {
         
         // override background color
         tile.setBackgroundFill(fillColor);
+        
         // commit style and text
         tile.applyStyle();
         tile.refresh();
+        return tile;
+    }
+    
+    public static TileNode createTileSetTile(char letter, int count) {
+        TileNode tile = new TileNode(TILE_SIZE);
+        tile.setId("tile-" + letter);
+        applyDefaultStyle(tile);
+        
+        tile.setLetter(letter);
+        tile.setScore(0); // 0 to stop tile score displaying
+        tile.setCount(count);
+        
+        tile.applyStyle();
+        tile.refresh();
+        
         return tile;
     }
 
@@ -80,9 +96,11 @@ public final class TileFactory {
         // corner radius for smooth rounded tiles
         tile.setCornerRadius(20);
         // default background
-        tile.setBackgroundFill(DEFAULT_COLOR);
-        // commit style properties
-        tile.applyStyle();
+        tile.setBackgroundFill(ColorConstants.DEFAULT_TILE_COLOR);
+        
+        tile.setLetterFont(TILE_FONT);
+        tile.setSmallFont(SMALL_FONT);
+        tile.setBonusFont(BONUS_FONT);
 
         tile.setPadding(new Insets(3));
         // subtle inner shadow for depth

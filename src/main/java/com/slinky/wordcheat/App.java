@@ -16,8 +16,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         controller = new GameController("mom");
-        controller.printTopFiveMoves();
-        Scene scene = new Scene(controller.getMainView(), 800, 800);
+        Scene scene = new Scene(controller.getMainView(), 850, 800);
         
         stage.setScene(scene);
         stage.setScene(scene);

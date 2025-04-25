@@ -8,14 +8,22 @@ import com.slinky.wordcheat.model.GameBoard;
 import com.slinky.wordcheat.model.GameEngine;
 import com.slinky.wordcheat.model.MoveFinder;
 import com.slinky.wordcheat.model.TileBonus;
+
 import com.slinky.wordcheat.io.Persistence;
+
 import com.slinky.wordcheat.view.BoardView;
+import com.slinky.wordcheat.view.MainView;
+import com.slinky.wordcheat.view.TileSetView;
+
 import java.io.IOException;
+
+
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 
 /**
  *
- * @author Kheagen
+ * @author Kheagen Haskins
  */
 public final class GameController {
 
@@ -24,7 +32,7 @@ public final class GameController {
     // ================================[ Fields ]================================ \\
     private String     filename;
     private GameEngine engine; 
-    private Pane       mainView;
+    private BorderPane mainView;
     
     // =============================[ Constructors ]============================= \\
     public GameController(String filename) {
@@ -97,17 +105,30 @@ public final class GameController {
                 scores[r][c] = engine.getScoreOf(matrix[r][c]);
             }
         }
+        
         // Init bonuses
-        var bonusMatrix = DefaultScoringModule.getClassicBonusLayout();
+        var bonusMatrix    = DefaultScoringModule.getClassicBonusLayout();
         String[][] bonuses = new String[rows][cols];
         for (int r = 0; r < bonusMatrix.length; r++) {
-            TileBonus[] bonusRow  = bonusMatrix[r];
+            TileBonus[] bonusRow = bonusMatrix[r];
             for (int c = 0; c < bonusRow.length; c++) {
-                TileBonus bonus = bonusRow[c];
-                bonuses[r][c] = bonus == null ? null : bonus.toString();
+                TileBonus bonus  = bonusRow[c];
+                bonuses[r][c]    = bonus == null ? null : bonus.toString();
             }
         }
         
-        mainView = new BoardView(engine.getMatrix(), scores, bonuses);
+        int[] counts = new int[27];
+        char letter  = 'A';
+        
+        counts[0] = engine.getRemainingWildcardCount();
+        for (int i = 0; i < counts.length - 1; i++) {
+            counts[i] = engine.getRemainingTileCount(letter++);
+        }
+        
+        var boardView   = new BoardView(matrix, scores, bonuses);
+        var tileSetView = new TileSetView(counts);
+        
+        mainView = new MainView(boardView, tileSetView);
     }
+    
 }

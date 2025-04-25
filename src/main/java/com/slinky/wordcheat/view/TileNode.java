@@ -6,6 +6,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontSmoothingType;
 
 /**
  * Represents a single tile within the word‑cheat application, used both on the
@@ -50,21 +51,23 @@ public final class TileNode extends StackPane {
     private final Label     letterLbl;
     private final Label     scoreLbl;
     private final Label     bonusLbl;
+    private final Label     countLbl;
 
     // --- logical state ---
     private char    letter   = ' ';
     private int     score    = 0;
     private String  bonus    = null;
     private boolean wildcard = false;
+    private int     count    = -1;
 
     // --- style state with defaults WS(externally mutable) ---
-    private Color backgroundFill = Color.web("#ECEFF1");
-    private Color wildcardFill   = Color.web("#FFE082");
-    private double cornerRadius  = 6;
-    private Font   letterFont    = Font.font("Inter", 18);
-    private Font   bonusFont     = Font.font("Inter", 16);
-    private Font   scoreFont     = Font.font("Inter", 10);
-    private Color  textFill      = Color.BLACK;
+    private Color  backgroundFill = Color.web("#ECEFF1");
+    private Color  wildcardFill   = Color.web("#FFE082");
+    private double cornerRadius   = 6;
+    private Font   letterFont     = Font.font("Inter", 18);
+    private Font   bonusFont      = Font.font("Inter", 16);
+    private Font   smallFont      = Font.font("Inter", 10);
+    private Color  textFill       = Color.BLACK;
     
     // ==========================[ Constructors ]=========================== \\
     /**
@@ -90,10 +93,12 @@ public final class TileNode extends StackPane {
         letterLbl = new Label();
         scoreLbl  = new Label();
         bonusLbl  = new Label();
-
+        countLbl  = new Label();
+        
         StackPane.setAlignment(scoreLbl, Pos.TOP_RIGHT);
+        StackPane.setAlignment(countLbl, Pos.TOP_LEFT);
 
-        getChildren().addAll(background, bonusLbl, letterLbl, scoreLbl);
+        getChildren().addAll(background, bonusLbl, letterLbl, scoreLbl, countLbl);
 
         applyStyle();
         refresh();
@@ -120,6 +125,13 @@ public final class TileNode extends StackPane {
      * @return the bonus text, or null if none is set
      */
     public String getBonus() { return bonus; }
+    
+    /**
+     * Get the count that will display on the TileSetView.
+     * 
+     * @return the count
+     */
+    public int getCount() { return count; }
 
     /**
      * Check if this tile is a wildcard.
@@ -234,8 +246,8 @@ public final class TileNode extends StackPane {
      *
      * @param f the Font to use
      */
-    public void setScoreFont(Font f) {
-        this.scoreFont = f;
+    public void setSmallFont(Font f) {
+        this.smallFont = f;
     }
     
     /**
@@ -253,7 +265,16 @@ public final class TileNode extends StackPane {
     public void setTextFill(Color c) {
         this.textFill = c;
     }
-
+    
+    /**
+     *  Set the count that will display on the TileSetView.
+     * 
+     * @param count the new count
+     */
+    public void setCount(int count) {
+        this.count = count;
+    }
+    
     // ==========================[ API Methods ]============================ \\
     /**
      * Apply visual styles based on current style state.
@@ -267,24 +288,28 @@ public final class TileNode extends StackPane {
 
         letterLbl.setFont(letterFont);
         bonusLbl .setFont(bonusFont);
-        scoreLbl .setFont(scoreFont);
-
+        scoreLbl .setFont(smallFont);
+        countLbl .setFont(smallFont);
+        
         letterLbl.setTextFill(textFill);
         bonusLbl .setTextFill(textFill);
         scoreLbl .setTextFill(textFill);
+        countLbl .setTextFill(textFill);
     }
 
     /**
-     * Refresh the displayed text and background fill based on current logical state.
+     * Refresh the displayed text and background fill based on current logical
+     * state.
      *
      * Must be called after setLetter, setScore, setBonus or setWildcard.
      */
     public void refresh() {
-        boolean hasLetter = letter != ' ';
+        boolean hasLetter = !(letter < 'A' || letter > 'Z');
 
         letterLbl.setText(hasLetter ? String.valueOf(letter) : "");
-        scoreLbl .setText(hasLetter  && !wildcard ? String.valueOf(score) : "");
+        scoreLbl .setText(hasLetter && !wildcard && score > 0 ? String.valueOf(score) : "");
         bonusLbl .setText(hasLetter || bonus == null ? "" : bonus);
+        countLbl .setText(count >= 0 ? String.valueOf(count) : "");
 
         background.setFill(wildcard ? wildcardFill : backgroundFill);
     }
