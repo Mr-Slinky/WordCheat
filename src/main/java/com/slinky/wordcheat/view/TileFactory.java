@@ -82,6 +82,30 @@ public final class TileFactory {
         
         return tile;
     }
+    
+    /**
+     * Creates a TileNode for the RackView. The count will always be set to -1
+     * (hidden).
+     *
+     * @param letter the letter to display
+     * @param score  the score associated with the letter
+     * @return a styled TileNode suitable for the rack
+     */
+    public static TileNode createRackTile(char letter, int score) {
+        TileNode tile = new TileNode(TILE_SIZE);
+        tile.setId("rack-tile-" + letter);
+        applyDefaultStyle(tile);
+
+        tile.setLetter(letter);
+        tile.setScore(score);
+        tile.setCount(-1); // Always hide count for rack tiles
+
+        tile.applyStyle();
+        tile.refresh();
+
+        return tile;
+    }
+
 
     // ============================[ Helper Methods ]============================ \\
     /**

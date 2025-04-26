@@ -8,9 +8,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 
 /**
  * Front‑end view of the full tile pool. Displays each letter tile with its
@@ -155,14 +158,20 @@ public class TileSetView extends VBox {
     
     private Label buildCustomLabel() {
         Label label = new Label();
-        
-        label.setBackground(Background.fill(Color.rgb( 55,  81,  95)));
+
+        // rounded‐corner background:
+        label.setBackground(new Background(new BackgroundFill(
+                Color.rgb(55, 81, 95),
+                new CornerRadii(6), 
+                Insets.EMPTY
+        )));
         label.setTextFill(Color.WHITE);
         label.setFont(LABEL_FONT_DEFAULT);
         
         // Label should take up as much horizontal space as possible
         label.setMaxWidth(Double.MAX_VALUE);
-        label.setAlignment(Pos.CENTER_LEFT);
+        label.setAlignment(Pos.CENTER);
+        label.setPadding(new Insets(5));
         
         return label;
     }

@@ -13,12 +13,11 @@ import com.slinky.wordcheat.io.Persistence;
 
 import com.slinky.wordcheat.view.BoardView;
 import com.slinky.wordcheat.view.MainView;
+import com.slinky.wordcheat.view.RackView;
 import com.slinky.wordcheat.view.TileSetView;
 
 import java.io.IOException;
 
-
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 
 /**
@@ -32,7 +31,7 @@ public final class GameController {
     // ================================[ Fields ]================================ \\
     private String     filename;
     private GameEngine engine; 
-    private BorderPane mainView;
+    private Pane       mainView;
     
     // =============================[ Constructors ]============================= \\
     public GameController(String filename) {
@@ -125,10 +124,18 @@ public final class GameController {
             counts[i] = engine.getRemainingTileCount(letter++);
         }
         
+        char[] rackLetters = engine.getRackLetters();
+        int[] rackScores   = new int[rackLetters.length]; 
+        for (int i = 0; i < rackLetters.length; i++) {
+            letter        = rackLetters[i];
+            rackScores[i] = engine.getScoreOf(letter);
+        }
+        
         var boardView   = new BoardView(matrix, scores, bonuses);
         var tileSetView = new TileSetView(counts);
+        var rackView    = new RackView(rackLetters, rackScores);
         
-        mainView = new MainView(boardView, tileSetView);
+        mainView = new MainView(boardView, tileSetView, rackView);
     }
     
 }

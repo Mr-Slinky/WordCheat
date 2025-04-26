@@ -104,7 +104,7 @@ public class GameEngine {
      *
      * @return a deep copy of the letter rack's letters
      */
-    public char[] getLetters() {
+    public char[] getRackLetters() {
         return letterRack.getLetters();
     }
 

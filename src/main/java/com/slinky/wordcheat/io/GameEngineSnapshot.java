@@ -125,7 +125,7 @@ public class GameEngineSnapshot {
         int[][] wilds = engine.getWildCardPositions();
 
         // 3) rack contents
-        char[] rack = engine.getLetters();
+        char[] rack = engine.getRackLetters();
 
         // 4) tile‑pool counts
         Map<Character,Integer> counts = new LinkedHashMap<>();

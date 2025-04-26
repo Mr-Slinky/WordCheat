@@ -1,12 +1,12 @@
 package com.slinky.wordcheat.view;
 
+import com.slinky.wordcheat.util.ColorUtils;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontSmoothingType;
 
 /**
  * Represents a single tile within the word‑cheat application, used both on the
@@ -67,7 +67,6 @@ public final class TileNode extends StackPane {
     private Font   letterFont     = Font.font("Inter", 18);
     private Font   bonusFont      = Font.font("Inter", 16);
     private Font   smallFont      = Font.font("Inter", 10);
-    private Color  textFill       = Color.BLACK;
     
     // ==========================[ Constructors ]=========================== \\
     /**
@@ -260,13 +259,6 @@ public final class TileNode extends StackPane {
     }
     
     /**
-     * Set the foreground (text) color for letter, score, and bonus labels.
-     */
-    public void setTextFill(Color c) {
-        this.textFill = c;
-    }
-    
-    /**
      *  Set the count that will display on the TileSetView.
      * 
      * @param count the new count
@@ -284,8 +276,17 @@ public final class TileNode extends StackPane {
     public void applyStyle() {
         background.setArcWidth(cornerRadius);
         background.setArcHeight(cornerRadius);
-        background.setFill(wildcard ? wildcardFill : backgroundFill);
-
+        Color bgFill = wildcard ? wildcardFill : backgroundFill;
+        background.setFill(bgFill);
+        
+        boolean useBlack = ColorUtils.useBlackText(
+                bgFill.getRed(),
+                bgFill.getGreen(),
+                bgFill.getBlue()
+        
+        );
+        var textFill = useBlack ? Color.BLACK : Color.WHITE;
+        
         letterLbl.setFont(letterFont);
         bonusLbl .setFont(bonusFont);
         scoreLbl .setFont(smallFont);
