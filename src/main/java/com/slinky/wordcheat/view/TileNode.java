@@ -54,15 +54,18 @@ public final class TileNode extends StackPane {
     private final Label     countLbl;
 
     // --- logical state ---
-    private char    letter   = ' ';
-    private int     score    = 0;
-    private String  bonus    = null;
-    private boolean wildcard = false;
-    private int     count    = -1;
+    private char    letter      = ' ';
+    private int     score       = 0;
+    private String  bonus       = null;
+    private boolean wildcard    = false;
+    private int     count       = -1;
+    
+    private boolean isDraggable = false;
+    private boolean dropTarget  = false;
+    private boolean isHovered   = false;
 
     // --- style state with defaults WS(externally mutable) ---
     private Color  backgroundFill = Color.web("#ECEFF1");
-    private Color  wildcardFill   = Color.web("#FFE082");
     private double cornerRadius   = 6;
     private Font   letterFont     = Font.font("Inter", 18);
     private Font   bonusFont      = Font.font("Inter", 16);
@@ -96,77 +99,111 @@ public final class TileNode extends StackPane {
         
         StackPane.setAlignment(scoreLbl, Pos.TOP_RIGHT);
         StackPane.setAlignment(countLbl, Pos.TOP_LEFT);
-
+        
         getChildren().addAll(background, bonusLbl, letterLbl, scoreLbl, countLbl);
-
+        
         applyStyle();
         refresh();
     }
-
+    
     // ========================[ Accessor Methods ]========================= \\
     /**
      * Get the letter displayed on this tile.
      *
      * @return the letter, or a space if none is set
      */
-    public char getLetter() { return letter; }
+    public char getLetter() {
+        return letter;
+    }
 
     /**
      * Get the score value of this tile.
      *
      * @return the score, or 0 if none is set
      */
-    public int getScore() { return score; }
+    public int getScore() {
+        return score;
+    }
 
     /**
      * Get the bonus text shown when no letter is present.
      *
      * @return the bonus text, or null if none is set
      */
-    public String getBonus() { return bonus; }
-    
+    public String getBonus() {
+        return bonus;
+    }
+
     /**
      * Get the count that will display on the TileSetView.
-     * 
+     *
      * @return the count
      */
-    public int getCount() { return count; }
+    public int getCount() {
+        return count;
+    }
 
     /**
      * Check if this tile is a wildcard.
      *
      * @return true if wildcard, false otherwise
      */
-    public boolean isWildcard() { return wildcard; }
+    public boolean isWildcard() {
+        return wildcard;
+    }
 
     /**
      * Get the Rectangle node used as the background.
      *
      * @return the background Rectangle node
      */
-    public Rectangle getBackgroundNode() { return background; }
+    public Rectangle getBackgroundNode() {
+        return background;
+    }
 
     /**
      * Get the Label node used for the letter.
      *
      * @return the letter Label node
      */
-    public Label getLetterLabel() { return letterLbl; }
+    public Label getLetterLabel() {
+        return letterLbl;
+    }
 
     /**
      * Get the Label node used for the score.
      *
      * @return the score Label node
      */
-    public Label getScoreLabel() { return scoreLbl; }
+    public Label getScoreLabel() {
+        return scoreLbl;
+    }
 
     /**
      * Get the Label node used for the bonus text.
      *
      * @return the bonus Label node
      */
-    public Label getBonusLabel() { return bonusLbl; }
+    public Label getBonusLabel() {
+        return bonusLbl;
+    }
 
+    public boolean isDropTarget() {
+        return dropTarget;
+    }
+
+    public boolean isDraggable() {
+        return isDraggable;
+    }
+
+    public boolean isEmpty() {
+        return letter < 'A' || letter > 'Z';
+    }
+
+    public boolean isHovered() {
+        return isHovered;
+    }
+    
     // ========================[ Mutator Methods ]========================== \\
     /**
      * Set the letter for this tile.
@@ -214,15 +251,6 @@ public final class TileNode extends StackPane {
     }
 
     /**
-     * Set the fill colour used for the background when a wildcard.
-     *
-     * @param c the wildcard fill colour
-     */
-    public void setWildcardFill(Color c) {
-        this.wildcardFill = c;
-    }
-
-    /**
      * Set the corner radius for the tile background.
      *
      * @param r the corner radius in pixels
@@ -266,6 +294,10 @@ public final class TileNode extends StackPane {
     public void setCount(int count) {
         this.count = count;
     }
+
+    public void setHovered(boolean hovered) {
+        this.isHovered = hovered;
+    }
     
     // ==========================[ API Methods ]============================ \\
     /**
@@ -276,22 +308,19 @@ public final class TileNode extends StackPane {
     public void applyStyle() {
         background.setArcWidth(cornerRadius);
         background.setArcHeight(cornerRadius);
-        Color bgFill = wildcard ? wildcardFill : backgroundFill;
-        background.setFill(bgFill);
-        
-        boolean useBlack = ColorUtils.useBlackText(
-                bgFill.getRed(),
-                bgFill.getGreen(),
-                bgFill.getBlue()
-        
-        );
-        var textFill = useBlack ? Color.BLACK : Color.WHITE;
+        background.setFill(isHovered ? backgroundFill.brighter() : backgroundFill);
         
         letterLbl.setFont(letterFont);
         bonusLbl .setFont(bonusFont);
         scoreLbl .setFont(smallFont);
         countLbl .setFont(smallFont);
         
+        boolean useBlack = ColorUtils.useBlackText(
+                               backgroundFill.getRed(),
+                               backgroundFill.getGreen(),
+                               backgroundFill.getBlue()
+                           );
+        var textFill = useBlack ? Color.BLACK : Color.WHITE;
         letterLbl.setTextFill(textFill);
         bonusLbl .setTextFill(textFill);
         scoreLbl .setTextFill(textFill);
@@ -312,7 +341,15 @@ public final class TileNode extends StackPane {
         bonusLbl .setText(hasLetter || bonus == null ? "" : bonus);
         countLbl .setText(count >= 0 ? String.valueOf(count) : "");
 
-        background.setFill(wildcard ? wildcardFill : backgroundFill);
+        background.setFill(backgroundFill);
     }
-
+    
+    public void setDraggable(boolean enabled) {
+        isDraggable = enabled;
+    }
+    
+    public void setDropTarget(boolean enabled) {
+        dropTarget = enabled;
+    }
+    
 }

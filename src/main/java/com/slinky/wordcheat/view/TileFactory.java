@@ -57,6 +57,8 @@ public final class TileFactory {
             } else {
                 tile.setBonus(text);
             }
+        } else {
+            tile.setDropTarget(true);
         }
         
         // override background color
@@ -77,6 +79,7 @@ public final class TileFactory {
         tile.setScore(0); // 0 to stop tile score displaying
         tile.setCount(count);
         
+        tile.setDraggable(true);
         tile.applyStyle();
         tile.refresh();
         
@@ -99,7 +102,8 @@ public final class TileFactory {
         tile.setLetter(letter);
         tile.setScore(score);
         tile.setCount(-1); // Always hide count for rack tiles
-
+        
+        tile.setDraggable(true);
         tile.applyStyle();
         tile.refresh();
 
@@ -110,6 +114,7 @@ public final class TileFactory {
     // ============================[ Helper Methods ]============================ \\
     /**
      * Apply the default visual style to a TileNode:
+     * 
      * - Rounded corners
      * - Default background fill
      * - Inner shadow for depth

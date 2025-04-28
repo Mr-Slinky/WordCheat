@@ -33,12 +33,12 @@ public class FontConstants {
     /**
      * The name of the font used for tile text.
      */
-    public static final String TILE_FONT_NAME   = "Calibri";
+    public static final String TILE_FONT_NAME   = "Courier New";
 
     /**
      * The name of the font used for labels.
      */
-    public static final String LABEL_FONT_NAME  = "Montserrat";
+    public static final String LABEL_FONT_NAME  = "Univers";
 
     /**
      * Fallback font family used when a custom font cannot be loaded.

@@ -13,7 +13,6 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
 
 /**
  * Front‑end view of the full tile pool. Displays each letter tile with its
@@ -82,6 +81,16 @@ public class TileSetView extends VBox {
         updateSummary(counts);
     }
 
+    // ===========================[ Accessor Methods ]=========================== \\
+    public TileNode getTile(char letter) {
+        int index = TILE_TYPES - 1;
+        if (!(letter < 'A' || letter > 'Z')) {
+            index = letter - 'A';
+        }
+        
+        return tiles[index];
+    }
+    
     // ============================[ Public API ]============================ \\
     /**
      * Refreshes the tile counts and summary from a new counts array.
@@ -111,6 +120,8 @@ public class TileSetView extends VBox {
         for (TileNode tile : tiles) {
             if (tile.getLetter() == letter) {
                 tile.setCount(count);
+                tile.refresh();
+                break;
             }
         }
         

@@ -59,6 +59,14 @@ public final class BoardView extends GridPane {
         
         return tiles[row][col];
     }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public int getCols() {
+        return cols;
+    }
     
     // ============================[ Helper Methods ]============================ \\
     private void initialiseGrid(char[][] letters, int[][] scores, String[][] bonuses) {

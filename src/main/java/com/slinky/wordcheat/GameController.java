@@ -133,7 +133,7 @@ public final class GameController {
         
         var boardView   = new BoardView(matrix, scores, bonuses);
         var tileSetView = new TileSetView(counts);
-        var rackView    = new RackView(rackLetters, rackScores);
+        var rackView    = new RackView(rackLetters, rackScores, 7);
         
         mainView = new MainView(boardView, tileSetView, rackView);
     }
