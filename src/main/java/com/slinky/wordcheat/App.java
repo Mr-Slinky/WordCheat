@@ -1,5 +1,6 @@
 package com.slinky.wordcheat;
 
+import com.slinky.wordcheat.control.GameController;
 import javafx.application.Application;
 import javafx.scene.Scene;
 
@@ -15,7 +16,7 @@ public class App extends Application {
     
     @Override
     public void start(Stage stage) {
-        controller = new GameController("mom");
+        controller  = new GameController("mom");
         Scene scene = new Scene(controller.getMainView(), 900, 800);
         
         stage.setScene(scene);

@@ -67,7 +67,7 @@ public class GameEngine {
         this.tileSet    = Objects.requireNonNull(tileSet,       "TileSet cannot be null");
         this.moveFinder = Objects.requireNonNull(moveFinder, "WordFinder cannot be null");
         this.letterRack = Objects.requireNonNull(letterRack, "LetterRack cannot be null");
-        this.board      = Objects.requireNonNull(moveFinder.getBoard(),             "GameBoard cannot be null");
+        this.board      = Objects.requireNonNull(moveFinder.getBoard(),         "GameBoard cannot be null");
         this.scoreMod   = Objects.requireNonNull(moveFinder.getScoringModule(), "ScoringModule cannot be null");
         
         this.movesCalculated = false;

@@ -1,4 +1,4 @@
-package com.slinky.wordcheat;
+package com.slinky.wordcheat.control;
 
 import com.slinky.wordcheat.language.OxfordDictionary;
 
@@ -31,7 +31,9 @@ public final class GameController {
     // ================================[ Fields ]================================ \\
     private String     filename;
     private GameEngine engine; 
-    private Pane       mainView;
+    private MainView   mainView;
+    
+    private DnDController dndController;
     
     // =============================[ Constructors ]============================= \\
     public GameController(String filename) {
@@ -39,6 +41,9 @@ public final class GameController {
         
         initEngine();
         initMainView();
+        
+        dndController = new DnDController(engine, mainView);
+        dndController.configure();
     }
     
     // ===========================[ Accessor Methods ]=========================== \\

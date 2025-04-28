@@ -82,7 +82,7 @@ public class TileSetView extends VBox {
     }
 
     // ===========================[ Accessor Methods ]=========================== \\
-    public TileNode getTile(char letter) {
+    TileNode getTile(char letter) {
         int index = TILE_TYPES - 1;
         if (!(letter < 'A' || letter > 'Z')) {
             index = letter - 'A';
@@ -90,12 +90,20 @@ public class TileSetView extends VBox {
         
         return tiles[index];
     }
+
+    /**
+     * Returns all TileNode instances representing the letter pool (A–Z plus
+     * blank).
+     */
+    TileNode[] getAllTiles() {
+        return tiles;
+    }
     
     // ============================[ Public API ]============================ \\
     /**
      * Refreshes the tile counts and summary from a new counts array.
      */
-    public void updateCounts(int[] counts) {
+    void updateCounts(int[] counts) {
         Objects.requireNonNull(counts, "counts must not be null");
         if (counts.length < TILE_TYPES) {
             throw new IllegalArgumentException(
@@ -116,7 +124,7 @@ public class TileSetView extends VBox {
      * @param letter
      * @param count -1 to remove count
      */
-    public void updateCount(char letter, int count) {
+    void updateCount(char letter, int count) {
         for (TileNode tile : tiles) {
             if (tile.getLetter() == letter) {
                 tile.setCount(count);
@@ -148,23 +156,24 @@ public class TileSetView extends VBox {
             total += c;
         }
         
-        totalRemainingLabel.setText(total         + " tiles remaining");
+        totalRemainingLabel   .setText(total      + " tiles remaining");
         wildcardRemainingLabel.setText(counts[26] + " wildcards remaining");
     }
     
     private void updateSummary() {
         int total = 0;
-        int wild = 0;
+        int wild  = 0;
         for (TileNode tile : tiles) {
-            int cnt = tile.getCount();
-            total += cnt;
+            int count = tile.getCount();
+            total    += count;
+            
             if (tile.getLetter() == ' ') {
-                wild = cnt;
+                wild = count;
             }
         }
         
-        totalRemainingLabel.setText(total   + " tiles remaining");
-        wildcardRemainingLabel.setText(wild + " wildcards remaining");
+        totalRemainingLabel   .setText(total + " tiles remaining");
+        wildcardRemainingLabel.setText(wild  + " wildcards remaining");
     }
     
     private Label buildCustomLabel() {

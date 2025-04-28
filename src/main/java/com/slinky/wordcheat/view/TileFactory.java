@@ -17,7 +17,7 @@ import javafx.scene.paint.Color;
 public final class TileFactory {
 
     // =============================[ Static ]============================== \
-    public static final int TILE_SIZE = 40;
+    static final int TILE_SIZE = 40;
     
     // Prevent instantiation
     private TileFactory() {}
@@ -32,8 +32,8 @@ public final class TileFactory {
      * @param text text to display on the tile (letter or bonus)
      * @return styled TileNode with default color
      */
-    public static TileNode createBoardTile(int row, int col, String text) {
-        return createBoardTile(row, col, text, ColorConstants.DEFAULT_TILE_COLOR);
+    static TileNode createBoardTile(int row, int col, String text) {
+        return createBoardTile(row, col, text, ColorConstants.EMPTY_TILE_COLOR);
     }
 
     /**
@@ -47,9 +47,10 @@ public final class TileFactory {
      * @param fillColor background fill color for this tile
      * @return a styled TileNode with specified text and color
      */
-    public static TileNode createBoardTile(int row, int col, String text, Color fillColor) {
+    static TileNode createBoardTile(int row, int col, String text, Color fillColor) {
         TileNode tile = new TileNode(TILE_SIZE);
         tile.setId("tile-" + row + "-" + col);
+        tile.setType(TileType.BOARD);
         applyDefaultStyle(tile);
         if (text != null && !text.isEmpty()) {
             if (text.length() == 1) {
@@ -70,9 +71,10 @@ public final class TileFactory {
         return tile;
     }
     
-    public static TileNode createTileSetTile(char letter, int count) {
+    static TileNode createTileSetTile(char letter, int count) {
         TileNode tile = new TileNode(TILE_SIZE);
         tile.setId("tile-" + letter);
+        tile.setType(TileType.POOL);
         applyDefaultStyle(tile);
         
         tile.setLetter(letter);
@@ -94,9 +96,10 @@ public final class TileFactory {
      * @param score  the score associated with the letter
      * @return a styled TileNode suitable for the rack
      */
-    public static TileNode createRackTile(char letter, int score) {
+    static TileNode createRackTile(char letter, int score) {
         TileNode tile = new TileNode(TILE_SIZE);
         tile.setId("rack-tile-" + letter);
+        tile.setType(TileType.RACK);
         applyDefaultStyle(tile);
 
         tile.setLetter(letter);

@@ -72,7 +72,7 @@
                     <release>${java.version}</release>
                 </configuration>
             </plugin>
-
+            
             <!-- JavaFX launcher -->
             <plugin>
                 <groupId>org.openjfx</groupId>
@@ -80,7 +80,7 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.slinky.wordcheat.App</mainClass>
-                    <modules>javafx.controls,javafx.swing</modules>
+                    <modules>javafx.controls, javafx.swing</modules>
                 </configuration>
                 <executions>
                     <execution>
@@ -88,6 +88,36 @@
                         <goals>
                             <goal>run</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <id>debug</id>
+                        <configuration>
+                            <options>
+                                <option>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=localhost:8000</option>
+                            </options>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!-- Configuration for automatic IDE debugging -->
+                        <id>ide-debug</id>
+                        <configuration>
+                            <options>
+                                <option>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</option>
+                            </options>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!-- Configuration for automatic IDE profiling -->
+                        <id>ide-profile</id>
+                        <configuration>
+                            <options>
+				<option>${profiler.jvmargs.arg1}</option>
+				<option>${profiler.jvmargs.arg2}</option>
+				<option>${profiler.jvmargs.arg3}</option>
+				<option>${profiler.jvmargs.arg4}</option>
+				<option>${profiler.jvmargs.arg5}</option>
+                            </options>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

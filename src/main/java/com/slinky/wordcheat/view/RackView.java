@@ -20,6 +20,7 @@ public final class RackView extends StackPane {
     private final HBox rackBox;
     private final TileNode[] tiles;
     private final int maxSize;
+    private int size;
 
     // ===========================[ Constructors ]=========================== \\
     /**
@@ -29,8 +30,9 @@ public final class RackView extends StackPane {
      */
     public RackView(int maxSize) {
         this.maxSize = maxSize;
-        this.tiles = new TileNode[maxSize];
-
+        this.tiles   = new TileNode[maxSize];
+        this.size    = 0;
+        
         rackBox = new HBox(5);
         rackBox.setAlignment(Pos.CENTER);
 
@@ -58,24 +60,126 @@ public final class RackView extends StackPane {
      *
      * @return array of TileNode instances
      */
-    public TileNode[] getTiles() {
-        return tiles.clone();
+    TileNode[] getTiles() {
+        return tiles;
     }
 
     // ===========================[ Public API ]============================== \\
     /**
-     * Refreshes the displayed rack letters.
-     *
-     * @param letters array of letters to display
-     * @param scores array of corresponding scores
-     * @throws NullPointerException if letters or scores are null
-     * @throws IllegalArgumentException if arrays differ in length or exceed
-     *                                  maximum size
+     * Returns the current number of tiles in the rack.
      */
-    public void updateRack(char[] letters, int[] scores) {
+    int getSize() {
+        return size;
+    }
+
+    /**
+     * Adds a single tile to the rack.
+     *
+     * @param letter the letter to add
+     * @param score the score associated with the letter
+     * @throws IllegalStateException if rack is full
+     */
+    void addTile(char letter, int score) {
+        if (size >= maxSize) {
+            throw new IllegalStateException("RackView cannot hold more than " + maxSize + " tiles");
+        }
+        
+        TileNode tile = TileFactory.createRackTile(letter, score);
+        tiles[size]   = tile;
+        rackBox.getChildren().add(tile);
+        size++;
+    }
+
+    /**
+     * Adds multiple tiles to the rack.
+     *
+     * @param letters letters to add
+     * @param scores corresponding scores
+     * @throws IllegalArgumentException if input arrays differ in length
+     * @throws IllegalStateException if addition exceeds max size
+     */
+    void addTiles(char[] letters, int[] scores) {
         Objects.requireNonNull(letters, "letters must not be null");
         Objects.requireNonNull(scores, "scores must not be null");
+        if (letters.length != scores.length) {
+            throw new IllegalArgumentException("letters and scores must have the same length");
+        }
+        if (size + letters.length > maxSize) {
+            throw new IllegalStateException("Addition exceeds maximum rack size (" + maxSize + ")");
+        }
+        for (int i = 0; i < letters.length; i++) {
+            addTile(letters[i], scores[i]);
+        }
+    }
+
+    /**
+     * Removes the first occurrence of the specified letter.
+     *
+     * @param letter the letter to remove
+     * @return true if removed, false otherwise
+     */
+    boolean removeTile(char letter) {
+        for (int i = 0; i < size; i++) {
+            if (tiles[i].getLetter() == letter) {
+                removeTileAt(i);
+                return true;
+            }
+        }
         
+        return false;
+    }
+
+    /**
+     * Removes and returns the letter at the specified index.
+     *
+     * @param index the index to remove
+     * @return the removed letter
+     * @throws IndexOutOfBoundsException if index invalid
+     */
+    char removeTileAt(int index) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Index " + index + " out of bounds for rack size " + size);
+        }
+        
+        TileNode removed = tiles[index];
+        char letter      = removed.getLetter();
+        rackBox.getChildren().remove(removed);
+        // shift left
+        for (int i = index; i < size - 1; i++) {
+            tiles[i] = tiles[i + 1];
+        }
+        
+        tiles[size - 1] = null; // TileFactory.createRackTile(' ', 0);
+//        rackBox.getChildren().add(tiles[size - 1]);
+        size--;
+        return letter;
+    }
+
+    /**
+     * Removes a number of tiles from the end of the rack.
+     *
+     * @param count number to remove
+     * @throws IllegalArgumentException if count negative
+     * @throws IllegalStateException if count exceeds current size
+     */
+    void removeTiles(int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("Cannot remove negative number of tiles");
+        }
+        if (count > size) {
+            throw new IllegalStateException("Cannot remove " + count + " tiles from a rack of size " + size);
+        }
+        for (int i = 0; i < count; i++) {
+            removeTileAt(size - 1);
+        }
+    }
+
+    /**
+     * Refreshes the displayed rack letters, replacing all current tiles.
+     */
+    void updateRack(char[] letters, int[] scores) {
+        Objects.requireNonNull(letters, "letters must not be null");
+        Objects.requireNonNull(scores, "scores must not be null");
         if (letters.length != scores.length) {
             throw new IllegalArgumentException("letters and scores must have the same length");
         }
@@ -95,22 +199,8 @@ public final class RackView extends StackPane {
             tiles[i] = tile;
             rackBox.getChildren().add(tile);
         }
-    }
-
-    /**
-     * Returns the TileNode at the specified index.
-     *
-     * @param index the index of the tile to retrieve
-     * @return the TileNode at the specified index
-     * @throws IndexOutOfBoundsException if the index is out of bounds
-     */
-    public TileNode getTile(int index) {
-        if (index < 0 || index >= maxSize) {
-            throw new IndexOutOfBoundsException(
-                    "Tile index " + index + " out of bounds for rack size " + maxSize
-            );
-        }
-        return tiles[index];
-    }
-
+        
+        size = letters.length;
+    }    
+    
 }

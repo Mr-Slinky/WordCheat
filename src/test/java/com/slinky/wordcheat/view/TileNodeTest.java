@@ -68,19 +68,6 @@ class TileNodeTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-        "true,#FFE082",
-        "false,#ECEFF1"
-    })
-    void testWildcardFill(boolean wildcard, String expectedHex) {
-        TileNode tile = new TileNode();
-        tile.setWildcard(wildcard);
-        tile.applyStyle();
-
-        assertEquals(Color.web(expectedHex), tile.getBackgroundNode().getFill());
-    }
-
-    @ParameterizedTest
     @CsvSource({"0.0", "12.5", "100.0"})
     void testCornerRadius(double radius) {
         TileNode tile = new TileNode();

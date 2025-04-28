@@ -54,22 +54,23 @@ public final class TileNode extends StackPane {
     private final Label     countLbl;
 
     // --- logical state ---
+    private TileType type; // set by TileFactory class
+    
     private char    letter      = ' ';
     private int     score       = 0;
     private String  bonus       = null;
     private boolean wildcard    = false;
     private int     count       = -1;
-    
     private boolean isDraggable = false;
     private boolean dropTarget  = false;
     private boolean isHovered   = false;
-
+    
     // --- style state with defaults WS(externally mutable) ---
     private Color  backgroundFill = Color.web("#ECEFF1");
     private double cornerRadius   = 6;
-    private Font   letterFont     = Font.font("Inter", 18);
-    private Font   bonusFont      = Font.font("Inter", 16);
-    private Font   smallFont      = Font.font("Inter", 10);
+    private Font   letterFont     = FontConstants.TILE_FONT;
+    private Font   bonusFont      = FontConstants.BONUS_FONT;
+    private Font   smallFont      = FontConstants.SMALL_FONT;
     
     // ==========================[ Constructors ]=========================== \\
     /**
@@ -107,6 +108,10 @@ public final class TileNode extends StackPane {
     }
     
     // ========================[ Accessor Methods ]========================= \\
+    public TileType getType() {
+        return type;
+    }
+    
     /**
      * Get the letter displayed on this tile.
      *
@@ -229,6 +234,10 @@ public final class TileNode extends StackPane {
      * @param b the bonus text, or null to clear
      */
     public void setBonus(String b) {
+        if (b == null) {
+            throw new NullPointerException("Cannot set bonus to null");
+        }
+        
         this.bonus = b;
     }
 
@@ -298,6 +307,10 @@ public final class TileNode extends StackPane {
     public void setHovered(boolean hovered) {
         this.isHovered = hovered;
     }
+
+    public void setType(TileType type) {
+        this.type = type;
+    }
     
     // ==========================[ API Methods ]============================ \\
     /**
@@ -308,7 +321,7 @@ public final class TileNode extends StackPane {
     public void applyStyle() {
         background.setArcWidth(cornerRadius);
         background.setArcHeight(cornerRadius);
-        background.setFill(isHovered ? backgroundFill.brighter() : backgroundFill);
+        background.setFill(isHovered ? backgroundFill.darker() : backgroundFill);
         
         letterLbl.setFont(letterFont);
         bonusLbl .setFont(bonusFont);
@@ -350,6 +363,11 @@ public final class TileNode extends StackPane {
     
     public void setDropTarget(boolean enabled) {
         dropTarget = enabled;
+    }
+    
+    @Override
+    public String toString() {
+        return "%c,%d,%d,%b".formatted(letter, score, count, wildcard);
     }
     
 }

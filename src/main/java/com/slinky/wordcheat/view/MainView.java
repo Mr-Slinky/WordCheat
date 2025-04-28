@@ -3,28 +3,21 @@ package com.slinky.wordcheat.view;
 import java.util.Objects;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.image.Image;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 
 /**
  *
- * @author Kheagen
+ * @author Kheagen Haskins
  */
 public class MainView extends VBox {
 
     // ================================[ Static ]================================ \\
     
     // ================================[ Fields ]================================ \\
-    public final BoardView   boardView;
-    public final TileSetView setView;
-    public final RackView    rackView;
+    private final BoardView   boardView;
+    private final TileSetView setView;
+    private final RackView    rackView;
     
     // =============================[ Constructors ]============================= \\
     public MainView(BoardView boardView, TileSetView setView, RackView rackView) {
@@ -39,110 +32,106 @@ public class MainView extends VBox {
         
         setPadding(new Insets(15, 5, 5, 5));
         getChildren().addAll(boardAndSet, rackView);
-        configureDragAndDrop();
     }
     
     // ===========================[ Accessor Methods ]=========================== \\
+    public int getBoardRows() {
+        return boardView.getRows();
+    }
+    
+    public int getBoardColumns() {
+        return boardView.getCols();
+    }
+    
+    public TileNode getBoardTile(int row, int col) {
+        return boardView.getTile(row, col);
+    }
+    
+    public TileNode getPoolTile(char letter) {
+        return setView.getTile(letter);
+    }
+    
+    public TileNode[] getBoardTiles() {
+        return boardView.getAllTiles();
+    }
+    
+    public TileNode[] getPoolTiles() {
+        return setView.getAllTiles();
+    }
+    
+    public TileNode[] getRackTiles() {
+        return rackView.getTiles();
+    }
     
     // ===========================[ Mutator Methods ]============================ \\
 
     // =============================[ API Methods ]============================== \\
+    public void updateTileCount(char letter, int count) {
+        setView.updateCount(letter, count);
+    }
+    
+    /**
+     * Adds a single tile to the rack.
+     *
+     * @param letter the letter to add
+     * @param score the score associated with the letter
+     */
+    public void addTileToRack(char letter, int score) {
+        rackView.addTile(letter, score);
+    }
+
+    /**
+     * Adds multiple tiles to the rack.
+     *
+     * @param letters array of letters to add
+     * @param scores corresponding scores for each letter
+     */
+    public void addTilesToRack(char[] letters, int[] scores) {
+        rackView.addTiles(letters, scores);
+    }
+
+    /**
+     * Removes the first occurrence of the specified letter from the rack.
+     *
+     * @param letter the letter to remove
+     * @return true if a tile was removed, false otherwise
+     */
+    public boolean removeTileFromRack(char letter) {
+        return rackView.removeTile(letter);
+    }
+
+    /**
+     * Removes and returns the letter at the specified index in the rack.
+     *
+     * @param index the position to remove
+     * @return the removed letter
+     */
+    public char removeTileAtIndex(int index) {
+        return rackView.removeTileAt(index);
+    }
+
+    /**
+     * Removes a number of tiles from the end of the rack.
+     *
+     * @param count how many tiles to remove
+     */
+    public void removeTilesFromRack(int count) {
+        rackView.removeTiles(count);
+    }
+
+    /**
+     * Returns the current number of tiles in the rack.
+     */
+    public int getRackSize() {
+        return rackView.getSize();
+    }
+    
+    public void emptyTile(TileNode tile) {
+        boardView.emptyTile(tile);
+    }
     
     // ============================[ Helper Methods ]============================ \\
 
     // ============================[ Helper Classes ]============================ \\
-    private void configureDragAndDrop() {
-        for (int r = 0; r < boardView.getRows(); r++) {
-            for (int c = 0; c < boardView.getCols(); c++) {
-                var tile = boardView.getTile(r, c);
-                if (tile.isEmpty()) {
-                    configureDragTarget(tile);
-                }
-            }
-        }
-        
-        configureDragSource(setView.getTile(' '));
-        for (char c = 'A'; c <= 'Z'; c++) {
-            var tile = setView.getTile(c);
-            configureDragSource(tile);
-        }
-        
-        for (var tile : rackView.getTiles()) {
-            configureDragSource(tile);
-        }
-    }
-    
-    private void configureDragSource(TileNode tile) {
-        tile.setOnDragDetected(evt -> {
-            var db     = tile.startDragAndDrop(TransferMode.COPY);
-            var params = new SnapshotParameters();
-            params.setFill(Color.TRANSPARENT);
-            
-            Image img = tile.snapshot(params, null);
-            db.setDragView(img, img.getWidth() / 2, img.getHeight() / 2);
-
-            var clipContent = new ClipboardContent();
-            clipContent.putString(String.valueOf(tile.getLetter()));
-            db.setContent(clipContent);
-
-            evt.consume();
-        });
-
-        tile.setOnDragDone(evt -> {
-            if (evt.isDropCompleted()) {
-                ((Pane) tile.getParent()).getChildren().remove(tile);
-            }
-
-            evt.consume();
-        });
-    }
-
-    private void configureDragTarget(TileNode tile) {
-        tile.setOnDragOver(evt -> {
-            if (evt.getGestureSource() instanceof TileNode) {
-                evt.acceptTransferModes(TransferMode.COPY);
-            }
-            
-            evt.consume();
-        });
-        
-        tile.setOnDragEntered(evt -> {
-            tile.setHovered(true);
-            tile.applyStyle();
-            evt.consume();
-        });
-        
-        tile.setOnDragExited(evt -> {
-            tile.setHovered(false);
-            tile.applyStyle();
-            evt.consume();
-        });
-        
-        tile.setOnDragDropped(ev -> {
-            handleTileDrop(ev, tile);
-        });
-    }
-    
-    private void handleTileDrop(DragEvent evt, TileNode tile) {
-        Object src = evt.getGestureSource();
-        boolean success = false;
-
-        if (src instanceof TileNode t) {
-            tile.setLetter(t.getLetter());
-            tile.setScore(t.getScore());
-            tile.setCount(t.getCount());
-            tile.setWildcard(t.isWildcard());
-
-            tile.setBackgroundFill(ColorConstants.DEFAULT_TILE_COLOR);
-            setView.updateCount(tile.getLetter(), tile.getCount() - 1);
-
-            tile.applyStyle();
-            tile.refresh();
-            success = true;
-        }
-
-        evt.setDropCompleted(success);
-        evt.consume();
-    }
     
 }

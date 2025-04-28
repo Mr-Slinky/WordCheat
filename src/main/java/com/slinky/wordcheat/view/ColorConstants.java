@@ -12,6 +12,7 @@ public class ColorConstants {
     public static final Color DEFAULT_TILE_COLOR  = Color.rgb( 95,  95,  95);
     
     public static final Color EMPTY_TILE_COLOR    = Color.rgb(218, 251, 247);
+
     /**
      * Double-word bonus color.
      */
@@ -28,7 +29,7 @@ public class ColorConstants {
      * Triple-letter bonus color.
      */
     public static final Color TRIPLE_LETTER_COLOR = Color.rgb(255, 153, 189);
-    
+
 }
 
 //    public static final Color DEFAULT_TILE_COLOR  = Color.rgb(228, 149, 158);
