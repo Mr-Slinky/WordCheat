@@ -216,6 +216,32 @@ public class GameEngine {
         return scoreMod.getPointsOf(letter);
     }
     
+    /**
+     * The first element represents the number of wildcards
+     * @return 
+     */
+    public int[] getRemainingTileCounts() {
+        int[] counts = new int[27];
+        char letter  = 'A';
+
+        counts[0] = this.getRemainingWildcardCount();
+        for (int i = 1; i < counts.length; i++) {
+            counts[i] = this.getRemainingTileCount(letter++);
+        }
+        
+        return counts;
+    }
+    
+    public int[] getRackScores() {
+        int size = letterRack.getSize();
+        int[] scores = new int[size];
+        for (int i = 0; i < size; i++) {
+            scores[i] = scoreMod.getPointsOf(letterRack.charAt(i));
+        }
+        
+        return scores;
+    }
+    
     // ===========================[ Mutator Methods ]============================ \\
     /**
      * Set the letter rack for the game board.

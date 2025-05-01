@@ -3,12 +3,14 @@ package com.slinky.wordcheat.view;
 import static com.slinky.wordcheat.view.FontConstants.BONUS_FONT;
 import static com.slinky.wordcheat.view.FontConstants.SMALL_FONT;
 import static com.slinky.wordcheat.view.FontConstants.TILE_FONT;
+
 import javafx.geometry.Insets;
+
 import javafx.scene.effect.InnerShadow;
-import javafx.scene.paint.Color;
 
 /**
  * Static factory for producing TileNode instances for the board.
+ * 
  * <p>
  * Keeps tile‑creation and default styling concerns in one place for future
  * extension (sizing, event hooks, etc.).
@@ -25,19 +27,6 @@ public final class TileFactory {
     // ==========================[ API Methods ]============================ \
     /**
      * Create a TileNode for placement on the game board grid.
-     * Uses DEFAULT_COLOR as background.
-     *
-     * @param row  zero‑based row index
-     * @param col  zero‑based column index
-     * @param text text to display on the tile (letter or bonus)
-     * @return styled TileNode with default color
-     */
-    static TileNode createBoardTile(int row, int col, String text) {
-        return createBoardTile(row, col, text, ColorConstants.EMPTY_TILE_COLOR);
-    }
-
-    /**
-     * Create a TileNode for placement on the game board grid.
      * Applies default visual styling before any additional adjustments, then
      * sets the display text and custom background color.
      *
@@ -47,43 +36,31 @@ public final class TileFactory {
      * @param fillColor background fill color for this tile
      * @return a styled TileNode with specified text and color
      */
-    static TileNode createBoardTile(int row, int col, String text, Color fillColor) {
+    static TileNode createBoardTile(int row, int col, char letter, int score, String bonus) {
         TileNode tile = new TileNode(TILE_SIZE);
         tile.setId("tile-" + row + "-" + col);
-        tile.setType(TileType.BOARD);
+        tile.setSubstrate(Substrate.BOARD);
+        tile.setLetter(letter);
+        tile.setScore(score);
+        tile.setBonus(bonus);
+        
         applyDefaultStyle(tile);
-        if (text != null && !text.isEmpty()) {
-            if (text.length() == 1) {
-                tile.setLetter(text.charAt(0));
-            } else {
-                tile.setBonus(text);
-            }
-        } else {
-            tile.setDropTarget(true);
-        }
+        tile.syncView();
         
-        // override background color
-        tile.setBackgroundFill(fillColor);
-        
-        // commit style and text
-        tile.applyStyle();
-        tile.refresh();
         return tile;
     }
     
     static TileNode createTileSetTile(char letter, int count) {
         TileNode tile = new TileNode(TILE_SIZE);
         tile.setId("tile-" + letter);
-        tile.setType(TileType.POOL);
+        tile.setSubstrate(Substrate.POOL);
         applyDefaultStyle(tile);
         
         tile.setLetter(letter);
         tile.setScore(0); // 0 to stop tile score displaying
         tile.setCount(count);
         
-        tile.setDraggable(true);
-        tile.applyStyle();
-        tile.refresh();
+        tile.syncView();
         
         return tile;
     }
@@ -99,20 +76,16 @@ public final class TileFactory {
     static TileNode createRackTile(char letter, int score) {
         TileNode tile = new TileNode(TILE_SIZE);
         tile.setId("rack-tile-" + letter);
-        tile.setType(TileType.RACK);
+        tile.setSubstrate(Substrate.RACK);
         applyDefaultStyle(tile);
 
         tile.setLetter(letter);
         tile.setScore(score);
-        tile.setCount(-1); // Always hide count for rack tiles
         
-        tile.setDraggable(true);
-        tile.applyStyle();
-        tile.refresh();
+        tile.syncView();
 
         return tile;
     }
-
 
     // ============================[ Helper Methods ]============================ \\
     /**
@@ -127,8 +100,6 @@ public final class TileFactory {
     private static void applyDefaultStyle(TileNode tile) {
         // corner radius for smooth rounded tiles
         tile.setCornerRadius(20);
-        // default background
-        tile.setBackgroundFill(ColorConstants.DEFAULT_TILE_COLOR);
         
         tile.setLetterFont(TILE_FONT);
         tile.setSmallFont(SMALL_FONT);

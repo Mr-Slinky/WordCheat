@@ -1,12 +1,5 @@
 package com.slinky.wordcheat.view;
 
-import static com.slinky.wordcheat.view.ColorConstants.DEFAULT_TILE_COLOR;
-import static com.slinky.wordcheat.view.ColorConstants.DOUBLE_LETTER_COLOR;
-import static com.slinky.wordcheat.view.ColorConstants.DOUBLE_WORD_COLOR;
-import static com.slinky.wordcheat.view.ColorConstants.EMPTY_TILE_COLOR;
-import static com.slinky.wordcheat.view.ColorConstants.TRIPLE_LETTER_COLOR;
-import static com.slinky.wordcheat.view.ColorConstants.TRIPLE_WORD_COLOR;
-
 import java.util.Objects;
 import javafx.geometry.Pos;
 import javafx.scene.layout.GridPane;
@@ -24,7 +17,7 @@ import javafx.scene.layout.GridPane;
  */
 public final class BoardView extends GridPane {
 
-    // ================================[ Fields ]================================
+    // ==============================[ Fields ]============================== \\
     /** Number of rows in the board. */
     private final int rows;
     /** Number of columns in the board. */
@@ -32,7 +25,7 @@ public final class BoardView extends GridPane {
     /** 2D array of {@link TileNode} references for quick access. */
     private final TileNode[][] tiles;
 
-    // =============================[ Constructors ]=============================
+    // ===========================[ Constructors ]=========================== \\
     /**
      * Creates a new {@code BoardView} with the given matrices.
      * <p>
@@ -47,7 +40,7 @@ public final class BoardView extends GridPane {
      */
     public BoardView(char[][] letters, int[][] scores, String[][] bonuses) {
         validConstructorParams(letters, scores, bonuses);
-
+        
         this.rows  = letters.length;
         this.cols  = letters[0].length;
         this.tiles = new TileNode[rows][cols];
@@ -55,7 +48,7 @@ public final class BoardView extends GridPane {
         initialiseGrid(letters, scores, bonuses);
     }
 
-    // ===========================[ Public API Methods ]=========================
+    // ============================[ API Methods ]========================== \\
     /**
      * Retrieves the {@link TileNode} at the specified position.
      *
@@ -70,6 +63,7 @@ public final class BoardView extends GridPane {
                 String.format("Index [%d, %d] out of bounds for [%d, %d]", row, col, rows, cols)
             );
         }
+        
         return tiles[row][col];
     }
 
@@ -79,14 +73,15 @@ public final class BoardView extends GridPane {
      * @return flat array of all tiles
      */
     public TileNode[] getAllTiles() {
-        TileNode[] flat = new TileNode[rows * cols];
+        TileNode[] flatArr = new TileNode[rows * cols];
         int idx = 0;
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                flat[idx++] = tiles[r][c];
+                flatArr[idx++] = tiles[r][c];
             }
         }
-        return flat;
+        
+        return flatArr;
     }
 
     /**
@@ -126,23 +121,76 @@ public final class BoardView extends GridPane {
             for (int c = 0; c < cols; c++) {
                 if (tiles[r][c] == tile) {
                     tile.setLetter(' ');
-                    tile.setScore(-1);
+                    tile.setScore(0);
                     tile.setCount(-1);
                     tile.setWildcard(false);
                     tile.setDraggable(false);
                     tile.setDropTarget(true);
-                    assignBonusColor(tile, tile.getBonus());
-
-                    tile.applyStyle();
-                    tile.refresh();
+                    tile.setNewlyPlaced(false);
+                    
+                    tile.syncView();
                     return;
                 }
             }
         }
+        
         throw new IllegalArgumentException("Tile not part of this BoardView");
     }
+    
+    /**
+     * Must match original dimensions. 
+     * 
+     * @param letters
+     * @param scores
+     * @param bonuses 
+     */
+    public void updateBoard(char[][] letters, int[][] scores, String[][] bonuses) {
+        validConstructorParams(letters, scores, bonuses);
+        
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                int score     = scores [r][c];
+                String bonus  = bonuses[r][c];
+                var tile      = tiles[r][c];
+                
+                tile.setScore(score);
+                tile.setBonus(bonus == null ? tile.getBonus() : bonus);
+                tile.syncView();
+            }
+        }
+    }
+    
+    public void updateBoard(char[][] letters, int[][] scores) {
+        updateBoard(letters, scores, new String[rows][cols]);
+    }
 
-    // ============================[ Helper Methods ]============================
+    // ===========================[ Helper Methods ]========================== \\
+    /**
+     * Initialises and lays out all {@link TileNode} instances according to the
+     * provided data matrices.
+     *
+     * @param letters  2D char array of letters
+     * @param scores   2D int array of scores
+     * @param bonuses  2D String array of bonus texts
+     */
+    private void initialiseGrid(char[][] letters, int[][] scores, String[][] bonuses) {
+        setHgap(4);
+        setVgap(4);
+        setAlignment(Pos.CENTER);
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                char letter   = letters[r][c];
+                int score     = scores [r][c];
+                String bonus  = bonuses[r][c];
+                TileNode tile = TileFactory.createBoardTile(r, c, letter, score, bonus);
+
+                tiles[r][c] = tile;
+                add(tile, c, r);
+            }
+        }
+    }
+    
     /**
      * Validates that all provided matrices are non-null, non-empty, and
      * share the same dimensions.
@@ -160,11 +208,13 @@ public final class BoardView extends GridPane {
         if (letters.length == 0 || letters[0].length == 0) {
             throw new IllegalArgumentException("Letters matrix cannot be empty");
         }
+        
         int rc = letters.length;
         int cc = letters[0].length;
         if (scores.length != rc || bonuses.length != rc) {
             throw new IllegalArgumentException("All matrices must have the same row count");
         }
+        
         for (int r = 0; r < rc; r++) {
             if (letters[r].length != cc || scores[r].length != cc || bonuses[r].length != cc) {
                 throw new IllegalArgumentException(
@@ -173,56 +223,6 @@ public final class BoardView extends GridPane {
                 );
             }
         }
-    }
-
-    /**
-     * Initializes and lays out all {@link TileNode} instances according to the
-     * provided data matrices.
-     *
-     * @param letters  2D char array of letters
-     * @param scores   2D int array of scores
-     * @param bonuses  2D String array of bonus texts
-     */
-    private void initialiseGrid(char[][] letters, int[][] scores, String[][] bonuses) {
-        setHgap(4);
-        setVgap(4);
-        setAlignment(Pos.CENTER);
-
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                char ch       = letters[r][c];
-                int score     = scores[r][c];
-                String bonus  = bonuses[r][c];
-                TileNode tile = TileFactory.createBoardTile(r, c, String.valueOf(ch));
-
-                boolean hasLetter = (ch >= 'A' && ch <= 'Z');
-                tile.setScore(score);
-                tile.setBonus(bonus == null ? "" : bonus);
-
-                if (!(hasLetter || bonus == null)) {
-                    assignBonusColor(tile, bonus);
-                } else if (hasLetter) {
-                    tile.setBackgroundFill(DEFAULT_TILE_COLOR);
-                }
-                
-                tile.setDropTarget(!hasLetter);
-                tile.applyStyle();
-                tile.refresh();
-
-                tiles[r][c] = tile;
-                add(tile, c, r);
-            }
-        }
-    }
-    
-    private void assignBonusColor(TileNode tile, String bonus) {
-        switch (bonus) {
-            case "DW": tile.setBackgroundFill(DOUBLE_WORD_COLOR);   break;
-            case "DL": tile.setBackgroundFill(DOUBLE_LETTER_COLOR); break;
-            case "TW": tile.setBackgroundFill(TRIPLE_WORD_COLOR);   break;
-            case "TL": tile.setBackgroundFill(TRIPLE_LETTER_COLOR); break;
-            default:   tile.setBackgroundFill(EMPTY_TILE_COLOR);
-        }
-    }
+    }    
     
 }

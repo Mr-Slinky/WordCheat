@@ -56,8 +56,6 @@ public class TileSetView extends VBox {
         setAlignment(Pos.CENTER);
         setPadding(new Insets(10));
         
-//        setBackground(Background.fill(Color.rgb(31, 8, 18)));
-        
         // Header
         Label header = new Label("Letter Pool");
         header.setFont(LABEL_FONT_HEADING);
@@ -102,18 +100,20 @@ public class TileSetView extends VBox {
     // ============================[ Public API ]============================ \\
     /**
      * Refreshes the tile counts and summary from a new counts array.
+     *
+     * @param counts an array of length ≥27 giving remaining counts for A–Z and blank
      */
     void updateCounts(int[] counts) {
         Objects.requireNonNull(counts, "counts must not be null");
         if (counts.length < TILE_TYPES) {
             throw new IllegalArgumentException(
-                    "counts array must have at least " + TILE_TYPES + " elements"
+                "counts array must have at least " + TILE_TYPES + " elements"
             );
         }
 
         for (int i = 0; i < TILE_TYPES; i++) {
             tiles[i].setCount(counts[i]);
-            tiles[i].refresh();
+            tiles[i].syncView();
         }
 
         updateSummary(counts);
@@ -122,27 +122,27 @@ public class TileSetView extends VBox {
     /**
      *
      * @param letter
-     * @param count -1 to remove count
+     * @param count 
      */
     void updateCount(char letter, int count) {
         for (TileNode tile : tiles) {
             if (tile.getLetter() == letter) {
                 tile.setCount(count);
-                tile.refresh();
+                tile.syncView();
                 break;
             }
         }
         
         updateSummary();
     }
-
+    
     // ==========================[ Helper Methods ]========================== \\
     private void initTiles(int[] counts) {
         // Create one TileNode per letter + blank
         for (int i = 0; i < TILE_TYPES; i++) {
             char letter = (i < 26) ? (char) ('A' + i) : ' ';
-            int row = i / COLUMNS;
-            int col = i % COLUMNS;
+            int row     = i / COLUMNS;
+            int col     = i % COLUMNS;
 
             TileNode node = TileFactory.createTileSetTile(letter, counts[i]);
             tiles[i]      = node;

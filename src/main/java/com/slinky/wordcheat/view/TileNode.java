@@ -1,12 +1,27 @@
 package com.slinky.wordcheat.view;
 
+
+import static com.slinky.wordcheat.view.ColorConstants.DEFAULT_TILE_COLOR;
+import static com.slinky.wordcheat.view.ColorConstants.DOUBLE_LETTER_COLOR;
+import static com.slinky.wordcheat.view.ColorConstants.DOUBLE_WORD_COLOR;
+import static com.slinky.wordcheat.view.ColorConstants.EMPTY_TILE_COLOR;
+import static com.slinky.wordcheat.view.ColorConstants.TRIPLE_LETTER_COLOR;
+import static com.slinky.wordcheat.view.ColorConstants.TRIPLE_WORD_COLOR;
+
 import com.slinky.wordcheat.util.ColorUtils;
+import static com.slinky.wordcheat.view.ColorConstants.NEW_TILE_COLOR;
+import static com.slinky.wordcheat.view.Substrate.BOARD;
+import static com.slinky.wordcheat.view.Substrate.POOL;
+import static com.slinky.wordcheat.view.Substrate.RACK;
+
 import javafx.geometry.Pos;
+
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import static com.slinky.wordcheat.view.Substrate.UNKNOWN;
 
 /**
  * Represents a single tile within the word‑cheat application, used both on the
@@ -54,16 +69,19 @@ public final class TileNode extends StackPane {
     private final Label     countLbl;
 
     // --- logical state ---
-    private TileType type; // set by TileFactory class
+    private Substrate substrate = UNKNOWN; // set by TileFactory class
     
     private char    letter      = ' ';
     private int     score       = 0;
     private String  bonus       = null;
-    private boolean wildcard    = false;
     private int     count       = -1;
+    
+    // Flags
+    private boolean wildcard    = false;
     private boolean isDraggable = false;
     private boolean dropTarget  = false;
     private boolean isHovered   = false;
+    private boolean newlyPlaced = false;
     
     // --- style state with defaults WS(externally mutable) ---
     private Color  backgroundFill = Color.web("#ECEFF1");
@@ -103,13 +121,12 @@ public final class TileNode extends StackPane {
         
         getChildren().addAll(background, bonusLbl, letterLbl, scoreLbl, countLbl);
         
-        applyStyle();
-        refresh();
+        syncView();
     }
     
     // ========================[ Accessor Methods ]========================= \\
-    public TileType getType() {
-        return type;
+    public Substrate getSubstrate() {
+        return substrate;
     }
     
     /**
@@ -208,6 +225,10 @@ public final class TileNode extends StackPane {
     public boolean isHovered() {
         return isHovered;
     }
+
+    public boolean isNewlyPlaced() {
+        return newlyPlaced;
+    }
     
     // ========================[ Mutator Methods ]========================== \\
     /**
@@ -234,10 +255,6 @@ public final class TileNode extends StackPane {
      * @param b the bonus text, or null to clear
      */
     public void setBonus(String b) {
-        if (b == null) {
-            throw new NullPointerException("Cannot set bonus to null");
-        }
-        
         this.bonus = b;
     }
 
@@ -250,13 +267,8 @@ public final class TileNode extends StackPane {
         this.wildcard = w;
     }
 
-    /**
-     * Set the fill colour used for the background when not a wildcard.
-     *
-     * @param c the background fill colour
-     */
-    public void setBackgroundFill(Color c) {
-        this.backgroundFill = c;
+    public void setNewlyPlaced(boolean newlyPlaced) {
+        this.newlyPlaced = newlyPlaced;
     }
 
     /**
@@ -308,55 +320,10 @@ public final class TileNode extends StackPane {
         this.isHovered = hovered;
     }
 
-    public void setType(TileType type) {
-        this.type = type;
+    public void setSubstrate(Substrate type) {
+        this.substrate = type;
     }
-    
-    // ==========================[ API Methods ]============================ \\
-    /**
-     * Apply visual styles based on current style state.
-     *
-     * Must be called after changing style properties to take effect.
-     */
-    public void applyStyle() {
-        background.setArcWidth(cornerRadius);
-        background.setArcHeight(cornerRadius);
-        background.setFill(isHovered ? backgroundFill.darker() : backgroundFill);
-        
-        letterLbl.setFont(letterFont);
-        bonusLbl .setFont(bonusFont);
-        scoreLbl .setFont(smallFont);
-        countLbl .setFont(smallFont);
-        
-        boolean useBlack = ColorUtils.useBlackText(
-                               backgroundFill.getRed(),
-                               backgroundFill.getGreen(),
-                               backgroundFill.getBlue()
-                           );
-        var textFill = useBlack ? Color.BLACK : Color.WHITE;
-        letterLbl.setTextFill(textFill);
-        bonusLbl .setTextFill(textFill);
-        scoreLbl .setTextFill(textFill);
-        countLbl .setTextFill(textFill);
-    }
-
-    /**
-     * Refresh the displayed text and background fill based on current logical
-     * state.
-     *
-     * Must be called after setLetter, setScore, setBonus or setWildcard.
-     */
-    public void refresh() {
-        boolean hasLetter = !(letter < 'A' || letter > 'Z');
-
-        letterLbl.setText(hasLetter ? String.valueOf(letter) : "");
-        scoreLbl .setText(hasLetter && !wildcard && score > 0 ? String.valueOf(score) : "");
-        bonusLbl .setText(hasLetter || bonus == null ? "" : bonus);
-        countLbl .setText(count >= 0 ? String.valueOf(count) : "");
-
-        background.setFill(backgroundFill);
-    }
-    
+  
     public void setDraggable(boolean enabled) {
         isDraggable = enabled;
     }
@@ -365,9 +332,67 @@ public final class TileNode extends StackPane {
         dropTarget = enabled;
     }
     
+    
+    // ==========================[ API Methods ]============================ \\
+    /**
+     * Call after making updates.
+     */
+    public void syncView() {
+        boolean hasLetter = !(letter < 'A' || letter > 'Z');
+        backgroundFill    = hasLetter ? (newlyPlaced ? NEW_TILE_COLOR : DEFAULT_TILE_COLOR) : getEmptyBackgroundColor();
+        boolean useBlack  = ColorUtils.useBlackText(
+                                backgroundFill.getRed(),
+                                backgroundFill.getGreen(),
+                                backgroundFill.getBlue()
+                            );
+        var textFill      = useBlack ? Color.BLACK : Color.WHITE;
+        
+        background.setArcWidth(cornerRadius);
+        background.setArcHeight(cornerRadius);
+        background.setFill(backgroundFill);        
+        
+        letterLbl.setFont(letterFont);
+        bonusLbl .setFont(bonusFont);
+        scoreLbl .setFont(smallFont);
+        countLbl .setFont(smallFont);
+        
+        letterLbl.setTextFill(textFill);
+        bonusLbl .setTextFill(textFill);
+        scoreLbl .setTextFill(textFill);
+        countLbl .setTextFill(textFill);
+        
+        boolean displayBonus = !(hasLetter || bonus == null);
+        boolean displayScore = hasLetter && (substrate == RACK || substrate == BOARD) && !wildcard;
+        boolean displayCount = substrate == POOL;
+        
+        letterLbl.setText(hasLetter    ? String.valueOf(letter) : "");
+        scoreLbl .setText(displayScore ? String.valueOf(score)  : "");
+        bonusLbl .setText(displayBonus ? bonus : "");
+        countLbl .setText(displayCount ? String.valueOf(count) : "");
+    } // Optimisation candidate
+    
     @Override
     public String toString() {
         return "%c,%d,%d,%b".formatted(letter, score, count, wildcard);
+    }
+    
+    // ============================[ Helper Methods ]============================ \\
+    /**
+     * Assumes the given tile is empty.
+     * 
+     * @param tile
+     * @param bonus 
+     */
+    private Color getEmptyBackgroundColor() {
+        if (substrate != BOARD) return DEFAULT_TILE_COLOR;
+        if (bonus == null)      return EMPTY_TILE_COLOR;
+        return switch (bonus) {
+            case "DW" -> DOUBLE_WORD_COLOR;
+            case "DL" -> DOUBLE_LETTER_COLOR;
+            case "TW" -> TRIPLE_WORD_COLOR;  
+            case "TL" -> TRIPLE_LETTER_COLOR;
+            default   -> EMPTY_TILE_COLOR;
+        };
     }
     
 }

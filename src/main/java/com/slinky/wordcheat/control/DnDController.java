@@ -1,13 +1,16 @@
 package com.slinky.wordcheat.control;
 
+import static com.slinky.wordcheat.view.Substrate.BOARD;
+import static com.slinky.wordcheat.view.Substrate.POOL;
+import static com.slinky.wordcheat.view.Substrate.RACK;
+
 import com.slinky.wordcheat.model.GameEngine;
 import com.slinky.wordcheat.view.ColorConstants;
 
 import com.slinky.wordcheat.view.MainView;
+import com.slinky.wordcheat.view.RackView;
 import com.slinky.wordcheat.view.TileNode;
-import static com.slinky.wordcheat.view.TileType.BOARD;
-import static com.slinky.wordcheat.view.TileType.POOL;
-import static com.slinky.wordcheat.view.TileType.RACK;
+import com.slinky.wordcheat.view.TileSetView;
 
 import javafx.event.Event;
 
@@ -16,6 +19,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 /**
@@ -26,6 +30,7 @@ public class DnDController {
     // ================================[ Fields ]================================ \\
     private final GameEngine engine;
     private final MainView view;
+    private boolean dropSuccessful;
     
     // =============================[ Constructors ]============================= \\
     public DnDController(GameEngine engine, MainView view) {
@@ -36,56 +41,69 @@ public class DnDController {
     // =============================[ API Methods ]============================== \\
     public void configure() {
         for (TileNode tile : view.getBoardTiles()) {
+            configureDragSourceTile(tile);
+            configureDragTargetTile(tile);
+            tile.setDraggable(false);
             if (tile.isEmpty()) {
-                configureDragSource(tile);
-                configureDragTarget(tile);
-                tile.setDraggable(false);
+                tile.setDropTarget(true);
             }
         }
 
         for (TileNode tile : view.getPoolTiles()) {
-            configureDragSource(tile);
+            configureDragSourceTile(tile);
+            if (tile.getCount() <= 0) {
+                tile.setDraggable(false);
+            }
         }
         
         for (TileNode tile : view.getRackTiles()) {
-            configureDragSource(tile);
+            configureDragSourceTile(tile);
         }
+        
+        configureDragSourceContainer(view.getPoolView());
+        configureDragSourceContainer(view.getRackView());
     }
 
     // ============================[ Helper Methods ]============================ \\
-    private void configureDragSource(TileNode tile) {
+    private void configureDragSourceTile(TileNode tile) {
         tile.setOnDragDetected(evt -> handleDragDetected(evt, tile));
         tile.setOnDragDone    (evt -> handleDragDone    (evt, tile));
         
         tile.setDraggable(true);
     }
     
-    private void configureDragTarget(TileNode tile) {
+    private void configureDragTargetTile(TileNode tile) {
         tile.setOnDragOver(evt -> {
-            if (evt.getGestureSource() instanceof TileNode) {
-                evt.acceptTransferModes(TransferMode.COPY);
-            }
-            
-            evt.consume();
+            handleDragOver(evt);
         });
 
         tile.setOnDragEntered(evt -> {
             tile.setHovered(true);
-            tile.applyStyle();
+            tile.syncView();
             
             evt.consume();
         });
 
         tile.setOnDragExited(evt -> {
             tile.setHovered(false);
-            tile.applyStyle();
+            tile.syncView();
 
             evt.consume();
         });
 
         tile.setOnDragDropped(evt -> handleTileDrop(evt, tile));
     }
-
+    
+    private void configureDragSourceContainer(Pane container) {
+        container.setOnDragOver(ev -> {
+            handleDragOver(ev);
+        });
+        
+        container.setOnDragDropped(evt -> {
+            handleContainerDrop(evt, container);
+        });
+    }
+    
     private void handleDragDetected(Event evt, TileNode sourceTile) {
         if (!sourceTile.isDraggable()) return;
         
@@ -102,19 +120,10 @@ public class DnDController {
         
         evt.consume();
     }
-
-    private void handleDragDone(DragEvent evt, TileNode sourceTile) {
-        if (!sourceTile.isDraggable()) return;
-        
-        switch (sourceTile.getType()) {
-            case POOL:
-                view.updateTileCount(sourceTile.getLetter(), sourceTile.getCount() - 1);
-                break;
-            case RACK:
-                view.removeTileFromRack(sourceTile.getLetter());
-                break;
-            default:
-            // assume BOARD
+    
+    private void handleDragOver(DragEvent evt) {
+        if (evt.getGestureSource() instanceof TileNode) {
+            evt.acceptTransferModes(TransferMode.COPY);
         }
 
         evt.consume();
@@ -124,6 +133,7 @@ public class DnDController {
         var src = evt.getGestureSource();
         if (!target.isDropTarget() || !(src instanceof TileNode)) {
             evt.setDropCompleted(false);
+            dropSuccessful = false;
             // let event bubble
             return;
         }
@@ -134,21 +144,64 @@ public class DnDController {
         target.setLetter(letter);
         target.setScore(engine.getScoreOf(letter));
         target.setWildcard(source.isWildcard());
-        target.setBackgroundFill(ColorConstants.DEFAULT_TILE_COLOR);
+        target.setNewlyPlaced(true);
         target.setDraggable(true);
         target.setDropTarget(false);
+        target.syncView();
         
-        switch (source.getType()) {
+        switch (source.getSubstrate()) {
             case BOARD:
                 view.emptyTile(source);
             // break;
         }
         
-        target.applyStyle();
-        target.refresh();
 
+        dropSuccessful = true;
         evt.setDropCompleted(true);
         evt.consume();
     }
     
+    private void handleDragDone(DragEvent evt, TileNode sourceTile) {
+        if (!sourceTile.isDraggable()) return;
+        
+        if (dropSuccessful) {
+            switch (sourceTile.getSubstrate()) {
+                case POOL:
+                    view.updateTileCount(sourceTile.getLetter(), sourceTile.getCount() - 1);
+                    break;
+                case RACK:
+                    view.removeTileFromRack(sourceTile.getLetter());
+                    break;
+                default:
+                // assume BOARD
+            }
+        }
+        
+        dropSuccessful = false; // reset for next event
+        evt.consume();
+    }
+    
+    private void handleContainerDrop(DragEvent evt, Pane container) {
+        if (!(evt.getGestureSource() instanceof TileNode)) return;
+        
+        var sourceTile  = (TileNode) evt.getGestureSource();
+        if (sourceTile.getSubstrate() != BOARD) return;
+
+        boolean removed = false;
+        char letter     = sourceTile.getLetter();
+        
+        if (container instanceof RackView) {
+            view.addTileToRack(letter, engine.getScoreOf(letter));
+            removed = true;
+        } else if (container instanceof TileSetView) {
+            view.updateTileCount(letter, view.getPoolTile(letter).getCount() + 1);
+            removed = true;
+        }
+        
+        if (removed) {
+            view.emptyTile(sourceTile);
+        }
+        
+        evt.consume();
+    }
 }

@@ -17,9 +17,9 @@ import java.util.Objects;
 public final class RackView extends StackPane {
 
     // ==============================[ Fields ]============================== \\
-    private final HBox rackBox;
+    private final HBox       rackBox;
     private final TileNode[] tiles;
-    private final int maxSize;
+    private final int        maxSize;
     private int size;
 
     // ===========================[ Constructors ]=========================== \\
@@ -32,6 +32,10 @@ public final class RackView extends StackPane {
         this.maxSize = maxSize;
         this.tiles   = new TileNode[maxSize];
         this.size    = 0;
+        
+        for (int i = 0; i < tiles.length; i++) {
+            tiles[i] = TileFactory.createRackTile(' ', 0);
+        }
         
         rackBox = new HBox(5);
         rackBox.setAlignment(Pos.CENTER);
@@ -63,15 +67,15 @@ public final class RackView extends StackPane {
     TileNode[] getTiles() {
         return tiles;
     }
-
-    // ===========================[ Public API ]============================== \\
+    
     /**
      * Returns the current number of tiles in the rack.
      */
     int getSize() {
         return size;
-    }
+    }    
 
+    // ===========================[ Public API ]============================== \\
     /**
      * Adds a single tile to the rack.
      *
@@ -84,12 +88,15 @@ public final class RackView extends StackPane {
             throw new IllegalStateException("RackView cannot hold more than " + maxSize + " tiles");
         }
         
-        TileNode tile = TileFactory.createRackTile(letter, score);
-        tiles[size]   = tile;
-        rackBox.getChildren().add(tile);
+        tiles[size].setLetter(letter);
+        tiles[size].setScore(score);
+        tiles[size].setSubstrate(Substrate.RACK);
+        tiles[size].syncView();
+        
+        rackBox.getChildren().add(tiles[size]);
         size++;
     }
-
+    
     /**
      * Adds multiple tiles to the rack.
      *
@@ -100,13 +107,15 @@ public final class RackView extends StackPane {
      */
     void addTiles(char[] letters, int[] scores) {
         Objects.requireNonNull(letters, "letters must not be null");
-        Objects.requireNonNull(scores, "scores must not be null");
+        Objects.requireNonNull(scores,  "scores must not be null");
         if (letters.length != scores.length) {
             throw new IllegalArgumentException("letters and scores must have the same length");
         }
+        
         if (size + letters.length > maxSize) {
             throw new IllegalStateException("Addition exceeds maximum rack size (" + maxSize + ")");
         }
+        
         for (int i = 0; i < letters.length; i++) {
             addTile(letters[i], scores[i]);
         }
@@ -130,29 +139,29 @@ public final class RackView extends StackPane {
     }
 
     /**
-     * Removes and returns the letter at the specified index.
+     * Removes and returns the specified TileNode reference.
      *
      * @param index the index to remove
      * @return the removed letter
      * @throws IndexOutOfBoundsException if index invalid
      */
-    char removeTileAt(int index) {
+    TileNode removeTileAt(int index) {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index " + index + " out of bounds for rack size " + size);
         }
         
         TileNode removed = tiles[index];
-        char letter      = removed.getLetter();
+        removed.setSubstrate(Substrate.UNKNOWN);
         rackBox.getChildren().remove(removed);
         // shift left
         for (int i = index; i < size - 1; i++) {
             tiles[i] = tiles[i + 1];
         }
         
-        tiles[size - 1] = null; // TileFactory.createRackTile(' ', 0);
-//        rackBox.getChildren().add(tiles[size - 1]);
+        tiles[size - 1] = removed;
         size--;
-        return letter;
+        
+        return removed;
     }
 
     /**
@@ -166,9 +175,11 @@ public final class RackView extends StackPane {
         if (count < 0) {
             throw new IllegalArgumentException("Cannot remove negative number of tiles");
         }
+        
         if (count > size) {
             throw new IllegalStateException("Cannot remove " + count + " tiles from a rack of size " + size);
         }
+        
         for (int i = 0; i < count; i++) {
             removeTileAt(size - 1);
         }
@@ -179,7 +190,7 @@ public final class RackView extends StackPane {
      */
     void updateRack(char[] letters, int[] scores) {
         Objects.requireNonNull(letters, "letters must not be null");
-        Objects.requireNonNull(scores, "scores must not be null");
+        Objects.requireNonNull(scores,  "scores must not be null");
         if (letters.length != scores.length) {
             throw new IllegalArgumentException("letters and scores must have the same length");
         }
@@ -190,14 +201,12 @@ public final class RackView extends StackPane {
 
         rackBox.getChildren().clear();
         for (int i = 0; i < maxSize; i++) {
-            TileNode tile;
-            if (i < letters.length) {
-                tile = TileFactory.createRackTile(letters[i], scores[i]);
-            } else {
-                tile = TileFactory.createRackTile(' ', 0); // Empty tile
-            }
-            tiles[i] = tile;
-            rackBox.getChildren().add(tile);
+            tiles[i].setLetter(letters[i]);
+            tiles[i].setScore (scores[i]);
+            tiles[i].setSubstrate(Substrate.RACK);
+            tiles[i].syncView();
+
+            rackBox.getChildren().add(tiles[i]);
         }
         
         size = letters.length;

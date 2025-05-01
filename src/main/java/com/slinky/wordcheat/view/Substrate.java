@@ -6,12 +6,13 @@ package com.slinky.wordcheat.view;
  * 
  * @author Kheagen Haskins
  */
-public enum TileType {
+public enum Substrate {
 
     // ================================[ Static ]================================ \\
     BOARD,
     RACK,
-    POOL
+    POOL,
+    UNKNOWN // unassigned
     
     // ================================[ Fields ]================================ \\
 

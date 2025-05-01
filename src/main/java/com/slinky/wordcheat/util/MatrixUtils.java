@@ -9,8 +9,41 @@ import java.util.Arrays;
  */
 public final class MatrixUtils {
 
-    // prevent instantiation
     private MatrixUtils() {}
+    
+    /**
+     * Shifts the elements of the given array to the left by the specified
+     * offset, wrapping around, in place.
+     *
+     * @param arr    the array to rotate
+     * @param offset number of positions to shift left; may be larger than
+     *               arr.length or negative
+     * @return the same array instance, now rotated
+     */
+    public static int[] shiftLeft(int[] arr, int offset) {
+        if (arr == null || arr.length < 2) {
+            return arr;  // nothing to do
+        }
+        if (offset == 0) {
+            return arr;  // no shift needed
+        }
+        
+        int n = arr.length;
+        // normalize offset to [0, n)
+        offset %= n;
+        if (offset < 0) {
+            offset += n;
+        }
+        
+        // reverse first segment [0 .. offset - 1]
+        reverse(arr, 0, offset - 1);
+        // reverse second segment [offset .. n - 1]
+        reverse(arr, offset, n - 1);
+        // reverse entire array
+        reverse(arr, 0, n - 1);
+        
+        return arr;
+    }
 
     /**
      * Rotates a 2D array of characters by 90 degrees.
@@ -175,5 +208,13 @@ public final class MatrixUtils {
         
         return sb.toString();
     }
-    
+
+    public static void reverse(int[] arr, int start, int end) {
+        while (start < end) {
+            int tmp = arr[start];
+            arr[start++] = arr[end];
+            arr[end--] = tmp;
+        }
+    }
+
 }

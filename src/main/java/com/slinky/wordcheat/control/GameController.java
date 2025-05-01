@@ -1,16 +1,17 @@
 package com.slinky.wordcheat.control;
 
+import com.slinky.wordcheat.language.Dictionary;
 import com.slinky.wordcheat.language.OxfordDictionary;
-
 import com.slinky.wordcheat.model.DefaultScoringModule;
 import com.slinky.wordcheat.model.DefaultTileSet;
 import com.slinky.wordcheat.model.GameBoard;
 import com.slinky.wordcheat.model.GameEngine;
 import com.slinky.wordcheat.model.MoveFinder;
+import com.slinky.wordcheat.model.ScoringModule;
 import com.slinky.wordcheat.model.TileBonus;
-
 import com.slinky.wordcheat.io.Persistence;
-
+import com.slinky.wordcheat.io.GameEngineSnapshot;
+import com.slinky.wordcheat.util.MatrixUtils;
 import com.slinky.wordcheat.view.BoardView;
 import com.slinky.wordcheat.view.MainView;
 import com.slinky.wordcheat.view.RackView;
@@ -29,20 +30,18 @@ public final class GameController {
     // ================================[ Static ]================================ \\
     
     // ================================[ Fields ]================================ \\
-    private String     filename;
-    private GameEngine engine; 
-    private MainView   mainView;
-    
-    private DnDController dndController;
+    private String             filename;
+    private GameEngine         engine;
+    private MainView           view;
+    private DnDController      dndController;
+    private GameEngineSnapshot lastSnapshot;
     
     // =============================[ Constructors ]============================= \\
     public GameController(String filename) {
         this.filename = filename;
-        
         initEngine();
         initMainView();
-        
-        dndController = new DnDController(engine, mainView);
+        dndController = new DnDController(engine, view);
         dndController.configure();
     }
     
@@ -52,16 +51,35 @@ public final class GameController {
     }
     
     public Pane getMainView() {
-        return mainView;
+        return view;
     }
 
     // =============================[ API Methods ]============================== \\
     public void save() throws IOException {
         Persistence.saveGame(engine, filename);
+        lastSnapshot = GameEngineSnapshot.fromEngine(engine);
     }
     
     public void load() throws IOException {
         this.engine = Persistence.loadGame(filename);
+        // do not update snapshot on load; reset() will restore previous state
+    }
+
+    public void reset() {
+        if (lastSnapshot == null) {
+            throw new IllegalStateException("No in-memory snapshot available; call save() first.");
+        }
+        
+        Dictionary dict       = new OxfordDictionary();
+        ScoringModule scoring = new DefaultScoringModule();
+        engine = lastSnapshot.toEngine(dict, scoring);
+        
+        view.updateBoard(engine.getMatrix(), getScoreMatrix(), getBonusMatrix());
+        view.updateTileSet(engine.getRemainingTileCounts());
+        view.updateRack(engine.getRackLetters(), engine.getRackScores());
+        
+        dndController = new DnDController(engine, view);
+        dndController.configure();
     }
     
     public void printTopFiveMoves() {
@@ -76,29 +94,39 @@ public final class GameController {
     
     // ============================[ Helper Methods ]============================ \\
     private GameEngine createNewGame(String filename) {
-        this.filename = filename;
+        this.filename         = filename;
         GameBoard gameBoard   = new GameBoard(new char[15][15]);
         MoveFinder moveFinder = new MoveFinder(
                                         gameBoard,
                                         new OxfordDictionary(),
                                         new DefaultScoringModule()
                                 );
-
-        System.out.println("New game created: " + filename); // DEBUG REMOVE
         return new GameEngine(new DefaultTileSet(), moveFinder);
     }
     
-    // ============================[ Helper Classes ]============================ \\
     private void initEngine() {
         try {
             engine = Persistence.saveExists(filename) ? Persistence.loadGame(filename)
-                                                      : createNewGame(filename);
+                                                     : createNewGame(filename);
         } catch (IOException e) {
             engine = createNewGame(filename);
         }
+        
+        lastSnapshot = GameEngineSnapshot.fromEngine(engine);
     }
     
     private void initMainView() {
+        var counts      = MatrixUtils.shiftLeft(engine.getRemainingTileCounts(), 1);
+        var rackLetters = engine.getRackLetters();
+
+        var boardView   = new BoardView(engine.getMatrix(), getScoreMatrix(), getBonusMatrix());
+        var tileSetView = new TileSetView(counts);
+        var rackView    = new RackView(rackLetters, engine.getRackScores(), rackLetters.length);
+        
+        view = new MainView(boardView, tileSetView, rackView);
+    }
+    
+    private int[][] getScoreMatrix() {
         char[][] matrix = engine.getMatrix();
         int rows = matrix.length;
         int cols = matrix[0].length;
@@ -110,7 +138,14 @@ public final class GameController {
             }
         }
         
-        // Init bonuses
+        return scores;
+    }
+    
+    private String[][] getBonusMatrix() {
+        char[][] matrix = engine.getMatrix();
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+        
         var bonusMatrix    = DefaultScoringModule.getClassicBonusLayout();
         String[][] bonuses = new String[rows][cols];
         for (int r = 0; r < bonusMatrix.length; r++) {
@@ -121,26 +156,7 @@ public final class GameController {
             }
         }
         
-        int[] counts = new int[27];
-        char letter  = 'A';
-        
-        counts[0] = engine.getRemainingWildcardCount();
-        for (int i = 0; i < counts.length - 1; i++) {
-            counts[i] = engine.getRemainingTileCount(letter++);
-        }
-        
-        char[] rackLetters = engine.getRackLetters();
-        int[] rackScores   = new int[rackLetters.length]; 
-        for (int i = 0; i < rackLetters.length; i++) {
-            letter        = rackLetters[i];
-            rackScores[i] = engine.getScoreOf(letter);
-        }
-        
-        var boardView   = new BoardView(matrix, scores, bonuses);
-        var tileSetView = new TileSetView(counts);
-        var rackView    = new RackView(rackLetters, rackScores, 7);
-        
-        mainView = new MainView(boardView, tileSetView, rackView);
+        return bonuses;
     }
     
 }

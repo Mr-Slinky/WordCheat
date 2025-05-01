@@ -23,9 +23,9 @@ public class MainView extends VBox {
     public MainView(BoardView boardView, TileSetView setView, RackView rackView) {
         super(10);
         
-        this.boardView  = Objects.requireNonNull(boardView,  "BoardView cannot be null");
-        this.setView    = Objects.requireNonNull(setView,    "SetView cannot be null");
-        this.rackView   = Objects.requireNonNull(rackView,   "RackView cannot be null");
+        this.boardView = Objects.requireNonNull(boardView, "BoardView cannot be null");
+        this.setView   = Objects.requireNonNull(setView,   "SetView cannot be null");
+        this.rackView  = Objects.requireNonNull(rackView,  "RackView cannot be null");
         
         var boardAndSet = new HBox(10, boardView, setView);
         boardAndSet.setAlignment(Pos.CENTER);
@@ -35,6 +35,21 @@ public class MainView extends VBox {
     }
     
     // ===========================[ Accessor Methods ]=========================== \\
+    public TileSetView getPoolView() {
+        return setView;
+    }
+    
+    public RackView getRackView() {
+        return rackView;
+    }
+
+    /**
+     * Returns the current number of tiles in the rack.
+     */
+    public int getRackSize() {
+        return rackView.getSize();
+    }
+    
     public int getBoardRows() {
         return boardView.getRows();
     }
@@ -63,8 +78,6 @@ public class MainView extends VBox {
         return rackView.getTiles();
     }
     
-    // ===========================[ Mutator Methods ]============================ \\
-
     // =============================[ API Methods ]============================== \\
     public void updateTileCount(char letter, int count) {
         setView.updateCount(letter, count);
@@ -106,7 +119,7 @@ public class MainView extends VBox {
      * @param index the position to remove
      * @return the removed letter
      */
-    public char removeTileAtIndex(int index) {
+    public TileNode removeTileAtIndex(int index) {
         return rackView.removeTileAt(index);
     }
 
@@ -119,17 +132,22 @@ public class MainView extends VBox {
         rackView.removeTiles(count);
     }
 
-    /**
-     * Returns the current number of tiles in the rack.
-     */
-    public int getRackSize() {
-        return rackView.getSize();
-    }
-    
     public void emptyTile(TileNode tile) {
         boardView.emptyTile(tile);
     }
     
+    public void updateBoard(char[][] letters, int[][] scores, String[][] bonuses) {
+        boardView.updateBoard(letters, scores);
+    }
+    
+    public void updateTileSet(int[] counts) {
+        setView.updateCounts(counts);
+    }
+    
+    public void updateRack(char[] letters, int[] scores) {
+        rackView.updateRack(letters, scores);
+    }
+
     // ============================[ Helper Methods ]============================ \\
 
     // ============================[ Helper Classes ]============================ \\
