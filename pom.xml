@@ -80,7 +80,6 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.slinky.wordcheat.App</mainClass>
-                    <modules>javafx.controls, javafx.swing</modules>
                 </configuration>
                 <executions>
                     <execution>

@@ -179,7 +179,7 @@ public class TileSetView extends VBox {
     private Label buildCustomLabel() {
         Label label = new Label();
 
-        // rounded‐corner background:
+        // rounded-corner background:
         label.setBackground(new Background(new BackgroundFill(
                 Color.rgb(55, 81, 95),
                 new CornerRadii(6), 

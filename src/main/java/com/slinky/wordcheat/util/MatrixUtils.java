@@ -209,6 +209,17 @@ public final class MatrixUtils {
         return sb.toString();
     }
 
+    /**
+     * Reverses a portion of the given array in place, from the specified start
+     * index to the end index.
+     * <p>
+     * This method swaps elements from the start and end of the specified range,
+     * moving inwards until the indices meet or cross.
+     *
+     * @param arr the array whose elements are to be reversed
+     * @param start the starting index of the section to reverse (inclusive)
+     * @param end the ending index of the section to reverse (inclusive)
+     */
     public static void reverse(int[] arr, int start, int end) {
         while (start < end) {
             int tmp = arr[start];
@@ -216,5 +227,70 @@ public final class MatrixUtils {
             arr[end--] = tmp;
         }
     }
+    
+    /**
+     * We flatten a two-dimensional character matrix into a one-dimensional
+     * array in row-major order. Each row is appended in sequence.
+     *
+     * @param matrix the two-dimensional array of characters to flatten
+     * @return a one-dimensional array containing all characters from {@code matrix},
+     *         in row-major order
+     * @throws IllegalArgumentException if {@code matrix} is {@code null},
+     *                                  or if any row within {@code matrix} is {@code null}
+     */
+    public static char[] flatten(char[][] matrix) {
+        if (matrix == null) {
+            throw new IllegalArgumentException("Input matrix cannot be null");
+        }
+        // Compute total length
+        int total = 0;
+        for (int i = 0; i < matrix.length; i++) {
+            if (matrix[i] == null) {
+                throw new IllegalArgumentException("Row " + i + " cannot be null");
+            }
+            total += matrix[i].length;
+        }
 
+        // Copy rows in sequence
+        char[] result = new char[total];
+        int pos = 0;
+        for (char[] row : matrix) {
+            System.arraycopy(row, 0, result, pos, row.length);
+            pos += row.length;
+        }
+        return result;
+    }
+
+    /**
+     * We flatten a two-dimensional integer matrix into a one-dimensional array
+     * in row-major order. Each row is appended in sequence.
+     *
+     * @param matrix the two-dimensional array of integers to flatten
+     * @return a one-dimensional array containing all integers from {@code matrix},
+     *         in row-major order
+     * @throws IllegalArgumentException if {@code matrix} is {@code null},
+     *         or if any row within {@code matrix} is {@code null}
+     */
+    public static int[] flatten(int[][] matrix) {
+        if (matrix == null) {
+            throw new IllegalArgumentException("Input matrix cannot be null");
+        }
+        // Compute total length
+        int total = 0;
+        for (int i = 0; i < matrix.length; i++) {
+            if (matrix[i] == null) {
+                throw new IllegalArgumentException("Row " + i + " cannot be null");
+            }
+            total += matrix[i].length;
+        }
+
+        // Copy rows in sequence
+        int[] result = new int[total];
+        int pos = 0;
+        for (int[] row : matrix) {
+            System.arraycopy(row, 0, result, pos, row.length);
+            pos += row.length;
+        }
+        return result;
+    }
 }

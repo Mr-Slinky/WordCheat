@@ -184,13 +184,15 @@ public final class DefaultTileSet implements TileSet {
     @Override
     public void addLetter(char letter) {
         switch (letter) {
-            case TileSet.WILDCARD, ' ', '*':
+            case TileSet.WILDCARD:
                 if (wildcardCount >= WILDCARD_COUNT) {
                     throw new IllegalStateException("Cannot add more blank tiles. Limit is " + WILDCARD_COUNT);
                 }
                 
                 wildcardCount++;
                 break;
+            case ' ':
+                return;
             default:
                 letter        = validateLetter(letter);
                 int index     = letter - 'A';
@@ -223,13 +225,15 @@ public final class DefaultTileSet implements TileSet {
     @Override
     public void removeLetter(char letter) {
         switch (letter) {
-            case TileSet.WILDCARD, ' ', '*':
+            case TileSet.WILDCARD:
                 if (wildcardCount <= 0) {
                     throw new InvalidTileRemovalException("No more wildcards remaining");
                 }
                 
                 wildcardCount--;
                 break;
+            case ' ':
+                return;
             default:
                 letter        = validateLetter(letter);
                 int index     = letter - 'A';

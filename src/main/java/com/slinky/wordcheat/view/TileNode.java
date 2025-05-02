@@ -22,6 +22,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import static com.slinky.wordcheat.view.Substrate.UNKNOWN;
+import javafx.scene.Cursor;
 
 /**
  * Represents a single tile within the word‑cheat application, used both on the
@@ -120,8 +121,15 @@ public final class TileNode extends StackPane {
         StackPane.setAlignment(countLbl, Pos.TOP_LEFT);
         
         getChildren().addAll(background, bonusLbl, letterLbl, scoreLbl, countLbl);
-        
         syncView();
+        
+        setOnMouseEntered(ev -> {
+            if (isDraggable) {
+                setCursor(Cursor.HAND);
+            }
+        });
+        
+        setOnMouseExited(ev -> setCursor(Cursor.DEFAULT));
     }
     
     // ========================[ Accessor Methods ]========================= \\

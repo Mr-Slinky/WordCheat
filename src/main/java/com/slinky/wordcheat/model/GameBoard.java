@@ -908,7 +908,6 @@ public class GameBoard implements Cloneable {
      *         invalid state and no changes were made.
      */
     public boolean preserve() {
-//        if (!isEmpty() && !isValidState()) {
         if (!isValidState()) {
             return false;
         }

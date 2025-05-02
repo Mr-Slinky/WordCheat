@@ -54,6 +54,8 @@ public class FontConstants {
      * Font size used for tile text.
      */
     public static final int TILE_FONT_SIZE      = 18;
+    
+    public static final int BUTTON_FONT_SIZE      = 16;
 
     /**
      * Font size used for smaller text, such as scores.
@@ -84,6 +86,8 @@ public class FontConstants {
      * Font instance used for label headings and larger titles.
      */
     public static final Font LABEL_FONT_HEADING;
+    
+    public static final Font BUTTON_FONT;
 
     static {
         Font loaded;
@@ -111,6 +115,11 @@ public class FontConstants {
         loaded             = Font.font(LABEL_FONT_NAME, 20);
         LABEL_FONT_HEADING = (loaded == Font.getDefault())
                              ? Font.font(FALLBACK_FAMILY, 20)
+                             : loaded;
+        
+        loaded             = Font.font(LABEL_FONT_NAME, BUTTON_FONT_SIZE);
+        BUTTON_FONT        = (loaded == Font.getDefault())
+                             ? Font.font(FALLBACK_FAMILY, BUTTON_FONT_SIZE)
                              : loaded;
     }
     

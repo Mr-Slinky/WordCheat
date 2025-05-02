@@ -4,7 +4,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import com.slinky.wordcheat.control.GameController;
+import com.slinky.wordcheat.control.MainController;
 
 /**
  * Entry point for the WordCheat JavaFX application.
@@ -12,7 +12,7 @@ import com.slinky.wordcheat.control.GameController;
  * <p>
  * Initialises and launches the JavaFX environment, constructs the primary
  * {@link Stage}, and displays the main application view managed by
- * {@link com.slinky.wordcheat.control.GameController}.
+ * {@link com.slinky.wordcheat.control.MainController}.
  * </p>
  *
  * <p>
@@ -29,7 +29,7 @@ public class App extends Application {
     /**
      * Controller coordinating game logic, persistence, and user interface.
      */
-    private GameController controller;
+    private MainController controller;
 
     /**
      * Called when the JavaFX application is started.
@@ -44,7 +44,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         // Initialise controller with default save file name
-        controller = new GameController("mom");
+        controller = new MainController("mom");
 
         // Create and set scene using the controller's main view
         Scene scene = new Scene(controller.getMainView(), 900, 800);

@@ -149,10 +149,12 @@ public final class BoardView extends GridPane {
         
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
+                char letter   = letters[r][c];
                 int score     = scores [r][c];
                 String bonus  = bonuses[r][c];
                 var tile      = tiles[r][c];
                 
+                tile.setLetter(letter);
                 tile.setScore(score);
                 tile.setBonus(bonus == null ? tile.getBonus() : bonus);
                 tile.syncView();

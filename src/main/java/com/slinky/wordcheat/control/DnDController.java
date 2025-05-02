@@ -5,7 +5,6 @@ import static com.slinky.wordcheat.view.Substrate.POOL;
 import static com.slinky.wordcheat.view.Substrate.RACK;
 
 import com.slinky.wordcheat.model.GameEngine;
-import com.slinky.wordcheat.view.ColorConstants;
 
 import com.slinky.wordcheat.view.MainView;
 import com.slinky.wordcheat.view.RackView;

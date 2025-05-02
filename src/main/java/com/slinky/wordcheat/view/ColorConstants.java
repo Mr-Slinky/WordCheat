@@ -16,5 +16,9 @@ public class ColorConstants {
     public static final Color DOUBLE_WORD_COLOR   = Color.rgb( 46, 114, 178);
     public static final Color TRIPLE_LETTER_COLOR = Color.rgb(244, 135, 182);
     public static final Color TRIPLE_WORD_COLOR   = Color.rgb(204,  89, 210);
+    
+    public static final Color BUTTON_COLOR         = NEW_TILE_COLOR;
+    public static final Color BUTTON_HOVER_COLOR   = DEFAULT_TILE_COLOR;
+    public static final Color BUTTON_ACTIVE_COLOR  = TRIPLE_WORD_COLOR;
 
 }
