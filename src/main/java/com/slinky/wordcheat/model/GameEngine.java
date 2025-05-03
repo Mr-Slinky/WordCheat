@@ -419,8 +419,8 @@ public class GameEngine {
         Objects.requireNonNull(letterMatrix, "letterMatrix must not be null");
         Objects.requireNonNull(letterRack, "letterRack must not be null");
 
+        updateTileSet(MatrixUtils.flatten(letterMatrix)); // Might throw
         updateBoard(letterMatrix);
-        updateTileSet(MatrixUtils.flatten(letterMatrix));
         updateRack(letterRack);
         return preserve();
     }

@@ -150,9 +150,10 @@ public class DnDController {
         target.setLetter(letter);
         target.setScore(engine.getScoreOf(letter));
         target.setWildcard(source.isWildcard());
+        
         target.setNewlyPlaced(true);
-        target.setDraggable(true);
-        target.setDropTarget(false);
+        target.setDraggable  (true);
+        target.setDropTarget (false);
         target.syncView();
         
         switch (source.getSubstrate()) {
@@ -180,26 +181,29 @@ public class DnDController {
         evt.consume();
     }
     
-    private void handleContainerDrop(DragEvent evt, Pane container) {
+    private void handleContainerDrop(DragEvent evt, Pane targetContainer) {
         if (!(evt.getGestureSource() instanceof TileNode)) return;
         
-        var sourceTile  = (TileNode) evt.getGestureSource();
-        if (sourceTile.getSubstrate() != BOARD) return;
-
-        boolean removed = false;
-        char letter     = sourceTile.getLetter();
+        var sourceTile      = (TileNode) evt.getGestureSource();
+        var sourceContainer = sourceTile.getSubstrate();
+        char letter         = sourceTile.getLetter();
         
-        if (container instanceof RackView) {
+        // Place tile OR exit early from invalid tile
+        if (targetContainer instanceof RackView) {
+            if (sourceContainer == RACK) return; // Skip self placement
             view.addTileToRack(letter, engine.getScoreOf(letter));
-            removed = true;
-        } else if (container instanceof TileSetView) {
+        } else if (targetContainer instanceof TileSetView) {
+            if (sourceContainer == POOL) return; // Skip self placement
             view.updateTileCount(letter, view.getPoolTile(letter).getCount() + 1);
-            removed = true;
+        } else {
+            String className = targetContainer.getClass().getName();
+            throw new IllegalArgumentException("Invalid source container: " + className);
         }
         
-        if (removed) {
+        dropSuccessful = true;
+        if (sourceContainer == BOARD) {
             view.emptyTile(sourceTile);
-        }
+        } 
         
         evt.consume();
     }

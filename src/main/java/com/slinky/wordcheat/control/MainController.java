@@ -68,12 +68,11 @@ import java.util.Arrays;
 public final class MainController {
 
     // ================================[ Fields ]================================
-    private int saveVersion;
-    private String filename;
-    private GameEngine engine;
-    private MainView view;
+    private int           saveVersion;
+    private String        filename;
+    private GameEngine    engine;
+    private MainView      view;
     private DnDController dndController;
-    private GameEngineSnapshot lastSave;
 
     // =============================[ Constructors ]=============================
     /**
@@ -260,7 +259,6 @@ public final class MainController {
             }
         }
         
-        lastSave = GameEngineSnapshot.fromEngine(engine);
         scoped:
         {
             boolean successful;

@@ -91,7 +91,7 @@ public final class DefaultTileSet implements TileSet {
     /**
      * The current count of wildcards remaining.
      */
-    private int wildcardCount = WILDCARD_COUNT;
+    private int wildCardCount = WILDCARD_COUNT;
 
     /**
      * An array tracking the remaining count for each letter tile.
@@ -152,7 +152,7 @@ public final class DefaultTileSet implements TileSet {
      */
     @Override
     public int getRemainingWildcardCount() {
-        return wildcardCount;
+        return wildCardCount;
     }
     
     /**
@@ -185,11 +185,11 @@ public final class DefaultTileSet implements TileSet {
     public void addLetter(char letter) {
         switch (letter) {
             case TileSet.WILDCARD:
-                if (wildcardCount >= WILDCARD_COUNT) {
+                if (wildCardCount >= WILDCARD_COUNT) {
                     throw new IllegalStateException("Cannot add more blank tiles. Limit is " + WILDCARD_COUNT);
                 }
                 
-                wildcardCount++;
+                wildCardCount++;
                 break;
             case ' ':
                 return;
@@ -226,20 +226,23 @@ public final class DefaultTileSet implements TileSet {
     public void removeLetter(char letter) {
         switch (letter) {
             case TileSet.WILDCARD:
-                if (wildcardCount <= 0) {
+                if (wildCardCount <= 0) {
                     throw new InvalidTileRemovalException("No more wildcards remaining");
                 }
                 
-                wildcardCount--;
+                wildCardCount--;
                 break;
             case ' ':
                 return;
             default:
                 letter        = validateLetter(letter);
                 int index     = letter - 'A';
-                int remaining = tileCounts[index];
-                if (remaining <= 0) {
-                    throw new InvalidTileRemovalException("No more '%c' tiles remaining".formatted(letter));
+                if (tileCounts[index] <= 0) {
+                    if (wildCardCount <= 0) {
+                        throw new InvalidTileRemovalException("No more '%c' tiles remaining".formatted(letter));
+                    }
+                    
+                    wildCardCount--;
                 }
                 
                 tileCounts[index]--;
@@ -265,7 +268,7 @@ public final class DefaultTileSet implements TileSet {
     public int getRemainingTileCount(char letter) {
         switch (letter) {
             case TileSet.WILDCARD, ' ', '*':
-                return wildcardCount;
+                return wildCardCount;
             default:
                 letter = validateLetter(letter);
                 return tileCounts[letter - 'A'];
@@ -290,13 +293,13 @@ public final class DefaultTileSet implements TileSet {
         }
         
         int randomIndex = ThreadLocalRandom.current().nextInt(remainingTileCount);
-        if (randomIndex < wildcardCount) {
-            wildcardCount--;
+        if (randomIndex < wildCardCount) {
+            wildCardCount--;
             remainingTileCount--;
             return WILDCARD;
         }
         
-        int letterIndex = randomIndex - wildcardCount;
+        int letterIndex = randomIndex - wildCardCount;
         for (int i = 0; i < tileCounts.length; i++) {
             if (letterIndex < tileCounts[i]) {
                 tileCounts[i]--;
@@ -332,7 +335,7 @@ public final class DefaultTileSet implements TileSet {
         }
         // Create a copy of the current tile counts.
         int[] availableTiles = Arrays.copyOf(tileCounts, tileCounts.length);
-        int availableBlanks  = wildcardCount;
+        int availableBlanks  = wildCardCount;
         
         // Convert the word to uppercase for validation.
         for (char c : word.toUpperCase().toCharArray()) {
@@ -364,7 +367,7 @@ public final class DefaultTileSet implements TileSet {
     @Override
     public void reset() {
         tileCounts         = Arrays.copyOf(TILE_LIMITS, TILE_LIMITS.length);
-        wildcardCount      = WILDCARD_COUNT;
+        wildCardCount      = WILDCARD_COUNT;
         remainingTileCount = TOTAL_TILE_COUNT;
     }    
     

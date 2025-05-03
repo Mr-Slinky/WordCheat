@@ -1,6 +1,5 @@
 package com.slinky.wordcheat.view;
 
-
 import static com.slinky.wordcheat.view.ColorConstants.DEFAULT_TILE_COLOR;
 import static com.slinky.wordcheat.view.ColorConstants.DOUBLE_LETTER_COLOR;
 import static com.slinky.wordcheat.view.ColorConstants.DOUBLE_WORD_COLOR;
@@ -96,9 +95,7 @@ public final class TileNode extends StackPane {
     /**
      * Create a tile with the default size.
      */
-    public TileNode() {
-        this(DEFAULT_SIZE);
-    }
+    public TileNode() { this(DEFAULT_SIZE); }
 
     /**
      * Create a tile with the given side length.

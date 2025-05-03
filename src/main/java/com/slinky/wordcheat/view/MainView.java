@@ -74,22 +74,25 @@ public class MainView extends VBox {
         this.setView   = Objects.requireNonNull(setView,   "SetView cannot be null");
         this.rackView  = Objects.requireNonNull(rackView,  "RackView cannot be null");
 
+        // Top Buttons
         this.btnBack     = new SimpleButton("<--");
         this.btnForward  = new SimpleButton("-->");
+        
+        // Bottom Buttons
         this.btnReset    = new SimpleButton("Reset");
         this.btnShowMove = new SimpleButton("Best Move");
         this.btnNextMove = new SimpleButton("Next Move");
         this.btnCommit   = new SimpleButton("Commit");
         
-        HBox buttonBar = new HBox(10, btnReset, btnShowMove, btnNextMove, btnCommit);
-        buttonBar.setAlignment(Pos.CENTER);
-        buttonBar.setPadding(new Insets(5));
+        HBox buttonBarBottom = new HBox(12, btnReset, btnShowMove, btnNextMove, btnCommit);
+        buttonBarBottom.setAlignment(Pos.CENTER);
+        buttonBarBottom.setPadding(new Insets(5));
         
         var boardAndSet = new HBox(10, boardView, setView);
         boardAndSet.setAlignment(Pos.CENTER);
         
         setPadding(new Insets(15, 5, 5, 5));
-        getChildren().addAll(boardAndSet, rackView, buttonBar);
+        getChildren().addAll(boardAndSet, rackView, buttonBarBottom);
     }
     
     // ===========================[ Accessor Methods ]=========================== \\

@@ -38,7 +38,7 @@ public class SimpleButton extends Button {
         Color activeColor = ColorConstants.BUTTON_ACTIVE_COLOR;
 
         // Rounded corners radius
-        CornerRadii radii = new CornerRadii(8);
+        CornerRadii radii = new CornerRadii(5);
 
         // Background gradients
         normalBackground = createGradientBackground(base, radii);
@@ -46,7 +46,9 @@ public class SimpleButton extends Button {
         activeBackground = createGradientBackground(activeColor, radii);
 
         // Drop shadow for hover and focus
-        shadowEffect = new DropShadow(8, base.darker());
+        shadowEffect = new DropShadow(5, base.darker());
+        shadowEffect.setOffsetY(2);
+        
         init();
     }
     // =========================[ Accessor Methods ]========================= \\
