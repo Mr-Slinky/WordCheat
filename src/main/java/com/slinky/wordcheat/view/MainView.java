@@ -113,7 +113,7 @@ public class MainView extends VBox {
     public RackView getRackView() {
         return rackView;
     }
-
+    
     /**
      * Retrieves the current number of tiles in the rack.
      *
@@ -123,6 +123,15 @@ public class MainView extends VBox {
         return rackView.getSize();
     }
     
+    /**
+     * Checks whether the player’s letter rack has reached its maximum capacity.
+     *
+     * @return {@code true} if the rack is full; {@code false} otherwise
+     */
+    public boolean isRackFull() {
+        return rackView.isFull();
+    }
+
     /**
      * Retrieves the number of rows on the game board.
      *
@@ -269,9 +278,8 @@ public class MainView extends VBox {
      *
      * @param letters two-dimensional array of board letters
      * @param scores  two-dimensional array of letter scores
-     * @param bonuses two-dimensional array of bonus identifiers (currently unused)
      */
-    public void updateBoard(char[][] letters, int[][] scores, String[][] bonuses) {
+    public void updateBoard(char[][] letters, int[][] scores) {
         boardView.updateBoard(letters, scores);
     }
     
@@ -281,9 +289,9 @@ public class MainView extends VBox {
      * @param counts integer array representing remaining tile counts
      */
     public void updateTileSet(int[] counts) {
-            setView.updateCounts(counts);
-        }
-    
+        setView.updateCounts(counts);
+    }
+
     /**
      * Synchronises the rack view with the provided letters and scores.
      *
@@ -294,6 +302,15 @@ public class MainView extends VBox {
         rackView.updateRack(letters, scores);
     }
     
+    /**
+     * Marks all newly placed tiles on the board as no longer new.
+     *
+     * <p>
+     * This is typically called after a move has been committed or synchronised
+     * to the backend, ensuring the visual state of each tile reflects that it
+     * is now part of the permanent board layout.
+     * </p>
+     */
     public void graduateNewTiles() {
         for (TileNode tile : boardView.getAllTiles()) {
             if (tile.isNewlyPlaced()) {
@@ -330,5 +347,5 @@ public class MainView extends VBox {
     public void setOnCommitAction(EventHandler<ActionEvent> handler) {
         btnCommit.setOnAction(handler);
     }
-    
+ 
 }

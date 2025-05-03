@@ -82,13 +82,7 @@ public class GameEngine {
      *                              {@code wordFinder} is {@code null}
      */
     public GameEngine(TileSet tileSet, MoveFinder moveFinder) {
-        this.tileSet    = Objects.requireNonNull(tileSet, "TileSet cannot be null");
-        this.moveFinder = Objects.requireNonNull(moveFinder, "WordFinder cannot be null");
-        this.board      = Objects.requireNonNull(moveFinder.getBoard(), "GameBoard cannot be null");
-        this.scoreMod   = Objects.requireNonNull(moveFinder.getScoringModule(), "ScoringModule cannot be null");
-        this.letterRack = new LetterRack();
-
-        this.movesCalculated = false;
+        this(tileSet, moveFinder, new LetterRack());
 
         // Remove letters that are already on the board from the tile set.
         removeBoardLettersFromTileSet(false);
@@ -127,10 +121,8 @@ public class GameEngine {
      * @return a sorted list of word {@code Suggestion}s
      */
     public List<Move> getAllMoves() {
-        if (movesCalculated) {
-            return moves;
-        }
-
+        if (movesCalculated) return moves;
+        
         moves           = moveFinder.getMoves(letterRack.getLetters());
         movesCalculated = true;
         return moves;
@@ -293,10 +285,8 @@ public class GameEngine {
      */
     public void addLettersToRack(char[] letters) {
         letters = Objects.requireNonNull(letters);
-        if (letters.length == 0) {
-            return;
-        }
-
+        if (letters.length == 0) return;
+        
         int newRackSize = letterRack.getSize() + letters.length;
         if (newRackSize > MAX_RACK_SIZE) {
             throw new IllegalArgumentException("Rack cannot contain more than %d letters at a time"
@@ -384,6 +374,7 @@ public class GameEngine {
      * was invalid and no changes were applied
      */
     public boolean preserve() {
+        movesCalculated = false;
         return board.preserve();
     }
 
@@ -450,7 +441,7 @@ public class GameEngine {
             for (int j = 0; j < letters.length; j++) {
                 if (letters[j] == c && !used[j]) {
                     used[j] = true;
-                    found = true;
+                    found   = true;
                     break;
                 }
             }
@@ -483,14 +474,10 @@ public class GameEngine {
 
         // Remove letters from the rack and handle any wildcards
         for (int row = 0; row < board.getRows(); row++) {
-            if (!board.rowHasLetters(row)) {
-                continue;
-            }
-
+            if (!board.rowHasLetters(row)) continue;
+            
             for (int col = 0; col < board.getCols(); col++) {
-                if (!board.colHasLetters(col)) {
-                    continue;
-                }
+                if (!board.colHasLetters(col)) continue;
 
                 if (board.isNewLetter(row, col)) {
                     char letter = board.getLetterAt(row, col);
@@ -503,9 +490,8 @@ public class GameEngine {
                         );
                     }
 
-                    if (isWildCard) {
-                        board.setWildCardPosition(row, col);
-                    }
+                    if (isWildCard) board.setWildCardPosition(row, col);
+                    
                 }
             }
         }
@@ -561,7 +547,6 @@ public class GameEngine {
     public void setWildCardPosition(int row, int col) {
         board.setWildCardPosition(row, col);
         tileSet.addLetter(board.getLetterAt(row, col));
-        tileSet.removeLetter(TileSet.WILDCARD);
     }
 
     /**
@@ -580,7 +565,6 @@ public class GameEngine {
     public void setWildCardPosition(int row, int col, int index) {
         board.setWildCardPosition(row, col, index);
         tileSet.addLetter(board.getLetterAt(row, col));
-        tileSet.removeLetter(TileSet.WILDCARD);
     }
 
     /**
@@ -600,7 +584,7 @@ public class GameEngine {
         StringBuilder outp = new StringBuilder();
         final String newLine = System.lineSeparator();
 
-        final String cellTemplate = "|%c";
+        final String cellTemplate    = "|%c";
         final String tileSetTemplate = "%c (%2d)\t";
 
         char letter = 'A';

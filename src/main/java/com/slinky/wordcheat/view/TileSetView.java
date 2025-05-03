@@ -114,7 +114,7 @@ public class TileSetView extends VBox {
         }
 
         for (int i = 0; i < TILE_TYPES; i++) {
-            tiles[i].setCount(counts[i]);
+            tiles[i].setCount(Math.max(0, counts[i]));
             tiles[i].syncView();
         }
 

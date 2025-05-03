@@ -1,6 +1,9 @@
 package com.slinky.wordcheat.control;
 
-import com.slinky.wordcheat.io.GameEngineSnapshot;
+import static com.slinky.wordcheat.io.Persistence.loadGame;
+import static com.slinky.wordcheat.io.Persistence.saveExists;
+import static com.slinky.wordcheat.io.Persistence.saveGame;
+
 import com.slinky.wordcheat.language.OxfordDictionary;
 
 import com.slinky.wordcheat.model.DefaultScoringModule;
@@ -9,6 +12,7 @@ import com.slinky.wordcheat.model.GameBoard;
 import com.slinky.wordcheat.model.GameEngine;
 import com.slinky.wordcheat.model.MoveFinder;
 import com.slinky.wordcheat.model.TileBonus;
+import com.slinky.wordcheat.model.Move;
 
 import com.slinky.wordcheat.util.MatrixUtils;
 
@@ -16,16 +20,14 @@ import com.slinky.wordcheat.view.BoardView;
 import com.slinky.wordcheat.view.MainView;
 import com.slinky.wordcheat.view.RackView;
 import com.slinky.wordcheat.view.TileSetView;
+import com.slinky.wordcheat.view.TileNode;
 
 import java.io.IOException;
 
 import javafx.scene.layout.Pane;
 
-import static com.slinky.wordcheat.io.Persistence.loadGame;
-import static com.slinky.wordcheat.io.Persistence.saveExists;
-import static com.slinky.wordcheat.io.Persistence.saveGame;
-import com.slinky.wordcheat.view.TileNode;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * The GameController class serves as the central coordinator for a WordCheat
@@ -68,11 +70,13 @@ import java.util.Arrays;
 public final class MainController {
 
     // ================================[ Fields ]================================
-    private int           saveVersion;
     private String        filename;
     private GameEngine    engine;
     private MainView      view;
     private DnDController dndController;
+    
+    private List<Move> moves;
+    private int currentMove = 0;
 
     // =============================[ Constructors ]=============================
     /**
@@ -88,7 +92,6 @@ public final class MainController {
      */
     public MainController(String filename) {
         this.filename    = filename;
-        this.saveVersion = 1;
         initEngine();
         initMainView();
         dndController = new DnDController(engine, view);
@@ -144,7 +147,6 @@ public final class MainController {
      * both the move description and a preview of the resulting board state.
      */
     public void printTopFiveMoves() {
-        var moves = engine.getAllMoves();
         int limit = Math.min(5, moves.size());
         for (int i = 0; i < limit; i++) {
             var topMove = moves.get(i);
@@ -153,7 +155,7 @@ public final class MainController {
         }
     }
 
-    // ============================[ Helper Methods ]============================
+    // ============================[ Helper Methods ]============================ \\
     /**
      * Creates a new GameEngine instance with a fresh board, dictionary, and
      * scoring module.
@@ -185,6 +187,8 @@ public final class MainController {
         } catch (IOException e) {
             engine = initNewEngine();
         }
+        
+        moves = engine.getAllMoves();
     }
 
     /**
@@ -200,8 +204,10 @@ public final class MainController {
         var rackView    = new RackView(rackLetters, engine.getRackScores(), 7);
 
         view = new MainView(boardView, tileSetView, rackView);
-        view.setOnResetAction (ev -> syncToBackend());
-        view.setOnCommitAction(ev -> syncToFrontend());
+        view.setOnResetAction   (ev -> syncToBackend());
+        view.setOnCommitAction  (ev -> syncToFrontend());
+        view.setOnShowMoveAction(ev -> showHighestMove());
+        view.setOnNextMoveAction(ev -> showNextMove());
     }
 
     /**
@@ -246,7 +252,19 @@ public final class MainController {
     }
     
     /**
-     * The opposite of a reset. This method flows data from the frontend to the backend.
+     * Synchronises the frontend view state with the backend game engine.
+     *
+     * <p>
+     * This method collects the current letter placements from the board and
+     * rack, constructs a representation of the state, and attempts to update
+     * the engine using {@code updateAllAndPreserve()}. If the update fails
+     * (e.g. due to an invalid board state), an error is printed to the console.
+     * </p>
+     *
+     * <p>
+     * Afterwards, it finalises any new tiles in the UI, reconfigures
+     * drag-and-drop logic, and attempts to persist the game to disk.
+     * </p>
      */
     private void syncToFrontend() {
         int rows = view.getBoardRows();
@@ -259,32 +277,33 @@ public final class MainController {
             }
         }
         
-        scoped:
-        {
-            boolean successful;
-            String errMessage;
-            TileNode[] tiles = view.getRackTiles();
-            int[] codes = Arrays.stream(tiles)
-                                .mapToInt(TileNode::getLetter)
-                                .toArray();
-            char[] letters = new char[codes.length];
-            for (int i = 0; i < codes.length; i++) {
-                letters[i] = (char) codes[i];
-            }
-
-            successful = engine.updateAllAndPreserve(letterMatrix, letters);
-            errMessage = successful ? "No Error" : "Invalid Board State";
-
-            if (!successful) {
-                System.out.println("Error committing: " + errMessage); // Display error in GUI maybe?
-            }
+        boolean successful;
+        String errMessage;
+        TileNode[] tiles = view.getRackTiles();
+        int[] codes = Arrays.stream(tiles)
+                .mapToInt(TileNode::getLetter)
+                .toArray();
+        char[] letters = new char[codes.length];
+        for (int i = 0; i < codes.length; i++) {
+            letters[i] = (char) codes[i];
         }
+
+        successful = engine.updateAllAndPreserve(letterMatrix, letters);
+        errMessage = successful ? "No Error" : "Invalid Board State";
+
+        if (!successful) {
+            System.out.println("Error committing: " + errMessage); // Display error in GUI maybe?
+            return;
+        }
+        
+        moves       = engine.getAllMoves();
+        currentMove = 0;
         
         view.graduateNewTiles();
         dndController.configure();
-        try {
-            saveGame(engine, filename);
-        } catch (IOException ex) {
+        
+        try { saveGame(engine, filename); }
+        catch (IOException ex) {
             System.out.println("Error saving to disk: " + ex.getMessage());
         }
     }
@@ -300,14 +319,87 @@ public final class MainController {
      * @throws IllegalStateException if no snapshot is available (save() has not
      *                               been called)
      */
-    private void syncToBackend() {
-        int[] scores = MatrixUtils.shiftLeft(engine.getRemainingTileCounts(), 1);
+    private void syncToBackend() { // Previously reset()
+        int[] counts = MatrixUtils.shiftLeft(engine.getRemainingTileCounts(), 1);
+        moves        = engine.getAllMoves();
 
-        view.updateBoard(engine.getMatrix(), getScoreMatrix(), getBonusMatrix());
-        view.updateTileSet(scores);
+        view.updateBoard(engine.getMatrix(), getScoreMatrix());
+        view.updateTileSet(counts);
         view.updateRack(engine.getRackLetters(), engine.getRackScores());
 
         dndController.configure();
+    }
+    
+    /**
+     * Previews the highest scoring move currently available according to the
+     * game engine.
+     *
+     * <p>
+     * The board is reset to its original state and the best move is visualised.
+     * </p>
+     */
+    private void showHighestMove() {
+        previewMove(engine.getBestMove());
+    }
+
+    /**
+     * Previews the next move in the precomputed list of available moves.
+     *
+     * <p>
+     * Increments the move index and visualises the next move on the board.
+     * Assumes that {@code moves} has already been populated.
+     * </p>
+     */
+    private void showNextMove() {
+        previewMove(moves.get(++currentMove));
+    }
+
+    /**
+     * Renders a given move onto the board as a preview without committing it.
+     *
+     * <p>
+     * This resets the board state, applies the move temporarily, and updates
+     * the frontend with the move and its corresponding score matrix. Matching
+     * tiles are also removed from the rack.
+     * </p>
+     *
+     * @param move the move to preview; must not be {@code null}
+     */
+    private void previewMove(Move move) {
+        syncToBackend(); // first reset board
+
+        var previewMatrix = engine.previewMove(move).getMatrix();
+        view.updateBoard(previewMatrix, buildScoreMatrix(previewMatrix));
+        for (char letter : move.word().toCharArray()) {
+            view.removeTileFromRack(letter);
+        }
+
+        System.out.println(move);
+    }
+
+    /**
+     * Builds a matrix of point values corresponding to each letter in the given
+     * board state.
+     *
+     * <p>
+     * Each cell in the resulting matrix contains the score of the matching
+     * letter from the input {@code matrix}, as defined by the current scoring
+     * module.
+     * </p>
+     *
+     * @param matrix the board matrix of letters
+     * @return a matrix of letter scores with the same dimensions as
+     * {@code matrix}
+     */
+    private int[][] buildScoreMatrix(char[][] matrix) {
+        int[][] scores = new int[matrix.length][matrix[0].length];
+        for (int r = 0; r < matrix.length; r++) {
+            for (int c = 0; c < matrix[r].length; c++) {
+                scores[r][c] = engine.getScoreOf(matrix[r][c]);
+            }
+        }
+
+        return scores;
     }
 
 }

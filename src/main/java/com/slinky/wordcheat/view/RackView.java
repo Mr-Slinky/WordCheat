@@ -74,7 +74,26 @@ public final class RackView extends StackPane {
      */
     int getSize() {
         return size;
-    }    
+    }
+
+    /**
+     * Returns the maximum number of tiles this rack can hold.
+     *
+     * @return the maximum rack size
+     */
+    int getMaxSize() {
+        return maxSize;
+    }
+
+    /**
+     * Determines whether the rack is currently full.
+     *
+     * @return {@code true} if the number of tiles in the rack equals its
+     * maximum capacity; {@code false} otherwise
+     */
+    boolean isFull() {
+        return size == maxSize;
+    }
 
     // ===========================[ Public API ]============================== \\
     /**

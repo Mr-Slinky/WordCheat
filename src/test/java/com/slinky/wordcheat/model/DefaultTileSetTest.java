@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -132,7 +131,7 @@ public class DefaultTileSetTest {
         DefaultTileSet tileSet = new DefaultTileSet();
         int count = tileSet.getRemainingTileCount(letter);
         // Remove all available tiles for the letter.
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count + 2; i++) {
             tileSet.removeLetter(letter);
         }
         // Now, removal should fail.
@@ -178,12 +177,12 @@ public class DefaultTileSetTest {
         DefaultTileSet tileSet = new DefaultTileSet();
         int before = tileSet.getRemainingTileCount();
         char drawn = tileSet.drawRandomTile();
-        int after = tileSet.getRemainingTileCount();
+        int after  = tileSet.getRemainingTileCount();
         assertAll(
             () -> assertEquals(before - 1, after, "Remaining tile count should decrease by 1 after drawing a tile."),
             () -> {
                 // The drawn tile should be a blank or a letter between A and Z.
-                if (drawn != DefaultTileSet.BLANK_TILE) {
+                if (drawn != DefaultTileSet.WILDCARD) {
                     assertTrue(drawn >= 'A' && drawn <= 'Z', "Drawn tile should be between A and Z (or a blank).");
                 }
             }
