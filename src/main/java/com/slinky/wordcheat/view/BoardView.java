@@ -157,6 +157,7 @@ public final class BoardView extends GridPane {
                 tile.setLetter(letter);
                 tile.setScore(score);
                 tile.setBonus(bonus == null ? tile.getBonus() : bonus);
+                tile.setWildcard(false);
                 tile.syncView();
             }
         }

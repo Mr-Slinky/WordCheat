@@ -24,6 +24,8 @@ import javafx.scene.layout.Pane;
 import static com.slinky.wordcheat.io.Persistence.loadGame;
 import static com.slinky.wordcheat.io.Persistence.saveExists;
 import static com.slinky.wordcheat.io.Persistence.saveGame;
+import com.slinky.wordcheat.view.TileNode;
+import java.util.Arrays;
 
 /**
  * The GameController class serves as the central coordinator for a WordCheat
@@ -66,6 +68,7 @@ import static com.slinky.wordcheat.io.Persistence.saveGame;
 public final class MainController {
 
     // ================================[ Fields ]================================
+    private int saveVersion;
     private String filename;
     private GameEngine engine;
     private MainView view;
@@ -85,7 +88,8 @@ public final class MainController {
      * @param filename the path to the file used for persisting game state
      */
     public MainController(String filename) {
-        this.filename = filename;
+        this.filename    = filename;
+        this.saveVersion = 1;
         initEngine();
         initMainView();
         dndController = new DnDController(engine, view);
@@ -194,10 +198,10 @@ public final class MainController {
 
         var boardView   = new BoardView(engine.getMatrix(), getScoreMatrix(), getBonusMatrix());
         var tileSetView = new TileSetView(counts);
-        var rackView    = new RackView(rackLetters, engine.getRackScores(), rackLetters.length);
+        var rackView    = new RackView(rackLetters, engine.getRackScores(), 7);
 
         view = new MainView(boardView, tileSetView, rackView);
-        view.setOnResetAction(ev -> syncToBackend());
+        view.setOnResetAction (ev -> syncToBackend());
         view.setOnCommitAction(ev -> syncToFrontend());
     }
 
@@ -223,7 +227,7 @@ public final class MainController {
 
     /**
      * Generates a matrix of bonus labels (e.g., "TW", "DL") for display,
-     * matching the classic Scrabble bonus layout.
+     * matching the classic WWF bonus layout.
      *
      * @return a 2D array of bonus strings or null for standard tiles
      */
@@ -261,8 +265,17 @@ public final class MainController {
         {
             boolean successful;
             String errMessage;
-                successful = engine.updateAllAndPreserve(letterMatrix, engine.getRackLetters());
-                errMessage = successful ? "No Error" : "Invalid Board State";
+            TileNode[] tiles = view.getRackTiles();
+            int[] codes = Arrays.stream(tiles)
+                                .mapToInt(TileNode::getLetter)
+                                .toArray();
+            char[] letters = new char[codes.length];
+            for (int i = 0; i < codes.length; i++) {
+                letters[i] = (char) codes[i];
+            }
+
+            successful = engine.updateAllAndPreserve(letterMatrix, letters);
+            errMessage = successful ? "No Error" : "Invalid Board State";
 
             if (!successful) {
                 System.out.println("Error committing: " + errMessage); // Display error in GUI maybe?
@@ -271,11 +284,11 @@ public final class MainController {
         
         view.graduateNewTiles();
         dndController.configure();
-//        try {
-//            saveGame(engine, filename);
-//        } catch (IOException ex) {
-//            System.out.println("Error saving to disk: " + ex.getMessage());
-//        }
+        try {
+            saveGame(engine, filename);
+        } catch (IOException ex) {
+            System.out.println("Error saving to disk: " + ex.getMessage());
+        }
     }
 
     /**
@@ -296,7 +309,6 @@ public final class MainController {
         view.updateTileSet(scores);
         view.updateRack(engine.getRackLetters(), engine.getRackScores());
 
-//        dndController = new DnDController(engine, view);
         dndController.configure();
     }
 

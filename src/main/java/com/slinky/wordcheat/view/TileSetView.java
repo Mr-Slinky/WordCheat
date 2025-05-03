@@ -4,8 +4,10 @@ import static com.slinky.wordcheat.view.FontConstants.LABEL_FONT_DEFAULT;
 import static com.slinky.wordcheat.view.FontConstants.LABEL_FONT_HEADING;
 
 import java.util.Objects;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+
 import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;

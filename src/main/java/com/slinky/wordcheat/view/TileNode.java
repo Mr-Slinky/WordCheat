@@ -7,12 +7,14 @@ import static com.slinky.wordcheat.view.ColorConstants.DOUBLE_WORD_COLOR;
 import static com.slinky.wordcheat.view.ColorConstants.EMPTY_TILE_COLOR;
 import static com.slinky.wordcheat.view.ColorConstants.TRIPLE_LETTER_COLOR;
 import static com.slinky.wordcheat.view.ColorConstants.TRIPLE_WORD_COLOR;
-
-import com.slinky.wordcheat.util.ColorUtils;
 import static com.slinky.wordcheat.view.ColorConstants.NEW_TILE_COLOR;
+
 import static com.slinky.wordcheat.view.Substrate.BOARD;
 import static com.slinky.wordcheat.view.Substrate.POOL;
 import static com.slinky.wordcheat.view.Substrate.RACK;
+import static com.slinky.wordcheat.view.Substrate.UNKNOWN;
+
+import com.slinky.wordcheat.util.ColorUtils;
 
 import javafx.geometry.Pos;
 
@@ -21,7 +23,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-import static com.slinky.wordcheat.view.Substrate.UNKNOWN;
 import javafx.scene.Cursor;
 
 /**
@@ -369,7 +370,7 @@ public final class TileNode extends StackPane {
         scoreLbl .setTextFill(textFill);
         countLbl .setTextFill(textFill);
         
-        boolean displayBonus = !(hasLetter || bonus == null);
+        boolean displayBonus = !(hasLetter || bonus == null) && !wildcard;
         boolean displayScore = hasLetter && (substrate == RACK || substrate == BOARD) && !wildcard;
         boolean displayCount = substrate == POOL;
         
@@ -392,8 +393,8 @@ public final class TileNode extends StackPane {
      * @param bonus 
      */
     private Color getEmptyBackgroundColor() {
-        if (substrate != BOARD) return DEFAULT_TILE_COLOR;
-        if (bonus == null)      return EMPTY_TILE_COLOR;
+        if (wildcard || substrate != BOARD) return DEFAULT_TILE_COLOR;
+        if (bonus == null)                  return EMPTY_TILE_COLOR;
         return switch (bonus) {
             case "DW" -> DOUBLE_WORD_COLOR;
             case "DL" -> DOUBLE_LETTER_COLOR;

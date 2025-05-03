@@ -1,7 +1,6 @@
 package com.slinky.wordcheat.model;
 
 import com.slinky.wordcheat.util.MatrixUtils;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,11 +34,11 @@ public class GameEngine {
     private static final int MAX_RACK_SIZE = 7;
 
     // ================================[ Fields ]================================ \\
-    private GameBoard board;
-    private LetterRack letterRack;
-    private TileSet tileSet;
-    private MoveFinder moveFinder;
-    private List<Move> moves;
+    private GameBoard     board;
+    private LetterRack    letterRack;
+    private TileSet       tileSet;
+    private MoveFinder    moveFinder;
+    private List<Move>    moves;
     private ScoringModule scoreMod;
 
     private boolean movesCalculated;
@@ -59,11 +58,11 @@ public class GameEngine {
      * {@code wordFinder} is {@code null}
      */
     public GameEngine(TileSet tileSet, MoveFinder moveFinder, LetterRack letterRack) {
-        this.tileSet = Objects.requireNonNull(tileSet, "TileSet cannot be null");
+        this.tileSet    = Objects.requireNonNull(tileSet,    "TileSet cannot be null");
         this.moveFinder = Objects.requireNonNull(moveFinder, "WordFinder cannot be null");
         this.letterRack = Objects.requireNonNull(letterRack, "LetterRack cannot be null");
-        this.board = Objects.requireNonNull(moveFinder.getBoard(), "GameBoard cannot be null");
-        this.scoreMod = Objects.requireNonNull(moveFinder.getScoringModule(), "ScoringModule cannot be null");
+        this.board      = Objects.requireNonNull(moveFinder.getBoard(), "GameBoard cannot be null");
+        this.scoreMod   = Objects.requireNonNull(moveFinder.getScoringModule(), "ScoringModule cannot be null");
 
         this.movesCalculated = false;
 
@@ -75,17 +74,18 @@ public class GameEngine {
      * Constructs a new {@code GameEngine} with the given backend components and
      * empty rack.
      *
-     * @param tileSet the tile set containing the available letter tiles; must
-     * not be {@code null}
+     * @param tileSet    the tile set containing the available letter tiles; must
+     *                   not be {@code null}
      * @param moveFinder the word finder used to generate word suggestions; must
-     * not be {@code null}
+     *                   not be {@code null}
      * @throws NullPointerException if {@code board}, {@code tileSet} or
-     * {@code wordFinder} is {@code null}
+     *                              {@code wordFinder} is {@code null}
      */
-    public GameEngine(TileSet tileSet, MoveFinder wordFinder) {
-        this.tileSet = Objects.requireNonNull(tileSet, "TileSet cannot be null");
-        this.moveFinder = Objects.requireNonNull(wordFinder, "WordFinder cannot be null");
-        this.board = Objects.requireNonNull(wordFinder.getBoard(), "GameBoard cannot be null");
+    public GameEngine(TileSet tileSet, MoveFinder moveFinder) {
+        this.tileSet    = Objects.requireNonNull(tileSet, "TileSet cannot be null");
+        this.moveFinder = Objects.requireNonNull(moveFinder, "WordFinder cannot be null");
+        this.board      = Objects.requireNonNull(moveFinder.getBoard(), "GameBoard cannot be null");
+        this.scoreMod   = Objects.requireNonNull(moveFinder.getScoringModule(), "ScoringModule cannot be null");
         this.letterRack = new LetterRack();
 
         this.movesCalculated = false;
@@ -131,8 +131,7 @@ public class GameEngine {
             return moves;
         }
 
-        moves = moveFinder.getMoves(letterRack.getLetters());
-
+        moves           = moveFinder.getMoves(letterRack.getLetters());
         movesCalculated = true;
         return moves;
     }

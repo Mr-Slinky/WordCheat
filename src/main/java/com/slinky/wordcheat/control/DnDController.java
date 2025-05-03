@@ -105,6 +105,13 @@ public class DnDController {
     
     private void handleDragDetected(Event evt, TileNode sourceTile) {
         if (!sourceTile.isDraggable()) return;
+        else {
+            boolean isPoolTile   = sourceTile.getSubstrate() == POOL;
+            boolean hasRemaining = sourceTile.getCount() <= 0;
+            if (isPoolTile && hasRemaining) {
+                return;
+            }
+        }
         
         var db     = sourceTile.startDragAndDrop(TransferMode.COPY);
         var params = new SnapshotParameters();
@@ -149,8 +156,7 @@ public class DnDController {
         target.syncView();
         
         switch (source.getSubstrate()) {
-            case BOARD:
-                view.emptyTile(source);
+            case BOARD -> view.emptyTile(source);
             // break;
         }
         
@@ -165,14 +171,8 @@ public class DnDController {
         
         if (dropSuccessful) {
             switch (sourceTile.getSubstrate()) {
-                case POOL:
-                    view.updateTileCount(sourceTile.getLetter(), sourceTile.getCount() - 1);
-                    break;
-                case RACK:
-                    view.removeTileFromRack(sourceTile.getLetter());
-                    break;
-                default:
-                // assume BOARD
+                case POOL -> view.updateTileCount(sourceTile.getLetter(), sourceTile.getCount() - 1);
+                case RACK -> view.removeTileFromRack(sourceTile.getLetter());
             }
         }
         

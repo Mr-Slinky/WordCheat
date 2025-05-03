@@ -74,8 +74,8 @@ public class MainView extends VBox {
         this.setView   = Objects.requireNonNull(setView,   "SetView cannot be null");
         this.rackView  = Objects.requireNonNull(rackView,  "RackView cannot be null");
 
-        this.btnBack     = new SimpleButton("←");
-        this.btnForward  = new SimpleButton("→");
+        this.btnBack     = new SimpleButton("<--");
+        this.btnForward  = new SimpleButton("-->");
         this.btnReset    = new SimpleButton("Reset");
         this.btnShowMove = new SimpleButton("Best Move");
         this.btnNextMove = new SimpleButton("Next Move");
@@ -183,7 +183,13 @@ public class MainView extends VBox {
      * @return array of rack TileNodes
      */
     public TileNode[] getRackTiles() {
-        return rackView.getTiles();
+        var tiles     = new TileNode[rackView.getSize()];
+        var rackTiles = rackView.getTiles();
+        for (int i = 0; i < tiles.length; i++) {
+            tiles[i] = rackTiles[i];
+        }
+        
+        return tiles;
     }
     
     // =============================[ API Methods ]============================== \\
@@ -289,6 +295,7 @@ public class MainView extends VBox {
         for (TileNode tile : boardView.getAllTiles()) {
             if (tile.isNewlyPlaced()) {
                 tile.setNewlyPlaced(false);
+                tile.syncView();
             }
         }
     }

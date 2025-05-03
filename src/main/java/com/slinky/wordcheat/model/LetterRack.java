@@ -111,7 +111,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
         
         letter = Character.toUpperCase(letter);
         if (!(ValidationUtils.isLetter(letter) || letter == WILDCARD)) {
-            throw new IllegalArgumentException("Invalid character: " + letter);
+            throw new IllegalArgumentException("Invalid character: '%c'".formatted(letter));
         }
         
         // Enforce that no more than 2 wildcards are allowed.

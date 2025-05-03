@@ -42,6 +42,7 @@ public final class RackView extends StackPane {
 
         setPrefWidth(USE_COMPUTED_SIZE);
         setPrefHeight(USE_COMPUTED_SIZE);
+        setMinHeight(50);
 
         getChildren().add(rackBox);
     }
@@ -200,7 +201,8 @@ public final class RackView extends StackPane {
         }
 
         rackBox.getChildren().clear();
-        for (int i = 0; i < maxSize; i++) {
+        size = letters.length;
+        for (int i = 0; i < size; i++) {
             tiles[i].setLetter(letters[i]);
             tiles[i].setScore (scores[i]);
             tiles[i].setSubstrate(Substrate.RACK);
@@ -209,7 +211,6 @@ public final class RackView extends StackPane {
             rackBox.getChildren().add(tiles[i]);
         }
         
-        size = letters.length;
     }    
     
 }

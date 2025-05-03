@@ -52,13 +52,15 @@ public final class TileFactory {
     
     static TileNode createTileSetTile(char letter, int count) {
         TileNode tile = new TileNode(TILE_SIZE);
-        tile.setId("tile-" + letter);
+        tile.setId("poolTile-" + letter);
         tile.setSubstrate(Substrate.POOL);
         applyDefaultStyle(tile);
         
         tile.setLetter(letter);
-        tile.setScore(0); // 0 to stop tile score displaying
         tile.setCount(count);
+        if (letter < 'A' || letter > 'Z') {
+            tile.setWildcard(true);
+        }
         
         tile.syncView();
         
