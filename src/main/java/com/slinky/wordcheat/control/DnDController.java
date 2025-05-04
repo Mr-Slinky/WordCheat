@@ -22,14 +22,15 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 /**
- * Drag-and-drop controller for managing tile movements between the board, pool, and rack.
+ * Drag-and-drop controller for managing tile movements between the board, pool,
+ * and rack.
  *
  * <p>
  * The {@code DnDController} wires up drag sources and drop targets for all
  * {@link com.slinky.wordcheat.view.TileNode} instances and container panes in
  * the {@link com.slinky.wordcheat.view.MainView}. It handles the full lifecycle
  * of drag events—including detection, over, drop, and completion - by:
- * </p>
+ * 
  * <ul>
  *   <li>Configuring individual tiles and containers to initiate and accept
  *       drags.</li>
@@ -75,7 +76,7 @@ public class DnDController {
      *
      * <p>
      * This method wires up the following:
-     * </p>
+     * 
      * <ul>
      *   <li><b>Board tiles</b> – configured as both drag sources and drop
      *       targets; empty slots are enabled to accept drops.</li>
@@ -93,7 +94,7 @@ public class DnDController {
      * will be fully prepared to handle drag detection, drag-over, drop, and
      * drag-done events according to their substrate (<code>BOARD</code>,
      * <code>POOL</code>, or <code>RACK</code>).
-     * </p>
+     * 
      */
     public void configure() {
         for (TileNode tile : view.getBoardTiles()) {
@@ -183,7 +184,7 @@ public class DnDController {
      * <p>
      * Creates a transparent snapshot of the tile as the drag view and places
      * its string representation onto the clipboard content.
-     * </p>
+     * 
      *
      * @param evt        the event that triggered drag detection
      * @param sourceTile the tile node from which the drag originates
@@ -218,7 +219,7 @@ public class DnDController {
      * <p>
      * Accepts the <code>COPY</code> transfer mode and consumes the event to
      * prevent further propagation.
-     * </p>
+     * 
      *
      * @param evt the drag event fired when an object is dragged over a target
      */
@@ -237,7 +238,7 @@ public class DnDController {
      * If the target is not drop-enabled or the source is not a TileNode, the
      * drop is rejected. Otherwise, the tile’s properties are set and the
      * previous source slot is cleared if it came from the board.
-     * </p>
+     * 
      *
      * @param evt    the drag event carrying the drop data
      * @param target the tile node receiving the dropped tile
@@ -281,7 +282,7 @@ public class DnDController {
      * </ul>
      * Regardless of outcome, the internal <code>dropSuccessful</code> flag is
      * reset.
-     * </p>
+     * 
      *
      * @param evt        the drag event indicating the drag-and-drop operation has
      *                   completed
@@ -311,25 +312,26 @@ public class DnDController {
      * <p>
      * This method determines the source substrate and target container type:
      * <ul>
-     * <li><b>RackView</b>:
-     * <ul>
-     * <li>If the rack is not full and the tile did not originate from the rack,
-     * adds the tile to the rack.</li>
+     *   <li><b>RackView</b>:
+     *       <ul>
+     *         <li>If the rack is not full and the tile did not originate from
+     *             the rack, adds the tile to the rack.</li>
+     *       </ul>
+     *   </li>
+     *   <li><b>TileSetView</b>:
+     *       <ul>
+     *       <li>If the tile did not originate from the pool, increments its 
+     *           count in the pool.</li>
+     *       </ul>
+     *   </li>
      * </ul>
-     * </li>
-     * <li><b>TileSetView</b>:
-     * <ul>
-     * <li>If the tile did not originate from the pool, increments its count in
-     * the pool.</li>
-     * </ul>
-     * </li>
-     * </ul>
+     * 
      * An <code>IllegalArgumentException</code> is thrown if the target is
-     * neither.</p>
+     * neither.
      *
-     * @param evt the drag event carrying the dropped tile
+     * @param evt             the drag event carrying the dropped tile
      * @param targetContainer the {@code Pane} receiving the drop (either
-     * {@code RackView} or {@code TileSetView})
+     *                       {@code RackView} or {@code TileSetView})
      * @throws IllegalArgumentException if the target container is unsupported
      */
     private void handleContainerDrop(DragEvent evt, Pane targetContainer) {

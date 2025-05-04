@@ -194,7 +194,7 @@ public final class OxfordDictionary implements Dictionary {
      * filters out words that contain the substring, and collects the results
      * into a list. The stream is converted back to sequential mode to ensure
      * the final result maintains the original ordering.
-     * </p>
+     * 
      * @param  substring the substring to search for within each word.
      * @return a list of words that contain the specified substring; if no words
      *         match, an empty list is returned.
@@ -215,12 +215,12 @@ public final class OxfordDictionary implements Dictionary {
      * applies the given {@link Predicate} to filter the words, and collects the
      * results into a list. This parallel approach is designed to improve
      * performance on large datasets by leveraging multi-core processors.
-     * </p>
+     * 
      * 
      * <p>
      * For example, a client may supply a predicate to filter words by length,
      * pattern, or any custom condition.
-     * </p>
+     * 
      *
      * @param predicate a {@link Predicate<String>} representing the filtering
      *                  condition to be applied to each word.

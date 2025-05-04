@@ -5,53 +5,58 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Represents and manages the tile set used in a specific WWF game.
- * 
+ *
  * <p>
- * This class functions both as a utility for scoring words based on tile
- * values and as a state-tracking object for the tiles available in the game.
- * It maintains counts for each letter tile as well as blank tiles, and provides
+ * This class functions both as a utility for scoring words based on tile values
+ * and as a state-tracking object for the tiles available in the game. It
+ * maintains counts for each letter tile as well as blank tiles, and provides
  * operations to add or remove tiles from the game set. Additionally, it offers
  * methods to query the current state, draw random tiles, validate words based
  * on available tiles, and reset the tile set to its initial state.
- * </p>
  *
  * <p>
  * The game uses a fixed total of 104 tiles, including 2 blank tiles. Each
- * letter from A to Z has a predefined point value and a limit to the number
- * of tiles available. The distribution is as follows:
- * </p>
+ * letter from A to Z has a predefined point value and a limit to the number of
+ * tiles available. The distribution is as follows:
  *
  * <table border="1">
- *   <tr>
- *     <th>Letter</th><th>Points</th><th>Tile Count</th>
- *   </tr>
- *   <tr><td>A</td><td>1</td><td>9</td></tr>
- *   <tr><td>B</td><td>4</td><td>2</td></tr>
- *   <tr><td>C</td><td>4</td><td>2</td></tr>
- *   <tr><td>D</td><td>2</td><td>5</td></tr>
- *   <tr><td>E</td><td>1</td><td>13</td></tr>
- *   <tr><td>F</td><td>4</td><td>2</td></tr>
- *   <tr><td>G</td><td>3</td><td>3</td></tr>
- *   <tr><td>H</td><td>3</td><td>4</td></tr>
- *   <tr><td>I</td><td>1</td><td>8</td></tr>
- *   <tr><td>J</td><td>10</td><td>1</td></tr>
- *   <tr><td>K</td><td>5</td><td>1</td></tr>
- *   <tr><td>L</td><td>2</td><td>4</td></tr>
- *   <tr><td>M</td><td>4</td><td>2</td></tr>
- *   <tr><td>N</td><td>2</td><td>5</td></tr>
- *   <tr><td>O</td><td>1</td><td>8</td></tr>
- *   <tr><td>P</td><td>4</td><td>2</td></tr>
- *   <tr><td>Q</td><td>10</td><td>1</td></tr>
- *   <tr><td>R</td><td>1</td><td>6</td></tr>
- *   <tr><td>S</td><td>1</td><td>5</td></tr>
- *   <tr><td>T</td><td>1</td><td>7</td></tr>
- *   <tr><td>U</td><td>2</td><td>4</td></tr>
- *   <tr><td>V</td><td>5</td><td>2</td></tr>
- *   <tr><td>W</td><td>4</td><td>2</td></tr>
- *   <tr><td>X</td><td>8</td><td>1</td></tr>
- *   <tr><td>Y</td><td>3</td><td>2</td></tr>
- *   <tr><td>Z</td><td>10</td><td>1</td></tr>
- *   <tr><td>Blank</td><td>0</td><td>2</td></tr>
+ *   <caption>Tile distribution and point values</caption>
+ *   <thead>
+ *     <tr>
+ *       <th>Letter</th>
+ *       <th>Points</th>
+ *       <th>Tile Count</th>
+ *     </tr>
+ *   </thead>
+ *   <tbody>
+ *     <tr><td>A</td><td>1</td><td>9</td></tr>
+ *     <tr><td>B</td><td>4</td><td>2</td></tr>
+ *     <tr><td>C</td><td>4</td><td>2</td></tr>
+ *     <tr><td>D</td><td>2</td><td>5</td></tr>
+ *     <tr><td>E</td><td>1</td><td>13</td></tr>
+ *     <tr><td>F</td><td>4</td><td>2</td></tr>
+ *     <tr><td>G</td><td>3</td><td>3</td></tr>
+ *     <tr><td>H</td><td>3</td><td>4</td></tr>
+ *     <tr><td>I</td><td>1</td><td>8</td></tr>
+ *     <tr><td>J</td><td>10</td><td>1</td></tr>
+ *     <tr><td>K</td><td>5</td><td>1</td></tr>
+ *     <tr><td>L</td><td>2</td><td>4</td></tr>
+ *     <tr><td>M</td><td>4</td><td>2</td></tr>
+ *     <tr><td>N</td><td>2</td><td>5</td></tr>
+ *     <tr><td>O</td><td>1</td><td>8</td></tr>
+ *     <tr><td>P</td><td>4</td><td>2</td></tr>
+ *     <tr><td>Q</td><td>10</td><td>1</td></tr>
+ *     <tr><td>R</td><td>1</td><td>6</td></tr>
+ *     <tr><td>S</td><td>1</td><td>5</td></tr>
+ *     <tr><td>T</td><td>1</td><td>7</td></tr>
+ *     <tr><td>U</td><td>2</td><td>4</td></tr>
+ *     <tr><td>V</td><td>5</td><td>2</td></tr>
+ *     <tr><td>W</td><td>4</td><td>2</td></tr>
+ *     <tr><td>X</td><td>8</td><td>1</td></tr>
+ *     <tr><td>Y</td><td>3</td><td>2</td></tr>
+ *     <tr><td>Z</td><td>10</td><td>1</td></tr>
+ *     <tr><td>Blank</td><td>0</td><td>2</td></tr>
+ *   </tbody>
  * </table>
  *
  * @author Kheagen Haskins
@@ -74,7 +79,7 @@ public final class DefaultTileSet implements TileSet {
      * An array of tile limits for each letter from A to Z.
      * <p>
      * The limit at index 0 corresponds to 'A', index 1 to 'B', etc.
-     * </p>
+     * 
      */
     private static final int[] TILE_LIMITS = {
         9, 2, 2, 5, 13, 2, 3, 4, 8, 1,
@@ -97,7 +102,7 @@ public final class DefaultTileSet implements TileSet {
      * An array tracking the remaining count for each letter tile.
      * <p>
      * The index 0 corresponds to 'A', index 1 to 'B', and so forth.
-     * </p>
+     * 
      */
     private int[] tileCounts;
 
@@ -107,7 +112,7 @@ public final class DefaultTileSet implements TileSet {
      * <p>
      * This initialises the instance with 104 total tiles and 2 blank tiles.
      * The letter-specific counts are set based on the predefined tile limits.
-     * </p>
+     * 
      */
     public DefaultTileSet() {
         tileCounts = Arrays.copyOf(TILE_LIMITS, TILE_LIMITS.length);
@@ -120,7 +125,7 @@ public final class DefaultTileSet implements TileSet {
      * The removal of letters adjusts both the total tile count and the count for
      * each individual letter. If an invalid removal is attempted, an exception
      * is thrown.
-     * </p>
+     * 
      *
      * @param letters an array of characters representing the letters to be
      *                removed from the tile set.
@@ -174,7 +179,7 @@ public final class DefaultTileSet implements TileSet {
      * character, '?' or '*'), the blank tile count is incremented. Otherwise,
      * the method validates the letter, determines its index, and increments the
      * corresponding count.
-     * </p>
+     * 
      *
      * @param letter the character representing the tile to be added.
      * @throws IllegalStateException    if adding the tile would exceed its
@@ -215,7 +220,7 @@ public final class DefaultTileSet implements TileSet {
      * character, '?' or '*'), the blank tile count is decremented. Otherwise,
      * the method validates the letter, determines its index, and decrements the
      * corresponding count.
-     * </p>
+     * 
      *
      * @param letter the character representing the tile to be removed.
      * @throws IllegalStateException    if there are no more tiles of the specified
@@ -258,7 +263,7 @@ public final class DefaultTileSet implements TileSet {
      * If the specified tile represents a blank (i.e. {@code BLANK_TILE}, '?' or
      * '*'), this method returns the number of blank tiles remaining. Otherwise,
      * the letter is validated and its remaining count is returned.
-     * </p>
+     * 
      *
      * @param letter the tile to query.
      * @return the number of remaining tiles for the specified letter.
@@ -281,7 +286,7 @@ public final class DefaultTileSet implements TileSet {
      * <p>
      * This method simulates drawing a random tile from the remaining set.
      * It updates the counts accordingly and returns the drawn tile.
-     * </p>
+     * 
      *
      * @return the character representing the drawn tile.
      * @throws IllegalStateException if no tiles remain to be drawn.
@@ -320,7 +325,7 @@ public final class DefaultTileSet implements TileSet {
      * <p>
      * This method verifies that for each letter in the word the available count
      * (including blank tiles used as wildcards) is sufficient to form the word.
-     * </p>
+     * 
      *
      * @param word the word to validate.
      * @return {@code true} if the word can be constructed; {@code false}
@@ -362,7 +367,7 @@ public final class DefaultTileSet implements TileSet {
      * <p>
      * This method restores the tile counts to the original limits,
      * including the total tile count and blank tile count.
-     * </p>
+     * 
      */
     @Override
     public void reset() {
@@ -378,7 +383,7 @@ public final class DefaultTileSet implements TileSet {
      * The method converts the letter to uppercase, validates that it falls
      * within the range A-Z, and then returns the corresponding limit from the
      * {@code TILE_LIMITS} array.
-     * </p>
+     * 
      *
      * @param letter the letter for which to retrieve the tile count.
      * @return the maximum number of tiles available for the specified letter.
@@ -401,7 +406,7 @@ public final class DefaultTileSet implements TileSet {
      * The method converts the character to uppercase and checks that it lies
      * within the valid range. If the character is invalid, an
      * {@code IllegalArgumentException} is thrown.
-     * </p>
+     * 
      *
      * @param c the character to validate.
      * @return  the uppercase version of the character if it is valid.

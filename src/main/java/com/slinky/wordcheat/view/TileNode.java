@@ -8,10 +8,7 @@ import static com.slinky.wordcheat.view.ColorConstants.TRIPLE_LETTER_COLOR;
 import static com.slinky.wordcheat.view.ColorConstants.TRIPLE_WORD_COLOR;
 import static com.slinky.wordcheat.view.ColorConstants.NEW_TILE_COLOR;
 
-import static com.slinky.wordcheat.view.Substrate.BOARD;
-import static com.slinky.wordcheat.view.Substrate.POOL;
-import static com.slinky.wordcheat.view.Substrate.RACK;
-import static com.slinky.wordcheat.view.Substrate.UNKNOWN;
+import static com.slinky.wordcheat.view.Substrate.*;
 
 import com.slinky.wordcheat.util.ColorUtils;
 
@@ -25,7 +22,7 @@ import javafx.scene.text.Font;
 import javafx.scene.Cursor;
 
 /**
- * Represents a single tile within the word‑cheat application, used both on the
+ * Represents a single tile within the word-cheat application, used both on the
  * game board and in the player’s rack. Each TileNode maintains both logical
  * state (letter, score, bonus text, wildcard flag) and visual style state
  * (colours, corner radius, fonts).
@@ -34,17 +31,18 @@ import javafx.scene.Cursor;
  * This class is fully programmatic and avoids any reliance on external CSS or
  * FXML. It composes a {@link Rectangle} as a background and three {@link Label}
  * children: one for the letter, one for the score, and one for a bonus
- * indicator. All visual aspects—such as 
- * {@linkplain #setBackgroundFill(Color) background fill},
- * {@linkplain #setWildcardFill(Color) wildcard fill}, {@linkplain #setCornerRadius(double)
- * corner radius}, and fonts for the {@linkplain #getLetterLabel() letter} and
- * {@linkplain #getScoreLabel() score} labels—are exposed via setters. Logical
- * state methods ({@linkplain #setLetter(char)}, {@linkplain #setScore(int)},
- * {@linkplain #setBonus(String)}, {@linkplain #setWildcard(boolean)}) determine
- * which text or bonus symbol appears. After changing either style or logical
- * state, clients must invoke {@linkplain #applyStyle()} to reapply visual
- * parameters or {@linkplain #refresh()} to update displayed text and wildcard
- * fill.
+ * indicator. All visual aspects—such as corner radius via
+ * {@linkplain #setCornerRadius(double) setCornerRadius}, letter font via
+ * {@linkplain #setLetterFont(Font) setLetterFont}, score font via
+ * {@linkplain #setSmallFont(Font) setSmallFont}, and bonus font via
+ * {@linkplain #setBonusFont(Font) setBonusFont}—are exposed through setters. Logical
+ * state methods ({@linkplain #setLetter(char) setLetter},
+ * {@linkplain #setScore(int) setScore},
+ * {@linkplain #setBonus(String) setBonus},
+ * {@linkplain #setWildcard(boolean) setWildcard})
+ * determine which text or bonus symbol appears. After making any change (style
+ * or logical), clients must call {@linkplain #syncView() syncView} to update
+ * the tile’s appearance.
  * </p>
  *
  * <p>
@@ -53,7 +51,7 @@ import javafx.scene.Cursor;
  * {@value #DEFAULT_SIZE}, but clients may supply a custom size via the
  * {@link #TileNode(double)} constructor. Internally, children are stacked with
  * the bonus label and letter label centred and the score label aligned to the
- * top‑right corner.
+ * top-right corner.
  * </p>
  */
 public final class TileNode extends StackPane {
@@ -131,6 +129,12 @@ public final class TileNode extends StackPane {
     }
     
     // ========================[ Accessor Methods ]========================= \\
+    /**
+     * Returns the origin container (substrate) for this tile.
+     *
+     * @return the {@link Substrate} indicating where this tile is currently located
+     *         (e.g. BOARD, RACK, POOL).
+     */
     public Substrate getSubstrate() {
         return substrate;
     }
@@ -216,22 +220,54 @@ public final class TileNode extends StackPane {
         return bonusLbl;
     }
 
+    /**
+     * Indicates whether this tile is currently a valid drop target in
+     * drag-and-drop interactions.
+     *
+     * @return {@code true} if drops are permitted on this tile; {@code false}
+     *         otherwise.
+     */
     public boolean isDropTarget() {
         return dropTarget;
     }
 
+    /**
+     * Indicates whether this tile may be dragged by the user.
+     *
+     * @return {@code true} if the tile is draggable; {@code false} otherwise.
+     */
     public boolean isDraggable() {
         return isDraggable;
     }
 
+    /**
+     * Checks if this tile is empty (i.e. not holding a letter A–Z).
+     *
+     * @return {@code true} if the tile contains no valid letter; {@code false}
+     *         otherwise.
+     */
     public boolean isEmpty() {
         return letter < 'A' || letter > 'Z';
     }
 
+    /**
+     * Indicates whether the user’s pointer is currently hovering over this
+     * tile.
+     *
+     * @return {@code true} if the tile is in the hovered state; {@code false}
+     *         otherwise.
+     */
     public boolean isHovered() {
         return isHovered;
     }
 
+    /**
+     * Indicates whether this tile was placed on the board during the current
+     * turn.
+     *
+     * @return {@code true} if the tile is newly placed; {@code false}
+     *         otherwise.
+     */
     public boolean isNewlyPlaced() {
         return newlyPlaced;
     }
@@ -272,7 +308,13 @@ public final class TileNode extends StackPane {
     public void setWildcard(boolean w) {
         this.wildcard = w;
     }
-
+    
+    /**
+     * Marks this tile as having been placed (or not) in the current turn.
+     *
+     * @param newlyPlaced {@code true} if the tile was placed this turn; 
+     *                    {@code false} if it should be treated as an existing tile.
+     */
     public void setNewlyPlaced(boolean newlyPlaced) {
         this.newlyPlaced = newlyPlaced;
     }
@@ -321,23 +363,48 @@ public final class TileNode extends StackPane {
     public void setCount(int count) {
         this.count = count;
     }
-
+    
+    /**
+     * Sets whether this tile is in the hovered state.
+     *
+     * @param hovered {@code true} if the pointer is currently over this tile;
+     *                {@code false} otherwise.
+     */
     public void setHovered(boolean hovered) {
         this.isHovered = hovered;
     }
 
+    /**
+     * Assigns the origin container (substrate) for this tile, used in
+     * drag-and-drop logic.
+     *
+     * @param type the {@link Substrate} representing the tile’s current container
+     *             (e.g. BOARD, RACK, POOL).
+     */
     public void setSubstrate(Substrate type) {
         this.substrate = type;
     }
-  
+
+    /**
+     * Enables or disables the ability to drag this tile.
+     *
+     * @param enabled {@code true} to make the tile draggable;
+     *                {@code false} to prevent dragging.
+     */
     public void setDraggable(boolean enabled) {
         isDraggable = enabled;
     }
-    
+
+    /**
+     * Enables or disables this tile as a drop target in drag-and-drop
+     * interactions.
+     *
+     * @param enabled {@code true} to allow drops on this tile;
+     *                {@code false} to disable dropping.
+     */
     public void setDropTarget(boolean enabled) {
         dropTarget = enabled;
     }
-    
     
     // ==========================[ API Methods ]============================ \\
     /**

@@ -1,5 +1,15 @@
 package com.slinky.wordcheat.util;
 
+/**
+ * Provides utility methods for determining optimal text contrast on
+ * coloured backgrounds.
+ *
+ * <p>Implements WCAG 2.0 luminance calculations to decide whether black
+ * or white text offers better readability against a given RGB colour.
+ *
+ * @author Kheagen Haskins
+ * @since 0.1.0
+ */
 public class ColorUtils {
 
     // ==============================[ Constants ]============================== \\
@@ -15,7 +25,7 @@ public class ColorUtils {
      * colour with the given RGB components; {@code false} if white text
      * provides better contrast.
      *
-     * <p>The calculation uses luminance based on WCAG 2.0 standards.</p>
+     * <p>The calculation uses luminance based on WCAG 2.0 standards.
      *
      * @param red   the red channel   (0–1)
      * @param green the green channel (0–1)

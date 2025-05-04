@@ -7,9 +7,8 @@ package com.slinky.wordcheat.model;
  * This interface allows different scoring strategies to be swapped in or even
  * multiple modules to be chained. The module takes a {@code Board} as input and
  * calculates its score.
- * </p>
- *
- * @see Board
+ * 
+ * @see GameBoard
  */
 public interface ScoringModule {
     
@@ -33,8 +32,7 @@ public interface ScoringModule {
      * <p>
      * This method maps characters from 'A' to 'Z' to their corresponding point
      * values based on the game's scoring rules. 
-     * </p>
-     *
+     * 
      * @param c the uppercase character ('A'–'Z') for which to retrieve the
      *          point value.
      * @return the point value associated with the specified letter.

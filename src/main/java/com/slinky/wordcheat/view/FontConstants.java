@@ -8,10 +8,9 @@ import javafx.scene.text.Font;
  * load, the system gracefully falls back to using Arial.
  * <p>
  * This class is designed to be used statically and should not be instantiated.
- * </p>
- *
+ * 
  * <p>
- * <strong>Fonts defined:</strong></p>
+ * <strong>Fonts defined:</strong>
  * <ul>
  *   <li>{@code TILE_FONT} – Used for game tiles.</li>
  *   <li>{@code SMALL_FONT} – Used for small-sized text such as scores.</li>
@@ -23,7 +22,7 @@ import javafx.scene.text.Font;
  *
  * <p>
  * All fonts attempt to load their respective custom typefaces, and default to
- * {@code Arial} if the desired font is not found.</p>
+ * {@code Arial} if the desired font is not found.
  *
  * @author Kheagen
  */
@@ -55,6 +54,9 @@ public class FontConstants {
      */
     public static final int TILE_FONT_SIZE      = 18;
     
+    /**
+     * Font size used for buttons
+     */
     public static final int BUTTON_FONT_SIZE      = 16;
 
     /**
@@ -87,6 +89,9 @@ public class FontConstants {
      */
     public static final Font LABEL_FONT_HEADING;
     
+    /**
+     * Font instance used for buttons
+     */
     public static final Font BUTTON_FONT;
 
     static {

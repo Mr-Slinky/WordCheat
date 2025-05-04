@@ -48,8 +48,7 @@ import java.util.List;
  * moves.</li>
  * <li>Provide utility methods for suggesting top moves to the console.</li>
  * </ul>
- * </p>
- *
+ * 
  * <p>
  * <strong>Usage Example:</strong>
  * <pre>
@@ -57,14 +56,13 @@ import java.util.List;
  *   Pane mainPane = controller.getMainView();
  *   // Attach mainPane to a JavaFX Scene
  * </pre>
- * </p>
+ * 
  * <p>
  * <strong>Thread Safety:</strong> This class is not thread-safe and must be
  * used solely on the JavaFX Application Thread.
- * </p>
- *
- * @author Kheagen Haskins
- * @since 1.0
+ * 
+ * @author  Kheagen Haskins
+ * @since   1.0
  * @version 1.0
  */
 public final class MainController {
@@ -86,7 +84,6 @@ public final class MainController {
      * <p>
      * After construction, the main view is configured and drag-and-drop
      * controls are enabled.
-     * </p>
      * 
      * @param filename the path to the file used for persisting game state
      */
@@ -134,7 +131,7 @@ public final class MainController {
      * <p>
      * Does not modify the lastSnapshot; use reset() to revert to the previously
      * saved state.
-     * </p>
+     * 
      * 
      * @throws IOException if an I/O error occurs during loading
      */
@@ -162,7 +159,7 @@ public final class MainController {
      * 
      * <p>
      * This method is used when no persisted game file exists or loading fails.
-     * </p>
+     * 
      *
      * @param filename the filename to associate with the new game session
      * @return a newly initialized GameEngine ready for play
@@ -259,12 +256,12 @@ public final class MainController {
      * rack, constructs a representation of the state, and attempts to update
      * the engine using {@code updateAllAndPreserve()}. If the update fails
      * (e.g. due to an invalid board state), an error is printed to the console.
-     * </p>
+     * 
      *
      * <p>
      * Afterwards, it finalises any new tiles in the UI, reconfigures
      * drag-and-drop logic, and attempts to persist the game to disk.
-     * </p>
+     * 
      */
     private void syncToFrontend() {
         int rows = view.getBoardRows();
@@ -314,7 +311,7 @@ public final class MainController {
      * 
      * <p>
      * Reconfigures drag-and-drop controls for the restored engine.
-     * </p>
+     * 
      * 
      * @throws IllegalStateException if no snapshot is available (save() has not
      *                               been called)
@@ -336,7 +333,7 @@ public final class MainController {
      *
      * <p>
      * The board is reset to its original state and the best move is visualised.
-     * </p>
+     * 
      */
     private void showHighestMove() {
         previewMove(engine.getBestMove());
@@ -348,7 +345,7 @@ public final class MainController {
      * <p>
      * Increments the move index and visualises the next move on the board.
      * Assumes that {@code moves} has already been populated.
-     * </p>
+     * 
      */
     private void showNextMove() {
         previewMove(moves.get(++currentMove));
@@ -361,7 +358,7 @@ public final class MainController {
      * This resets the board state, applies the move temporarily, and updates
      * the frontend with the move and its corresponding score matrix. Matching
      * tiles are also removed from the rack.
-     * </p>
+     * 
      *
      * @param move the move to preview; must not be {@code null}
      */
@@ -385,7 +382,7 @@ public final class MainController {
      * Each cell in the resulting matrix contains the score of the matching
      * letter from the input {@code matrix}, as defined by the current scoring
      * module.
-     * </p>
+     * 
      *
      * @param matrix the board matrix of letters
      * @return a matrix of letter scores with the same dimensions as

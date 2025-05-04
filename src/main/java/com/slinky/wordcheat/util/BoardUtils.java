@@ -5,8 +5,7 @@ package com.slinky.wordcheat.util;
  *
  * <p>
  * Includes methods for finding word bounds on a board and setting symmetrical
- * bonus tiles.<
- * /p>
+ * bonus tiles.
  */
 public final class BoardUtils {
 
@@ -24,8 +23,7 @@ public final class BoardUtils {
      *   <li>(rows - 1 - row, col)</li>
      *   <li>(rows - 1 - row, cols - 1 - col)</li>
      * </ul>
-     * </p>
-     *
+     * 
      * @param <T>    the element type of the matrix
      * @param matrix a non‑null, rectangular 2D array
      * @param row    zero‑based row index for the primary placement

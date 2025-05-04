@@ -1,31 +1,28 @@
 package com.slinky.wordcheat.view;
 
 /**
- * A set of constants to determine the container a specific TileNode originates
- * from. Used for drag and drop functionality.
- * 
+ * Enum representing the possible containers (substrates) from which a {@link TileNode}
+ * originates.  Primarily used to drive drag‑and‑drop behaviour between the game board,
+ * the player's rack, and the communal tile pool.
+ *
+ * <p>Each constant identifies one of the recognised sources for a TileNode during
+ * gameplay interaction.
+ *
  * @author Kheagen Haskins
+ * @since 0.1.0
  */
 public enum Substrate {
 
-    // ================================[ Static ]================================ \\
+    /** A tile displayed on the main game board. */
     BOARD,
+
+    /** A tile currently held in the player's rack. */
     RACK,
+
+    /** A tile drawn from the communal pool of remaining tiles. */
     POOL,
-    UNKNOWN // unassigned
-    
-    // ================================[ Fields ]================================ \\
 
-    // =============================[ Constructors ]============================= \\
-
-    // ===========================[ Accessor Methods ]=========================== \\
-
-    // ===========================[ Mutator Methods ]============================ \\
-
-    // =============================[ API Methods ]============================== \\
-
-    // ============================[ Helper Methods ]============================ \\
-
-    // ============================[ Helper Classes ]============================ \\
+    /** The tile's origin is unknown or not yet assigned. */
+    UNKNOWN;
 
 }

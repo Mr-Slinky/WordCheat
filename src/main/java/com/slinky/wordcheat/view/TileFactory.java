@@ -14,7 +14,7 @@ import javafx.scene.effect.InnerShadow;
  * <p>
  * Keeps tile‑creation and default styling concerns in one place for future
  * extension (sizing, event hooks, etc.).
- * </p>
+ * 
  */
 public final class TileFactory {
 

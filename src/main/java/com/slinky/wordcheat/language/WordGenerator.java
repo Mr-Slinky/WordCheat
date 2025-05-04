@@ -18,7 +18,7 @@ import java.util.Set;
  * The class depends on an external {@code Dictionary} to verify whether a
  * constructed string is a valid word or a valid prefix of any word. This
  * ensures that only plausible word combinations are considered.
- * </p>
+ * 
  *
  * @author Kheagen Haskins
  * @version 1.0
@@ -67,7 +67,7 @@ public class WordGenerator {
      * <p>
      * Wildcard characters (denoted by {@code '?'}) in the array are substituted
      * by every letter from A to Z during the generation process.
-     * </p>
+     * 
      *
      * @param letters an array of characters representing the letters available
      *                for forming words; wildcards are indicated by {@code '?'}.
@@ -95,7 +95,7 @@ public class WordGenerator {
      * <p>
      * The recursion stops once the maximum allowed word length is reached. For
      * wildcards, each possible substitution (from A to Z) is attempted.
-     * </p>
+     * 
      *
      * @param letters     the sorted array of characters (including wildcards)
      *                    available for word construction.

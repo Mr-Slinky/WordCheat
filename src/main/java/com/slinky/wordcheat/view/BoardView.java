@@ -11,7 +11,7 @@ import javafx.scene.layout.GridPane;
  * <p>
  * This view constructs the grid based on provided letter, score, and bonus
  * matrices, and allows resetting individual tiles to their default empty state.
- * </p>
+ * 
  *
  * @author WordCheat Team
  */
@@ -30,7 +30,7 @@ public final class BoardView extends GridPane {
      * Creates a new {@code BoardView} with the given matrices.
      * <p>
      * Validates input dimensions, then populates this view with tiles.
-     * </p>
+     * 
      *
      * @param letters  2D char array of letters ('A'–'Z') or other for empty
      * @param scores   2D int array of tile scores matching the dimensions
@@ -107,9 +107,9 @@ public final class BoardView extends GridPane {
      * 
      * <p>
      * Ensures the tile is part of this board before clearing its content;
-     * then sets letter to blank, score & count to -1, clears bonus,
+     * then sets letter to blank, score and count to -1, clears bonus,
      * resets wildcard flag, and restores empty background.
-     * </p>
+     * 
      *
      * @param tile the {@link TileNode} to reset
      * @throws NullPointerException      if {@code tile} is null
@@ -138,11 +138,29 @@ public final class BoardView extends GridPane {
     }
     
     /**
-     * Must match original dimensions. 
-     * 
-     * @param letters
-     * @param scores
-     * @param bonuses 
+     * Updates each tile on the board to reflect the provided letter, score and
+     * bonus values.
+     *
+     * <p>
+     * The three 2D arrays must match the board’s dimensions (rows × cols). For
+     * each position:
+     * <ul>
+     *   <li>The character in {@code letters[r][c]} becomes the tile’s
+     *       letter.</li>
+     *   <li>The integer in {@code scores[r][c]} becomes the tile’s score.</li>
+     *   <li>If {@code bonuses[r][c]} is non-null, that string becomes the
+     *       tile's bonus; otherwise the existing bonus is retained.</li>
+     *   <li>The wildcard flag is reset to {@code false}, and the tile’s view
+     *       is refreshed.</li>
+     * </ul>
+     *
+     * @param letters a rows×cols array of characters for each tile
+     * @param scores  a rows×cols array of integer scores corresponding to each
+     *                tile
+     * @param bonuses a rows×cols array of bonus strings; null entries leave
+     *                the tile’s bonus unchanged
+     * @throws IllegalArgumentException if any array is null or its dimensions
+     *                                  do not match the board
      */
     public void updateBoard(char[][] letters, int[][] scores, String[][] bonuses) {
         validConstructorParams(letters, scores, bonuses);
@@ -163,6 +181,29 @@ public final class BoardView extends GridPane {
         }
     }
     
+    /**
+     * Updates each tile on the board to reflect the provided letter, score and
+     * bonus values.
+     *
+     * <p>
+     * The three 2D arrays must match the board’s dimensions (rows × cols). For
+     * each position:
+     * <ul>
+     *   <li>The character in {@code letters[r][c]} becomes the tile’s
+     *       letter.</li>
+     *   <li>The integer in {@code scores[r][c]} becomes the tile’s score.</li>
+     *   <li>If {@code bonuses[r][c]} is non-null, that string becomes the
+     *       tile's bonus; otherwise the existing bonus is retained.</li>
+     *   <li>The wildcard flag is reset to {@code false}, and the tile’s view
+     *       is refreshed.</li>
+     * </ul>
+     *
+     * @param letters a rows×cols array of characters for each tile
+     * @param scores  a rows×cols array of integer scores corresponding to each
+     *                tile
+     * @throws IllegalArgumentException if any array is null or its dimensions
+     *                                  do not match the board
+     */
     public void updateBoard(char[][] letters, int[][] scores) {
         updateBoard(letters, scores, new String[rows][cols]);
     }

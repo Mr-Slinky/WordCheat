@@ -7,25 +7,23 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * A façade that encapsulates all major backend models and provides a
+ * A facade that encapsulates all major backend models and provides a
  * centralised point of interaction for querying and modifying the game state.
  * This class delegates the majority of its operations to underlying objects
  * including the {@code GameBoard}, {@code LetterRack}, {@code TileSet} and
- * {@code WordFinder}.
+ * {@code MoveFinder}.
  *
  * <p>
  * It is responsible for synchronising the state between the board and the
  * available tile pool. As such, it ensures that letters already present on the
  * board are removed from the tile set and that the letter rack never exceeds
  * its maximum capacity.
- * </p>
- *
+ * 
  * <p>
  * Typical usage involves retrieving the current state of the board and letter
  * rack, analysing word suggestions based on available letters, and accepting a
  * valid move (suggestion) to update the game state.
- * </p>
- *
+ * 
  * @author Kheagen Haskins
  */
 public class GameEngine {
@@ -48,14 +46,14 @@ public class GameEngine {
      * Constructs a new {@code GameEngine} with the given backend components and
      * initial letters.
      *
-     * @param tileSet the tile set containing the available letter tiles; must
-     * not be {@code null}
+     * @param tileSet    the tile set containing the available letter tiles; must
+     *                   not be {@code null}
      * @param moveFinder the word finder used to generate word suggestions; must
-     * not be {@code null}
-     * @param letters the initial letters for the letter rack; may be empty but
-     * must not be {@code null}
+     *                   not be {@code null}
+     * @param letterRack the initial letters for the letter rack; may be empty but
+     *                   must not be {@code null}
      * @throws NullPointerException if {@code board}, {@code tileSet} or
-     * {@code wordFinder} is {@code null}
+     *                              {@code wordFinder} is {@code null}
      */
     public GameEngine(TileSet tileSet, MoveFinder moveFinder, LetterRack letterRack) {
         this.tileSet    = Objects.requireNonNull(tileSet,    "TileSet cannot be null");
@@ -116,8 +114,7 @@ public class GameEngine {
      * The suggestions are obtained from the {@code WordFinder} and sorted
      * before being returned. This call also marks the suggestion scores as
      * calculated.
-     * </p>
-     *
+     * 
      * @return a sorted list of word {@code Suggestion}s
      */
     public List<Move> getAllMoves() {
@@ -134,8 +131,7 @@ public class GameEngine {
      * <p>
      * If suggestions have not yet been calculated during this cycle, the method
      * will trigger the calculation of all suggestions.
-     * </p>
-     *
+     * 
      * @return the highest scoring word {@code Suggestion}
      */
     public Move getBestMove() {
@@ -223,8 +219,7 @@ public class GameEngine {
      * The returned array has length 27. The element at index 0 is the number of
      * wildcards remaining, and the elements at indices 1 through 26 correspond
      * to the counts for letters 'A' through 'Z', respectively.
-     * </p>
-     *
+     * 
      * @return an int array of length 27 containing the remaining tile counts
      */
     public int[] getRemainingTileCounts() {
@@ -275,8 +270,7 @@ public class GameEngine {
      * This method first checks that adding the new letters will not exceed the
      * maximum rack size. It also verifies that the {@code TileSet} contains a
      * sufficient count of each letter before allowing the operation.
-     * </p>
-     *
+     * 
      * @param letters the letters to add to the rack; must not be {@code null}
      * @throws IllegalArgumentException if the resulting rack size would exceed
      * the maximum allowed size
@@ -307,8 +301,7 @@ public class GameEngine {
      * This method delegates to {@link GameBoard#setBoard(char[][])} to replace
      * the current board state. The new board must match the existing dimensions
      * and conform to shape and letter validation rules.
-     * </p>
-     *
+     * 
      * @param updatedGrid a new 2D character array to replace the current board.
      * @throws IllegalArgumentException if {@code updatedGrid} is not
      * rectangular or invalid in size/content.
@@ -325,8 +318,7 @@ public class GameEngine {
      * The supplied letters are removed from the tile set upon construction.
      * This allows re-synchronisation with a board or rack that already includes
      * some of these letters.
-     * </p>
-     *
+     * 
      * @param boardLetters an array of characters representing tiles to remove
      * from the set.
      * @throws IllegalStateException if the tile set cannot accommodate the
@@ -344,8 +336,7 @@ public class GameEngine {
      * This method first verifies that the provided array is non-null and
      * non-empty. It then constructs a new {@link LetterRack} using the supplied
      * letters and assigns it to the engine, replacing the previous rack.
-     * </p>
-     *
+     * 
      * @param rackLetters an array of letters to initialise the new rack.
      * @throws NullPointerException if {@code rackLetters} is {@code null}
      * @throws IllegalArgumentException if {@code rackLetters} is empty
@@ -367,8 +358,7 @@ public class GameEngine {
      * This method calls {@link GameBoard#preserve()} to commit any newly placed
      * letters as permanent. If the board is in an invalid state, no changes are
      * made.
-     * </p>
-     *
+     * 
      * @return {@code true} if the board was in a valid state and all new-letter
      * flags were cleared (i.e. changes committed); {@code false} if the board
      * was invalid and no changes were applied
@@ -394,8 +384,7 @@ public class GameEngine {
      * </ol>
      * After these updates, we invoke {@link #preserve()} to clear any "new
      * letter" flags on the board and commit newly placed letters as permanent.
-     * </p>
-     *
+     * 
      * @param letterMatrix the two-dimensional array of board letters to apply;
      * must not be {@code null}
      * @param letterRack the array of rack letters to apply; must not be
@@ -425,8 +414,7 @@ public class GameEngine {
      * word with letters in the rack. If any letter is not available, it
      * delegates to the {@code TileSet} to check whether the missing letters can
      * be provided from the remaining tiles.
-     * </p>
-     *
+     * 
      * @param word the word to check for constructability
      * @return {@code true} if the word can be constructed from the letter rack
      * (or supplemented by the {@code TileSet}); {@code false} otherwise
@@ -464,8 +452,7 @@ public class GameEngine {
      * {@code TileSet} and calls {@code board.preserve()} to solidify the move.
      * If placement fails, an {@code Error} is thrown, as this indicates a bug
      * in the generation of suggestions.
-     * </p>
-     *
+     * 
      * @param move the word suggestion to accept; must not be {@code null}
      * @throws Error if the word suggestion cannot be placed on the board
      */
@@ -510,8 +497,7 @@ public class GameEngine {
      * board via {@link GameBoard#clone()}, then resets the original board to
      * its prior state using {@link GameBoard#reset()}. It is typically used for
      * move previews or UI rendering.
-     * </p>
-     *
+     * 
      * @param move the move to preview.
      * @return a cloned {@code GameBoard} reflecting the state after the move is
      * placed.
@@ -539,8 +525,7 @@ public class GameEngine {
      * updates both the board and tile pool: it adds the resolved character to
      * the tile set and removes a wildcard tile. This maintains accurate
      * tracking of remaining tiles.
-     * </p>
-     *
+     * 
      * @param row the row index of the wildcard tile.
      * @param col the column index of the wildcard tile.
      */
@@ -556,8 +541,7 @@ public class GameEngine {
      * <p>
      * This is useful for preserving or restoring wildcard ordering, such as
      * when rehydrating saved state or debugging wildcard placement logic.
-     * </p>
-     *
+     * 
      * @param row the row index of the wildcard.
      * @param col the column index of the wildcard.
      * @param index the slot index to assign to this wildcard.
@@ -573,7 +557,7 @@ public class GameEngine {
      * <p>
      * This method may be used to restart a game or to resynchronise the state
      * of the {@code TileSet}.
-     * </p>
+     * 
      */
     public void resetTiles() {
         tileSet.reset();
@@ -627,8 +611,7 @@ public class GameEngine {
      * Depending on the value of {@code newLetters}, this method either removes
      * only the letters that are newly placed on the board (if {@code true}) or
      * removes any letter present on the board (if {@code false}).
-     * </p>
-     *
+     * 
      * @param newLetters if {@code true}, only newly added letters are removed;
      * if {@code false}, all letters on the board are removed
      */
@@ -666,8 +649,7 @@ public class GameEngine {
      * The method computes a frequency count for the provided {@code letters}
      * and checks that the tile set holds at least as many of each letter. If
      * not, an {@code IllegalStateException} is thrown.
-     * </p>
-     *
+     * 
      * @param letters the letters to check; must not be {@code null}
      * @throws IllegalStateException if the tile set does not have enough tiles
      * for a given letter
@@ -692,8 +674,7 @@ public class GameEngine {
      * {@link GameBoard#placeWord(String, int, int, boolean)} to lay down the
      * word on the board. If placement fails, this indicates an inconsistency in
      * the move generation logic and triggers an {@link IllegalStateException}.
-     * </p>
-     *
+     * 
      * @param move the move to be placed on the board.
      * @throws IllegalStateException if the move cannot be placed (e.g. invalid
      * suggestion).

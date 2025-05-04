@@ -11,7 +11,7 @@ import java.util.Objects;
  * <p>
  * This view does not resize itself dynamically; it remains fixed and relies on
  * the parent layout for scaling.
- * </p>
+ * 
  *
  */
 public final class RackView extends StackPane {

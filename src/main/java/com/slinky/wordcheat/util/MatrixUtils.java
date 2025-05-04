@@ -51,7 +51,7 @@ public final class MatrixUtils {
      * <p>
      * If {@code clockwise} is {@code true}, the result is rotated 90° to the
      * right; otherwise 90° to the left.
-     * </p>
+     * 
      *
      * @param matrix    the input grid; must not be {@code null} or empty
      * @param clockwise direction flag: {@code true} = right, {@code false} =
@@ -88,7 +88,7 @@ public final class MatrixUtils {
      *
      * <p>
      * Behaviour is analogous to {@link #rotate(char[][], boolean)}.
-     * </p>
+     * 
      *
      * @param matrix    the input grid; must not be {@code null} or empty
      * @param clockwise direction flag: {@code true} = right, {@code false} =
@@ -161,7 +161,7 @@ public final class MatrixUtils {
      *
      * <p>
      * Non‑letter cells are shown as a space. Each row ends with a newline.
-     * </p>
+     * 
      *
      * @param matrix the grid to render; must not be {@code null}
      * @return a multi‑line string representing the grid; never {@code null}
@@ -192,7 +192,7 @@ public final class MatrixUtils {
      *
      * <p>
      * True = 1, False = 0. Each row ends with a newline.
-     * </p>
+     * 
      *
      * @param matrix the grid to render; must not be {@code null}
      * @return a multi‑line string representing the grid; never {@code null}

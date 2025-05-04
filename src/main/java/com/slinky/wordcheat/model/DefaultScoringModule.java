@@ -10,16 +10,14 @@ import com.slinky.wordcheat.util.BoardUtils;
  * considering the point values of newly placed letters and the bonus
  * multipliers available on the board. It supports both custom and classic bonus
  * layouts, with the classic 15×15 layout being the default.
- * </p>
- *
+ * 
  * <p>
  * The scoring algorithm evaluates the board by processing both rows and
  * columns. The logic for scoring rows and columns is now consolidated into a
  * single generic method that accepts a traversal strategy (horizontal or
  * vertical). In addition, the contiguous boundary detection logic has been
  * extracted into a common helper.
- * </p>
- *
+ * 
  * @see    ScoringModule
  * @author Kheagen Haskins
  */
@@ -31,7 +29,7 @@ public class DefaultScoringModule implements ScoringModule {
      * 
      * <p>
      * The value at index 0 corresponds to 'A', index 1 to 'B', and so on.
-     * </p>
+     * 
      */
     private static final int[] POINTS = {
         1, 4, 4, 2, 1, 4, 3, 3, 1, 10, // A - J
@@ -59,12 +57,12 @@ public class DefaultScoringModule implements ScoringModule {
      *   <li>Index 7: Tiles scoring 10 points (e.g. Q, Z, J).</li>
      * </ul>
      * 
-     * </p>
+     * 
      *
      * <p>
      * Note that the natural ordering aligns with the above groups except for
      * indices 6 and 7, which correspond to the rare higher score tiles.
-     * </p>
+     * 
      *
      * @return an array of eight integers representing the frequency of tiles
      *         per score group.
@@ -77,6 +75,9 @@ public class DefaultScoringModule implements ScoringModule {
     private TileBonus[][] bonusTiles;
 
     // =============================[ Constructors ]============================= \\
+    /**
+     * Creates a new default scoring module.
+     */
     public DefaultScoringModule() {
         this.bonusTiles = getClassicBonusLayout();
     }
@@ -90,7 +91,7 @@ public class DefaultScoringModule implements ScoringModule {
      * assigned bonus types, such as Double Word, Triple Word, Double Letter,
      * and Triple Letter. The bonus layout is populated using symmetry to ensure
      * a balanced distribution across the board.
-     * </p>
+     * 
      *
      * @return a 15×15 {@code TileBonus} matrix representing the classic bonus
      *         layout.
@@ -133,7 +134,7 @@ public class DefaultScoringModule implements ScoringModule {
      * new letters, applying the appropriate multipliers, and summing the
      * resulting values. A bonus score is added if the number of new tiles
      * equals the maximum allowed ("Bingo").
-     * </p>
+     * 
      *
      * @param board the {@code GameBoard} representing the current state of the
      *              game.
@@ -159,7 +160,7 @@ public class DefaultScoringModule implements ScoringModule {
      * values based on the game's scoring rules. Each letter's score is defined
      * in a static array where the index 0 corresponds to 'A', index 1 to 'B',
      * and so on up to 'Z'.
-     * </p>
+     * 
      *
      * @param c the uppercase character ('A'–'Z') for which to retrieve the
      *          point value.
@@ -189,7 +190,7 @@ public class DefaultScoringModule implements ScoringModule {
      * When {@code horizontal} is {@code true}, searches left and right from the
      * starting column in the given row. Otherwise, reaches upward and downward
      * from the starting row in the given column.
-     * </p>
+     * 
      *
      * @param board      the {@code GameBoard} being scored.
      * @param fixedIndex the fixed row (if horizontal) or fixed column (if
@@ -233,7 +234,7 @@ public class DefaultScoringModule implements ScoringModule {
      * column and {@code start} is the starting row. If the starting cell does
      * not contain a new letter, or if the contiguous word consists of a single
      * letter, the method returns 0.
-     * </p>
+     * 
      *
      * @param board      the {@code GameBoard} being scored.
      * @param fixedIndex the fixed index (row if horizontal, column if
@@ -348,7 +349,7 @@ public class DefaultScoringModule implements ScoringModule {
      * The method converts the input letter to uppercase and then computes its
      * index based on the ASCII value of 'A'. The corresponding point value from
      * the {@code POINTS} array is then returned.
-     * </p>
+     * 
      *
      * @param letter the letter for which to retrieve the point value.
      * @return the point value associated with the specified letter.

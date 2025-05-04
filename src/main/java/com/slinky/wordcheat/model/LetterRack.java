@@ -1,41 +1,52 @@
 package com.slinky.wordcheat.model;
 
 import static com.slinky.wordcheat.model.TileSet.WILDCARD;
+import com.slinky.wordcheat.model.TileSet; // used in comments
+
 import com.slinky.wordcheat.util.ValidationUtils;
 import java.util.Comparator;
 import java.util.Iterator;
 
 /**
  * Represents a logical rack of letters that can contain up to 21 letters,
- * including 2 wildcards (represented by {@link #WILDCARD}). This class provides
- * methods to add, remove, sort, and search letters within the rack. The rack is
- * implemented as a flat array to improve cache efficiency, and its maximum
- * capacity is enforced by the constant {@link #MAX_SIZE}.
+ * including 2 wildcards (represented by {@link TileSet#WILDCARD}).
+ * This class provides methods to add, remove, sort, and search letters
+ * within the rack. The rack is implemented as a flat array for cache
+ * efficiency, and its maximum capacity is enforced by the constant
+ * {@link #MAX_SIZE}.
  *
- * <p>
- * Main functionalities include:</p>
+ * <p>Main functionalities include:
  * <ul>
  *   <li>Initialising the rack with an array or string of letters.</li>
- *   <li>Adding a letter or multiple letters (from a char array or String) to the rack.</li>
+ *   <li>Adding a letter or multiple letters from a char array or
+ *       {@link String}.</li>
  *   <li>Removing letters by value, by index, or removing the last letter.</li>
- *   <li>Removing a specified number of letters from the end of the rack.</li>
- *   <li>Sorting the letters using an in-place insertion sort algorithm, either with natural ordering or a custom comparator.</li>
+ *   <li>Sorting using an in-place insertion sort (natural or via
+ *       {@link java.util.Comparator}).</li>
  *   <li>Searching for a contiguous subsequence within the rack.</li>
- *   <li>Checking if a given word can be constructed from the letters in the rack, using available letters and wildcards.</li>
- *   <li>Iterating over the letters via the {@link Iterable} interface.</li>
- *   <li>Tracking the number of wildcards and providing a method {@code hasWildcard()}.</li>
+ *   <li>Checking if a given word can be constructed from the rack (using
+ *       available letters and wildcards).</li>
+ *   <li>Iterating over the letters via the {@link java.lang.Iterable}
+ *       interface.</li>
+ *   <li>Tracking the number of wildcards and providing a method
+ *       {@code hasWildcard()}.</li>
  * </ul>
  *
- * <p>
- * This class also implements the {@link CharSequence} interface, allowing it to be used in contexts
- * where a character sequence is required.</p>
+ * <p>This class also implements the {@link java.lang.CharSequence}
+ * interface, allowing it to be used wherever a character sequence is required.
  *
  * @author Kheagen Haskins
+ * @since  0.1.0
  */
 public final class LetterRack implements CharSequence, Iterable<Character> {
 
     // ================================[ Static ]================================ \\
-    public static final int MAX_SIZE  = 21;
+    /**
+     * The maximum number of tiles that a LetterRack can hold.
+     *
+     * @since 0.1.0
+     */
+    public static final int MAX_SIZE = 21;
 
     // ================================[ Fields ]================================ \\
     private char[] letters;
@@ -233,7 +244,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
      * This method accepts a varargs array of characters and attempts to add
      * them to the rack. It ensures that the total number of letters does not
      * exceed {@link #MAX_SIZE}.
-     * </p>
+     * 
      *
      * @param letters the characters to add.
      * @throws IllegalStateException if adding the letters would exceed the
@@ -263,7 +274,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
      * This method converts the provided string to a character array and
      * delegates the addition to the varargs method. It ensures that the total
      * number of letters does not exceed {@link #MAX_SIZE}.
-     * </p>
+     * 
      *
      * @param letters the string containing the characters to add.
      * @throws IllegalStateException if adding the letters would exceed the
@@ -298,7 +309,7 @@ public final class LetterRack implements CharSequence, Iterable<Character> {
     /**
      * Checks if the specified word can be constructed from the letters in the
      * rack. A letter from the rack can only be used once per word construction.
-     * Wildcards (represented by {@link #WILDCARD}) can match any letter.
+     * Wildcards (represented by {@link TileSet#WILDCARD}) can match any letter.
      *
      * @param word the word to check.
      * @return true if the word can be constructed, false otherwise.

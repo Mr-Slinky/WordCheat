@@ -2,6 +2,7 @@ package com.slinky.wordcheat.model;
 
 import com.slinky.wordcheat.util.MatrixUtils;
 import com.slinky.wordcheat.util.ValidationUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.List;
  *   <li>The overall population status of each row and column
  *       (<code>rowPopulated</code> and <code>colPopulated</code>).</li>
  * </ul>
- * </p>
+ * 
  * <p>
  * <b>Key Features:</b>
  * <ul>
@@ -49,12 +50,12 @@ import java.util.List;
  *       horizontal and vertical words are valid according to a supplied
  *       dictionary.</li>
  * </ul>
- * </p>
+ * 
  * <p>
  * This class implements {@link Cloneable} and supports deep cloning, ensuring
  * that all internal arrays are duplicated correctly to prevent unintended
  * side-effects when modifying cloned instances.
- * </p>
+ * 
  * <p>
  * <b>Example Usage:</b>
  * <pre>
@@ -67,7 +68,6 @@ import java.util.List;
  *   String json      = board.toJson();
  *   boolean allValid = board.areAllWordsValid(dictionary);
  * </pre>
- * </p>
  * 
  * @author  Kheagen Haskins
  * @version 1.0
@@ -99,7 +99,7 @@ public class GameBoard implements Cloneable {
      * <p>
      * A value of {@code true} indicates that the letter in the corresponding
      * cell is new.
-     * </p>
+     * 
      */
     private boolean[][] newLetter;
 
@@ -109,7 +109,7 @@ public class GameBoard implements Cloneable {
      * <p>
      * A value of {@code true} means the corresponding cell contains a valid
      * letter.
-     * </p>
+     * 
      */
     private boolean[][] hasLetter;
 
@@ -119,7 +119,7 @@ public class GameBoard implements Cloneable {
      * <p>
      * Each cell contains either a letter or the designated blank tile (see
      * {@link DefaultTileSet#BLANK_TILE}).
-     * </p>
+     * 
      */
     private char[][] matrix;
 
@@ -154,7 +154,7 @@ public class GameBoard implements Cloneable {
      * <p>
      * Initialized to {@code Integer.MAX_VALUE} and updated upon placement of
      * new letters.
-     * </p>
+     * 
      */
     private int firstNewLetterRow = Integer.MAX_VALUE;
 
@@ -164,7 +164,7 @@ public class GameBoard implements Cloneable {
      * <p>
      * Initialized to {@code Integer.MAX_VALUE} and updated upon placement of
      * new letters.
-     * </p>
+     * 
      */
     private int firstNewLetterCol = Integer.MAX_VALUE;
 
@@ -173,7 +173,7 @@ public class GameBoard implements Cloneable {
      * 
      * <p>
      * Initialised to {@code -1} and updated upon placement of new letters.
-     * </p>
+     * 
      */
     private int lastNewLetterRow = -1;
 
@@ -182,7 +182,7 @@ public class GameBoard implements Cloneable {
      * 
      * <p>
      * Initialized to {@code -1} and updated upon placement of new letters.
-     * </p>
+     * 
      */
     private int lastNewLetterCol = -1;
 
@@ -190,25 +190,21 @@ public class GameBoard implements Cloneable {
     /**
      * Constructs a new {@code GameBoard} instance based on the provided 2D
      * character grid.
-     * 
-     * <p>
-     * The provided {@code letterGrid} is first validated using
-     * {@link MainUtil#validateMatrix(char[][])} to ensure it is rectangular. A
-     * deep copy of the grid is made, and each cell is examined:
-     * 
-     * <ul>
-     *   <li>If the character in a cell is determined to be a letter (via
-     *       {@link MainUtil#isLetter(char)}), the corresponding cell in
-     *       {@code hasLetterAt} is set to {@code true}, and the row and column are
-     *       marked as populated.</li>
-     *   <li>If the cell does not contain a valid letter, it is set to the
-     *       designated blank tile ({@link DefaultTileSet#BLANK_TILE}).</li>
-     * </ul>
-     * </p>
      *
-     * @param letterGrid the initial grid of characters to be used for
-     *                   constructing the game board.
-     * @throws IllegalArgumentException if the provided grid is not rectangular.
+     * <p>
+     * The provided {@code letterGrid} is first validated via
+     * {@link ValidationUtils#validate(char[][])} to ensure it is rectangular.
+     * A deep copy of the grid is then made, and each cell is examined:
+     * <ul>
+     *   <li>If the character is a letter (via
+     *       {@link ValidationUtils#isLetter(char)}), the cell is marked
+     *       populated.</li>
+     *   <li>Otherwise the cell is set to the blank tile
+     *       ({@link DefaultTileSet#BLANK_TILE}).</li>
+     * </ul>
+     *
+     * @param letterGrid the initial grid of characters
+     * @throws IllegalArgumentException if the provided grid is not rectangular
      */
     public GameBoard(char[][] letterGrid) {
         ValidationUtils.validate(letterGrid);
@@ -276,7 +272,7 @@ public class GameBoard implements Cloneable {
      * This value represents the number of cells that have been marked with new
      * letter placements in the current move. It is used to enforce the limit on
      * new placements defined by {@link #MAX_NEW_TILES}.
-     * </p>
+     * 
      *
      * @return the number of new tiles placed on the board.
      */
@@ -285,17 +281,19 @@ public class GameBoard implements Cloneable {
     }
     
     /**
-     * The number of wildcard currently present on the board.
-     * 
-     * @return 
+     * Returns the number of wildcard tiles currently on the board.
+     *
+     * @return the count of wildcards (0 up to the configured limit)
      */
     public int getWildcardCount() {
         return wildCardCount;
     }
-    
+
     /**
-     * 
-     * @return 
+     * Returns the coordinates of each placed wildcard.
+     *
+     * @return a 2D array where each element is a two‐int array '[row, column]'
+     *         of a wildcard position
      */
     public int[][] getWildCardPositions() {
         return wildCardPositions;
@@ -316,8 +314,7 @@ public class GameBoard implements Cloneable {
      * <p>
      * If the cell does not contain a letter, the method returns the designated
      * blank tile (see {@link DefaultTileSet#BLANK_TILE}).
-     * </p>
-     *
+     * 
      * @param row the row index (zero-based).
      * @param col the column index (zero-based).
      * @return the letter at the specified cell, or {@link DefaultTileSet#BLANK_TILE}
@@ -387,22 +384,28 @@ public class GameBoard implements Cloneable {
     }
     
     /**
-     * Determines if the given row and column position contain a wildcard
+     * Checks whether a wildcard tile has been placed at the specified board
+     * cell.
      *
-     * @param row
-     * @param col
-     * @return true if the tile at the given location is a wildcard
+     * <p>
+     * This method iterates through the internal list of wildcard positions and
+     * returns {@code true} if any entry matches the given row and column.
+     *
+     * @param row the zero-based row index of the cell to check
+     * @param col the zero-based column index of the cell to check
+     * @return {@code true} if a wildcard occupies the specified cell;
+     *         {@code false} otherwise
      */
     public boolean isWildCard(int row, int col) {
-        for (int r = 0; r < wildCardPositions.length; r++) {
-            var position = wildCardPositions[r];
+        for (int i = 0; i < wildCardPositions.length; i++) {
+            int[] position = wildCardPositions[i];
             if (position[0] == row && position[1] == col) {
                 return true;
             }
         }
-        
         return false;
     }
+
 
     /**
      * Returns the lowest row index that contains a new letter.
@@ -484,36 +487,20 @@ public class GameBoard implements Cloneable {
     // ===========================[ Mutator Methods ]============================ \\
     /**
      * Resets the game board with a new letter grid.
-     * 
-     * <p>
-     * This method replaces the current board state with the supplied
-     * {@code letterGrid} and reinitializes the internal state arrays
-     * accordingly. The provided grid is first validated using
-     * {@link MainUtil#validateMatrix(char[][], int, int)} to ensure that it has
-     * the same dimensions as the existing board.
-     * 
-     * <p>
-     * For each cell in the grid:
-     * <ul>
-     *   <li>If the character is a valid letter (as determined by
-     *       {@link MainUtil#isLetter(char)}), the letter is placed in the
-     *       {@code matrix} and the corresponding cell in {@code hasLetterAt} is set to
-     *       {@code true}. The row and column are also marked as populated by setting
-     *       the appropriate entries in {@code rowPopulated} and
-     *       {@code colPopulated}.</li>
-     *   <li>If the character is not valid, the cell is set to the blank tile
-     *       defined by {@link DefaultTileSet#BLANK_TILE}.</li>
-     * </ul>
-     * </p>
-     * 
-     * <p>
-     * <b>Note:</b> If any row in the provided grid does not match the current
-     * column count, an {@link IllegalArgumentException} is thrown.
-     * </p>
      *
-     * @param letterGrid the new 2D character array to be used as the board.
-     * @throws IllegalArgumentException if the grid is non-rectangular or its
-     *                                  dimensions do not match the current board.
+     * <p>
+     * The provided {@code letterGrid} is first validated via
+     * {@link ValidationUtils#validate(char[][], int, int)} to ensure it matches
+     * the current dimensions. Then for each cell:
+     * <ul>
+     *   <li>If valid (via {@link ValidationUtils#isLetter(char)}), the letter
+     *       is placed;</li>
+     *   <li>Otherwise the cell is set to {@link DefaultTileSet#BLANK_TILE}.</li>
+     * </ul>
+     *
+     * @param letterGrid the new 2D character array to use
+     * @throws IllegalArgumentException if the grid is non-rectangular or wrong
+     *                                  size
      */
     public void setBoard(char[][] letterGrid) {
         ValidationUtils.validate(letterGrid, rows, cols);
@@ -542,48 +529,74 @@ public class GameBoard implements Cloneable {
     }
     
     /**
-     * 
-     * @param row
-     * @param col 
+     * Places the next wildcard tile at the given board coordinates.
+     *
+     * <p>
+     * Validates that (row, col) lies within the board bounds. If the current
+     * number of wildcards already equals the configured limit, a
+     * {@link WildcardLimitReachedException} is thrown.
+     *
+     * @param row the zero-based row index at which to place the wildcard
+     * @param col the zero-based column index at which to place the wildcard
+     * @throws IndexOutOfBoundsException if (row, col) lies outside the board
+     * @throws WildcardLimitReachedException if adding this wildcard would
+     *                                       exceed the limit
      */
     public void setWildCardPosition(int row, int col) {
         validateBounds(row, col);
         if (wildCardCount >= wildCardLimit) {
             throw new WildcardLimitReachedException(
                     "Cannot place wildcard at %d, %d; GameBoard already has %d wildcards"
-                    .formatted(row, col, wildCardCount)
+                            .formatted(row, col, wildCardCount)
             );
         }
-        
+
         setWildCardPosition(row, col, wildCardCount);
         wildCardCount++;
     }
-    
+
     /**
-     * 
-     * @param row
-     * @param col 
+     * Sets or moves a wildcard tile at the specified index to the given
+     * coordinates.
+     *
+     * <p>
+     * No bounds check on (row, col) is performed here; the caller must ensure
+     * validity or rely on the other overload. The index must lie between 0 and
+     * the current wildcard limit (inclusive).
+     *
+     * @param row  the zero-based row index for this wildcard
+     * @param col  the zero-based column index for this wildcard
+     * @param index the wildcard slot index (0 to wildcardLimit)
+     * @throws IllegalArgumentException if {@code index} is negative or exceeds
+     *                                                   the wildcard limit
      */
     public void setWildCardPosition(int row, int col, int index) {
         if (index < 0 || index > wildCardLimit) {
-            throw new IllegalArgumentException("Index %d out of bounds for %d".formatted(index));
+            throw new IllegalArgumentException("Index %d out of bounds for %d".formatted(index, wildCardLimit));
         }
-        
+
         wildCardPositions[index][0] = row;
         wildCardPositions[index][1] = col;
     }
 
     /**
-     * 
-     * @param wildCardLimit 
+     * Configures the maximum number of wildcard tiles the board may hold.
+     *
+     * <p>
+     * Any existing wildcard positions are reset: the positions array is
+     * re-allocated with the new limit and all entries are initialised to –1. A
+     * negative input will be treated as zero.
+     *
+     * @param wildCardLimit the new maximum number of wildcards (zero or
+     * positive)
      */
     public void setWildCardLimit(int wildCardLimit) {
         this.wildCardLimit = Math.max(0, wildCardLimit);
-        
-        wildCardPositions = new int[wildCardLimit][2];
-        for (int[] wildCardPosition : wildCardPositions) {
-            wildCardPosition[0] = -1;
-            wildCardPosition[1] = -1;
+
+        wildCardPositions = new int[this.wildCardLimit][2];
+        for (int[] pos : wildCardPositions) {
+            pos[0] = -1;
+            pos[1] = -1;
         }
     }
 
@@ -594,7 +607,7 @@ public class GameBoard implements Cloneable {
      * This method first verifies that the given indices are within the bounds
      * of the board by calling {@link #validateBounds(int, int)}. It then
      * checks:
-     * </p>
+     * 
      * <ul>
      *   <li>If the cell already contains a letter that is not marked as new, the
      *       placement is rejected.</li>
@@ -615,8 +628,7 @@ public class GameBoard implements Cloneable {
      *       the largest row and column indices that have received a new letter.</li>
      * </ul>
      * Finally, the internal counter {@code newTileCount} is incremented.
-     * </p>
-     *
+     * 
      * @param letter the letter to be placed.
      * @param row the zero-based row index where the letter should be placed.
      * @param col the zero-based column index where the letter should be placed.
@@ -655,9 +667,8 @@ public class GameBoard implements Cloneable {
      * <p>
      * Starting from the given column, the method searches to the left until no
      * letter is found.
-     * </p>
+     * 
      *
-     * @param board the {@code GameBoard} to search.
      * @param row the row index where the search is performed.
      * @param col the starting column index for the search.
      * @return the column index of the leftmost letter (inclusive).
@@ -676,14 +687,11 @@ public class GameBoard implements Cloneable {
      * letter.
      *
      * <p>
-     * Starting from the given column, the method searches to the right until no
-     * letter is found.
-     * </p>
+     * Starting at {@code (row, col)}, scans right until no letter is found.
      *
-     * @param board the {@code GameBoard} to search.
-     * @param row the row index where the search is performed.
-     * @param col the starting column index for the search.
-     * @return the column index of the rightmost letter (inclusive).
+     * @param row the zero-based row index
+     * @param col the starting column index
+     * @return the index of the rightmost contiguous letter (inclusive)
      */
     public int findRightMostLetter(int row, int col) {
         int rightBound = col;
@@ -703,8 +711,7 @@ public class GameBoard implements Cloneable {
      * provided indices using {@link #validateBounds(int, int)} and then checks
      * the cell immediately above (if available) and the cell immediately below
      * (if available).
-     * </p>
-     *
+     * 
      * @param row the zero-based row index of the target cell.
      * @param col the zero-based column index of the target cell.
      * @return {@code true} if at least one vertical neighbour contains a
@@ -728,8 +735,7 @@ public class GameBoard implements Cloneable {
      * right of the target cell that contains a letter. This method validates
      * the cell's indices and then checks the cell immediately to the left (if
      * available) and the cell immediately to the right (if available).
-     * </p>
-     *
+     * 
      * @param row the zero-based row index of the target cell.
      * @param col the zero-based column index of the target cell.
      * @return {@code true} if at least one horizontal neighbour contains a
@@ -761,8 +767,7 @@ public class GameBoard implements Cloneable {
      *       considered.</li>
      * </ol>
      * If no new letters are present, the state is considered valid.
-     * </p>
-     *
+     * 
      * @return {@code true} if the new letter placements satisfy the above
      * conditions; {@code false} otherwise.
      */
@@ -834,12 +839,11 @@ public class GameBoard implements Cloneable {
      * Subsequently, it recalculates the column population flags
      * ({@code colPopulated}) by checking, for each column, if any cell in that
      * column contains a letter.
-     * </p>
      * 
      * <p>
      * This method does not affect any permanent letters that were present
      * before new letters were added.
-     * </p>
+     * 
      */
     public void reset() {
         // Reset new letter placements for each row and update row flags
@@ -889,7 +893,6 @@ public class GameBoard implements Cloneable {
      * to at most one row and one column, as determined by
      * {@link #isValidState()}. If the board is in an invalid state, no changes
      * are made and the method returns {@code false}.
-     * </p>
      * 
      * <p>
      * When the board is valid, this method clears all entries in the
@@ -901,8 +904,7 @@ public class GameBoard implements Cloneable {
      *   <li>{@code lastNewLetterRow} is reset to {@code -1}.</li>
      *   <li>{@code lastNewLetterCol} is reset to {@code -1}.</li>
      * </ul>
-     * </p>
-     *
+     * 
      * @return {@code true} if the board was in a valid state and the new letter
      *         flags were successfully cleared; {@code false} if the board was in an
      *         invalid state and no changes were made.
@@ -947,8 +949,7 @@ public class GameBoard implements Cloneable {
      * {@code MAX_NEW_TILES}). If all preconditions are met, each letter is
      * placed using {@link #placeLetterAt(char, int, int)}, updating the board
      * state accordingly.
-     * </p>
-     *
+     * 
      * @param word the word to be placed on the board.
      * @param row  the starting row index (zero-based) for the first letter of
      *             the word.
@@ -1045,8 +1046,7 @@ public class GameBoard implements Cloneable {
      * </ul>
      * 
      * Diagonal neighbours are not considered.
-     * </p>
-     *
+     * 
      * @param row the zero-based row index of the target cell.
      * @param col the zero-based column index of the target cell.
      * @return {@code true} if the cell has at least one horizontal or vertical
@@ -1087,8 +1087,7 @@ public class GameBoard implements Cloneable {
      * horizontal words, and each column to extract vertical words. When a blank
      * cell is encountered, if the accumulated word has a length of at least 2,
      * it is added to the list.
-     * </p>
-     *
+     * 
      * @return a {@code List<String>} containing all extracted words from the
      *         board.
      */
@@ -1147,8 +1146,7 @@ public class GameBoard implements Cloneable {
      * The cloning process duplicates the internal character matrix and all
      * state tracking arrays to ensure that modifications to the clone do not
      * affect the original board.
-     * </p>
-     *
+     * 
      * @return a deep clone of the current {@code GameBoard} instance.
      * @throws CloneNotSupportedException if the board cannot be cloned.
      */
@@ -1184,8 +1182,7 @@ public class GameBoard implements Cloneable {
      *       for new letters, 0 otherwise), also separated by vertical bars.</li>
      * </ul>
      * This textual output is primarily intended for debugging purposes.
-     * </p>
-     *
+     * 
      * @return a string representation of the board.
      */
     @Override
@@ -1216,8 +1213,7 @@ public class GameBoard implements Cloneable {
      * If either the row or column index is negative or exceeds the board's
      * dimensions, an {@link IndexOutOfBoundsException} is thrown with a
      * formatted error message.
-     * </p>
-     *
+     * 
      * @param row the row index to validate.
      * @param col the column index to validate.
      * @throws IndexOutOfBoundsException if {@code row} or {@code col} is out of

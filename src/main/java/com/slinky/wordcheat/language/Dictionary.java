@@ -19,7 +19,7 @@ import java.util.function.Predicate;
  *   <li>Validating whether a given prefix can start any word in the
  *       dictionary</li>
  * </ul>
- * </p>
+ * 
  */
 public interface Dictionary {
 
@@ -30,7 +30,7 @@ public interface Dictionary {
      * <p>
      * This method should be implemented using an efficient search algorithm,
      * such as binary search.
-     * </p>
+     * 
      *
      * @param target the full word to search for.
      * @return the index of the target word if found; otherwise, -1.
@@ -43,7 +43,7 @@ public interface Dictionary {
      * 
      * <p>
      * The search should be case-insensitive.
-     * </p>
+     * 
      *
      * @param prefix the prefix to search for.
      * @return a list of words starting with the specified prefix; an empty list
@@ -58,7 +58,7 @@ public interface Dictionary {
      * <p>
      * Implementations may convert the ends-with query into a starts-with query
      * on a reversed dictionary.
-     * </p>
+     * 
      *
      * @param suffix the suffix to search for.
      * @return a list of words ending with the specified suffix; an empty list
@@ -81,7 +81,7 @@ public interface Dictionary {
      * <p>
      * The implementation should return a list of words that satisfy the custom
      * filtering condition.
-     * </p>
+     * 
      *
      * @param predicate a predicate representing the filtering condition.
      * @return a list of words that satisfy the predicate.
@@ -103,7 +103,7 @@ public interface Dictionary {
      * <p>
      * This method should quickly verify if at least one word in the dictionary
      * begins with the given prefix.
-     * </p>
+     * 
      *
      * @param prefix the prefix to validate.
      * @return true if there is at least one word that begins with the prefix,

@@ -18,14 +18,12 @@ import javafx.scene.layout.VBox;
  * aligned HBox, centred within the view. Below this, the rack of letter
  * tiles is presented in a separate section. Padding and spacing values
  * are applied to ensure consistent margins and gaps between elements.
- * </p>
  * 
  * <p>
  * Through its public API, MainView provides methods to query the current
  * board dimensions, retrieve individual TileNode instances from the board,
  * tile set, or rack, and update the view to reflect changes in the game
  * state, including tile counts, board contents, and rack contents.
- * </p>
  * 
  * <p>
  * Example usage:
@@ -39,8 +37,7 @@ import javafx.scene.layout.VBox;
         
        MainView view   = new MainView(boardView, tileSetView, rackView);
  * </pre>
- * </p>
- *
+ * 
  * @author Kheagen Haskins
  * @since  1.0
  */
@@ -309,7 +306,7 @@ public class MainView extends VBox {
      * This is typically called after a move has been committed or synchronised
      * to the backend, ensuring the visual state of each tile reflects that it
      * is now part of the permanent board layout.
-     * </p>
+     * 
      */
     public void graduateNewTiles() {
         for (TileNode tile : boardView.getAllTiles()) {
@@ -319,33 +316,46 @@ public class MainView extends VBox {
             }
         }
     }
-    
+
     /**
-     * Assigns the handler to be invoked when Reset is clicked.
+     * Sets the action handler to be invoked when the Reset button is clicked.
+     *
+     * @param handler the {@link EventHandler} to call on Reset action events
      */
     public void setOnResetAction(EventHandler<ActionEvent> handler) {
         btnReset.setOnAction(handler);
     }
 
     /**
-     * Assigns the handler to be invoked when Best Move is clicked.
+     * Sets the action handler to be invoked when the "Best Move" button is
+     * clicked.
+     *
+     * @param handler the {@link EventHandler} to call on Show Move action
+     *                events
      */
     public void setOnShowMoveAction(EventHandler<ActionEvent> handler) {
         btnShowMove.setOnAction(handler);
     }
 
     /**
-     * Assigns the handler to be invoked when Next Move is clicked.
+     * Sets the action handler to be invoked when the "Next Move" button is
+     * clicked.
+     *
+     * @param handler the {@link EventHandler} to call on Next Move action
+     *                events
      */
     public void setOnNextMoveAction(EventHandler<ActionEvent> handler) {
         btnNextMove.setOnAction(handler);
     }
-    
+
     /**
-     * Assigns the handler to be invoked when Commit is clicked.
+     * Sets the action handler to be invoked when the Commit button is clicked.
+     *
+     * @param handler the {@link EventHandler} to call on Commit action events
      */
     public void setOnCommitAction(EventHandler<ActionEvent> handler) {
         btnCommit.setOnAction(handler);
     }
+
  
 }

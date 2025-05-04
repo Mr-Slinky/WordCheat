@@ -13,13 +13,13 @@ import com.slinky.wordcheat.control.MainController;
  * Initialises and launches the JavaFX environment, constructs the primary
  * {@link Stage}, and displays the main application view managed by
  * {@link com.slinky.wordcheat.control.MainController}.
- * </p>
+ * 
  *
  * <p>
  * The application creates a {@code GameController} with a default save file
  * name, retrieves its {@code MainView} as the root of the scene graph, and
  * presents it within a window of fixed dimensions.
- * </p>
+ * 
  *
  * @author Kheagen Haskins
  * @version 1.0
@@ -37,7 +37,7 @@ public class App extends Application {
      * <p>
      * Creates a {@code GameController}, initialises the scene graph with its
      * main view, and shows the primary stage.
-     * </p>
+     * 
      *
      * @param stage the primary stage provided by the JavaFX runtime
      */

@@ -26,7 +26,6 @@ import java.util.Map;
  *   <li>{@link #tileCounts}: remaining tile counts in the pool</li>
  *   <li>{@link #timestamp}: epoch ms when snapshot was taken</li>
  * </ul>
- * </p>
  */
 public class GameEngineSnapshot {
 

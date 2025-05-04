@@ -9,7 +9,7 @@ package com.slinky.wordcheat.model;
  * game board, and a flag indicating whether the word is placed vertically or
  * horizontally. This record is used for presenting potential moves or valid
  * words to the user.
- * </p>
+ * 
  *
  * @param word  the suggested word.
  * @param score the score associated with the suggested word.
@@ -17,7 +17,7 @@ package com.slinky.wordcheat.model;
  * @param col   the starting column index (zero-based) where the word is placed.
  * @param verticallyPlaced {@code true} if the word is placed vertically;
  *                         {@code false} if it is placed horizontally.
- * @see    WordFinder
+ * @see    MoveFinder
  * @author Kheagen Haskins
  */
 public record Move(String word, int score, int row, int col, boolean verticallyPlaced)
@@ -41,7 +41,7 @@ public record Move(String word, int score, int row, int col, boolean verticallyP
      *   <li>The fourth and fifth placeholders represent the row and column
      *       indices, respectively.</li>
      * </ul>
-     * </p>
+     * 
      */
     private static final String TO_STRING_TEMPLATE = "[%s] [%3d] %-15s placed at row %2d, column %2d";
 
@@ -61,7 +61,7 @@ public record Move(String word, int score, int row, int col, boolean verticallyP
      *   <li>The starting position (row and column) of the word on the game
      *       board.</li>
      * </ul>
-     * </p>
+     * 
      *
      * @return a formatted string representation of this move.
      */

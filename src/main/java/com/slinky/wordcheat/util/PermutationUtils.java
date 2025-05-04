@@ -10,12 +10,12 @@ import java.util.List;
  * Provides methods to produce all possible permutations of a given array of
  * characters. Each permutation uses every character exactly once, arranged in
  * every possible order.
- * </p>
+ * 
  *
  * <p>
  * <strong>Note:</strong> If the input array is null or empty, an empty list is
  * returned.
- * </p>
+ * 
  */
 public final class PermutationUtils {
 
@@ -29,7 +29,7 @@ public final class PermutationUtils {
      * <p>
      * Each permutation is represented as a {@code String} containing all
      * characters exactly once. The order of returned permutations is not
-     * guaranteed.</p>
+     * guaranteed.
      *
      * @param chars the array of characters to permute; may be null or empty
      * @return a list of permutation strings; empty if input is null or length

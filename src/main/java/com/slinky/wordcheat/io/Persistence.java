@@ -25,7 +25,7 @@ import java.nio.file.Paths;
  * Files are stored under <code>~/.wordcheat/saves/&lt;filename&gt;.json</code>.
  * Jackson is configured to ignore unknown properties on load and
  * to pretty‑print on save.
- * </p>
+ * 
  */
 public final class Persistence {
 

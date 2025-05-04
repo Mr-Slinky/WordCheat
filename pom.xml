@@ -10,9 +10,9 @@
     <properties>
         <java.version>17</java.version>
         <javafx.version>21</javafx.version>
-        <!-- hard‑code platform here: win, mac, or linux -->
         <javafx.platform>win</javafx.platform>
         <maven.compiler.release>${java.version}</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>

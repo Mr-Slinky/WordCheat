@@ -6,7 +6,7 @@ package com.slinky.wordcheat.util;
  * <p>
  * Provides methods to ensure that matrices are not null, have positive
  * dimensions, and optionally match expected row and column counts.
- * </p>
+ * 
  */
 public final class ValidationUtils {
     // Prevent instantiation
@@ -24,7 +24,6 @@ public final class ValidationUtils {
      * <p>
      * The test is case‑insensitive: the character is converted to uppercase and
      * checked against the range 'A' to 'Z'.
-     * </p>
      *
      * @param c the character to test
      * @return  {@code true} if {@code c} is between 'A' and 'Z'

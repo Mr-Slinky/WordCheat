@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * straight placements and anchor-based extensions in horizontal or vertical
  * orientation. Generated moves are scored via a {@link ScoringModule} and
  * returned in descending order of score.
- * </p>
+ * 
  *
  * @see GameBoard
  * @see ScoringModule
@@ -71,7 +71,7 @@ public class MoveFinder {
      * <p>
      * Considers both linear placements and anchor-based extensions in
      * horizontal and vertical orientations. Results are sorted descending by score.
-     * </p>
+     * 
      *
      * @param rackLetters the array of available letters; must not be null
      * @return a sorted list of valid {@link Move} instances (highest score first)
@@ -95,7 +95,7 @@ public class MoveFinder {
      * <p>
      * Places each candidate word so it crosses the central cell, validates
      * board crossings, scores them, and returns the top move.
-     * </p>
+     * 
      *
      * @param rackLetters an array of seven letters for the first move; must not
      *                    be null
