@@ -6,25 +6,26 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 /**
  * The primary layout container for the WordCheat UI, arranging the game board,
  * tile set, and player rack in a coherent and responsive visual structure.
- * 
+ *
  * <p>
  * The board and tile set are displayed side by side within a horizontally
  * aligned HBox, centred within the view. Below this, the rack of letter
  * tiles is presented in a separate section. Padding and spacing values
  * are applied to ensure consistent margins and gaps between elements.
- * 
+ *
  * <p>
  * Through its public API, MainView provides methods to query the current
  * board dimensions, retrieve individual TileNode instances from the board,
  * tile set, or rack, and update the view to reflect changes in the game
  * state, including tile counts, board contents, and rack contents.
- * 
+ *
  * <p>
  * Example usage:
  * <pre>
@@ -34,10 +35,10 @@ import javafx.scene.layout.VBox;
        var boardView   = new BoardView(engine.getMatrix(), getScoreMatrix(), getBonusMatrix());
        var tileSetView = new TileSetView(counts);
        var rackView    = new RackView(rackLetters, engine.getRackScores(), rackLetters.length);
-        
+
        MainView view   = new MainView(boardView, tileSetView, rackView);
  * </pre>
- * 
+ *
  * @author Kheagen Haskins
  * @since  1.0
  */
@@ -47,14 +48,13 @@ public class MainView extends VBox {
     private final BoardView   boardView;
     private final TileSetView setView;
     private final RackView    rackView;
-    
-    private final Button btnBack;
-    private final Button btnForward;
+
+    private final Label  statusLabel;
     private final Button btnReset;
     private final Button btnShowMove;
     private final Button btnNextMove;
     private final Button btnCommit;
-    
+
     // =============================[ Constructors ]============================= \\
     /**
      * Constructs a MainView with the specified BoardView, TileSetView, and RackView.
@@ -66,32 +66,34 @@ public class MainView extends VBox {
      */
     public MainView(BoardView boardView, TileSetView setView, RackView rackView) {
         super(10);
-        
+
         this.boardView = Objects.requireNonNull(boardView, "BoardView cannot be null");
         this.setView   = Objects.requireNonNull(setView,   "SetView cannot be null");
         this.rackView  = Objects.requireNonNull(rackView,  "RackView cannot be null");
 
-        // Top Buttons
-        this.btnBack     = new SimpleButton("<--");
-        this.btnForward  = new SimpleButton("-->");
-        
         // Bottom Buttons
         this.btnReset    = new SimpleButton("Reset");
         this.btnShowMove = new SimpleButton("Best Move");
         this.btnNextMove = new SimpleButton("Next Move");
         this.btnCommit   = new SimpleButton("Commit");
-        
+
         HBox buttonBarBottom = new HBox(12, btnReset, btnShowMove, btnNextMove, btnCommit);
         buttonBarBottom.setAlignment(Pos.CENTER);
         buttonBarBottom.setPadding(new Insets(5));
-        
+
         var boardAndSet = new HBox(10, boardView, setView);
         boardAndSet.setAlignment(Pos.CENTER);
-        
+
+        statusLabel = new Label();
+        statusLabel.setFont(FontConstants.LABEL_FONT_DEFAULT);
+        statusLabel.setMaxWidth(Double.MAX_VALUE);
+        statusLabel.setAlignment(Pos.CENTER);
+        statusLabel.setWrapText(true);
+
         setPadding(new Insets(15, 5, 5, 5));
-        getChildren().addAll(boardAndSet, rackView, buttonBarBottom);
+        getChildren().addAll(boardAndSet, rackView, buttonBarBottom, statusLabel);
     }
-    
+
     // ===========================[ Accessor Methods ]=========================== \\
     /**
      * Returns the view managing the pool of remaining tiles.
@@ -101,7 +103,7 @@ public class MainView extends VBox {
     public TileSetView getPoolView() {
         return setView;
     }
-    
+
     /**
      * Returns the view managing the player's rack of tiles.
      *
@@ -110,7 +112,7 @@ public class MainView extends VBox {
     public RackView getRackView() {
         return rackView;
     }
-    
+
     /**
      * Retrieves the current number of tiles in the rack.
      *
@@ -119,7 +121,7 @@ public class MainView extends VBox {
     public int getRackSize() {
         return rackView.getSize();
     }
-    
+
     /**
      * Checks whether the player’s letter rack has reached its maximum capacity.
      *
@@ -137,7 +139,7 @@ public class MainView extends VBox {
     public int getBoardRows() {
         return boardView.getRows();
     }
-    
+
     /**
      * Retrieves the number of columns on the game board.
      *
@@ -146,7 +148,7 @@ public class MainView extends VBox {
     public int getBoardColumns() {
         return boardView.getCols();
     }
-    
+
     /**
      * Retrieves the TileNode at the specified board coordinates.
      *
@@ -157,7 +159,7 @@ public class MainView extends VBox {
     public TileNode getBoardTile(int row, int col) {
         return boardView.getTile(row, col);
     }
-    
+
     /**
      * Retrieves the TileNode for the given letter from the tile set view.
      *
@@ -167,7 +169,7 @@ public class MainView extends VBox {
     public TileNode getPoolTile(char letter) {
         return setView.getTile(letter);
     }
-    
+
     /**
      * Returns all TileNode instances currently displayed on the board.
      *
@@ -176,7 +178,7 @@ public class MainView extends VBox {
     public TileNode[] getBoardTiles() {
         return boardView.getAllTiles();
     }
-    
+
     /**
      * Returns all TileNode instances in the tile set view.
      *
@@ -185,7 +187,7 @@ public class MainView extends VBox {
     public TileNode[] getPoolTiles() {
         return setView.getAllTiles();
     }
-    
+
     /**
      * Returns all TileNode instances currently in the rack view.
      *
@@ -197,10 +199,10 @@ public class MainView extends VBox {
         for (int i = 0; i < tiles.length; i++) {
             tiles[i] = rackTiles[i];
         }
-        
+
         return tiles;
     }
-    
+
     // =============================[ API Methods ]============================== \\
     /**
      * Updates the displayed count for a specific letter in the tile set.
@@ -211,7 +213,7 @@ public class MainView extends VBox {
     public void updateTileCount(char letter, int count) {
         setView.updateCount(letter, count);
     }
-    
+
     /**
      * Adds a single letter tile to the rack.
      *
@@ -269,17 +271,52 @@ public class MainView extends VBox {
     public void emptyTile(TileNode tile) {
         boardView.emptyTile(tile);
     }
-    
+
     /**
      * Updates the board view to match the provided letter and score arrays.
      *
      * @param letters two-dimensional array of board letters
      * @param scores  two-dimensional array of letter scores
      */
-    public void updateBoard(char[][] letters, int[][] scores) {
-        boardView.updateBoard(letters, scores);
+    public void updateBoard(char[][] letters, int[][] scores, boolean[][] wildcards) {
+        boardView.updateBoard(letters, scores, wildcards);
     }
-    
+
+    /**
+     * Highlights one board tile as newly placed, as a previewed move shows its
+     * tiles.
+     *
+     * @param row the row index of the tile
+     * @param col the column index of the tile
+     * @throws IndexOutOfBoundsException if the tile lies outside the board
+     */
+    public void markNewTile(int row, int col) {
+        var tile = boardView.getTile(row, col);
+        tile.setNewlyPlaced(true);
+        tile.syncView();
+    }
+
+    /**
+     * Shows a line of text under the buttons, such as the move being
+     * previewed or a search in progress.
+     *
+     * @param text the text to show; an empty string clears the line
+     */
+    public void setStatus(String text) {
+        statusLabel.setText(text);
+    }
+
+    /**
+     * Enables or disables the Best Move and Next Move buttons, as a move
+     * search starts and finishes.
+     *
+     * @param disabled {@code true} to disable both buttons
+     */
+    public void setMoveButtonsDisabled(boolean disabled) {
+        btnShowMove.setDisable(disabled);
+        btnNextMove.setDisable(disabled);
+    }
+
     /**
      * Updates the tile set view with the provided counts for each letter.
      *
@@ -297,24 +334,6 @@ public class MainView extends VBox {
      */
     public void updateRack(char[] letters, int[] scores) {
         rackView.updateRack(letters, scores);
-    }
-    
-    /**
-     * Marks all newly placed tiles on the board as no longer new.
-     *
-     * <p>
-     * This is typically called after a move has been committed or synchronised
-     * to the backend, ensuring the visual state of each tile reflects that it
-     * is now part of the permanent board layout.
-     * 
-     */
-    public void graduateNewTiles() {
-        for (TileNode tile : boardView.getAllTiles()) {
-            if (tile.isNewlyPlaced()) {
-                tile.setNewlyPlaced(false);
-                tile.syncView();
-            }
-        }
     }
 
     /**
@@ -357,5 +376,5 @@ public class MainView extends VBox {
         btnCommit.setOnAction(handler);
     }
 
- 
+
 }

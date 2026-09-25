@@ -3,6 +3,8 @@ package com.slinky.wordcheat.view;
 import static com.slinky.wordcheat.view.FontConstants.LABEL_FONT_DEFAULT;
 import static com.slinky.wordcheat.view.FontConstants.LABEL_FONT_HEADING;
 
+import com.slinky.wordcheat.model.TileSet;
+
 import java.util.Objects;
 
 import javafx.geometry.Insets;
@@ -57,7 +59,7 @@ public class TileSetView extends VBox {
         setSpacing(10);
         setAlignment(Pos.CENTER);
         setPadding(new Insets(10));
-        
+
         // Header
         Label header = new Label("Letter Pool");
         header.setFont(LABEL_FONT_HEADING);
@@ -87,7 +89,7 @@ public class TileSetView extends VBox {
         if (!(letter < 'A' || letter > 'Z')) {
             index = letter - 'A';
         }
-        
+
         return tiles[index];
     }
 
@@ -98,7 +100,7 @@ public class TileSetView extends VBox {
     TileNode[] getAllTiles() {
         return tiles;
     }
-    
+
     // ============================[ Public API ]============================ \\
     /**
      * Refreshes the tile counts and summary from a new counts array.
@@ -124,7 +126,7 @@ public class TileSetView extends VBox {
     /**
      *
      * @param letter
-     * @param count 
+     * @param count
      */
     void updateCount(char letter, int count) {
         for (TileNode tile : tiles) {
@@ -134,15 +136,15 @@ public class TileSetView extends VBox {
                 break;
             }
         }
-        
+
         updateSummary();
     }
-    
+
     // ==========================[ Helper Methods ]========================== \\
     private void initTiles(int[] counts) {
         // Create one TileNode per letter + blank
         for (int i = 0; i < TILE_TYPES; i++) {
-            char letter = (i < 26) ? (char) ('A' + i) : ' ';
+            char letter = (i < 26) ? (char) ('A' + i) : TileSet.WILDCARD;
             int row     = i / COLUMNS;
             int col     = i % COLUMNS;
 
@@ -151,51 +153,51 @@ public class TileSetView extends VBox {
             grid.add(node, col, row);
         }
     }
-    
+
     private void updateSummary(int[] counts) {
         int total = 0;
         for (int c : counts) {
             total += c;
         }
-        
+
         totalRemainingLabel   .setText(total      + " tiles remaining");
         wildcardRemainingLabel.setText(counts[26] + " wildcards remaining");
     }
-    
+
     private void updateSummary() {
         int total = 0;
         int wild  = 0;
         for (TileNode tile : tiles) {
             int count = tile.getCount();
             total    += count;
-            
-            if (tile.getLetter() == ' ') {
+
+            if (tile.getLetter() == TileSet.WILDCARD) {
                 wild = count;
             }
         }
-        
+
         totalRemainingLabel   .setText(total + " tiles remaining");
         wildcardRemainingLabel.setText(wild  + " wildcards remaining");
     }
-    
+
     private Label buildCustomLabel() {
         Label label = new Label();
 
         // rounded-corner background:
         label.setBackground(new Background(new BackgroundFill(
                 Color.rgb(55, 81, 95),
-                new CornerRadii(6), 
+                new CornerRadii(6),
                 Insets.EMPTY
         )));
         label.setTextFill(Color.WHITE);
         label.setFont(LABEL_FONT_DEFAULT);
-        
+
         // Label should take up as much horizontal space as possible
         label.setMaxWidth(Double.MAX_VALUE);
         label.setAlignment(Pos.CENTER);
         label.setPadding(new Insets(5));
-        
+
         return label;
     }
-    
+
 }

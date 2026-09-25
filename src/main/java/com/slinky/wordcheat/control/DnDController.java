@@ -5,15 +5,21 @@ import static com.slinky.wordcheat.view.Substrate.POOL;
 import static com.slinky.wordcheat.view.Substrate.RACK;
 
 import com.slinky.wordcheat.model.GameEngine;
+import com.slinky.wordcheat.model.TileSet;
 
 import com.slinky.wordcheat.view.MainView;
 import com.slinky.wordcheat.view.RackView;
+import com.slinky.wordcheat.view.Substrate;
 import com.slinky.wordcheat.view.TileNode;
 import com.slinky.wordcheat.view.TileSetView;
 
+import java.util.ArrayList;
+
+import javafx.application.Platform;
 import javafx.event.Event;
 
 import javafx.scene.SnapshotParameters;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
@@ -29,8 +35,8 @@ import javafx.scene.paint.Color;
  * The {@code DnDController} wires up drag sources and drop targets for all
  * {@link com.slinky.wordcheat.view.TileNode} instances and container panes in
  * the {@link com.slinky.wordcheat.view.MainView}. It handles the full lifecycle
- * of drag events—including detection, over, drop, and completion - by:
- * 
+ * of drag events, from detection through drag-over and drop to completion, by:
+ *
  * <ul>
  *   <li>Configuring individual tiles and containers to initiate and accept
  *       drags.</li>
@@ -38,14 +44,15 @@ import javafx.scene.paint.Color;
  *       {@link javafx.scene.SnapshotParameters}.</li>
  *   <li>Validating drop targets based on substrate types (<code>BOARD</code>,
  *       <code>POOL</code>, <code>RACK</code>).</li>
- *   <li>Updating the {@link com.slinky.wordcheat.model.GameEngine} and UI 
- *       (tile counts, rack contents, board state) upon successful drops.</li>
- *   <li>Reverting pool counts or rack contents on drag completion if
- *       necessary.</li>
+ *   <li>Updating the UI (tile counts, rack contents, board state) upon
+ *       successful drops.</li>
+ *   <li>Asking which letter a blank stands for when a blank lands on the
+ *       board, and sending it back where it came from if the player
+ *       cancels.</li>
  * </ul>
  *
  * @author Kheagen Haskins
- * 
+ *
  * @see javafx.scene.input.DragEvent
  * @see javafx.scene.input.TransferMode
  */
@@ -54,14 +61,19 @@ public class DnDController {
     // ================================[ Fields ]================================ \\
     private final GameEngine engine;
     private final MainView view;
-    private boolean dropSuccessful;
-    
+
+    /** A board tile holding a blank whose letter the player has yet to choose. */
+    private TileNode  pendingBlank;
+
+    /** Where the pending blank was dragged from, so a cancelled choice can return it. */
+    private Substrate pendingBlankOrigin;
+
     // =============================[ Constructors ]============================= \\
     /**
      * Constructs a new {@code DnDController} for managing drag-and-drop logic
      * between the frontend view and backend engine.
      *
-     * @param engine the game engine used for tile scoring and state tracking
+     * @param engine the game engine used for tile scoring
      * @param view   the main view providing access to tiles and UI containers
      */
     public DnDController(GameEngine engine, MainView view) {
@@ -70,40 +82,36 @@ public class DnDController {
     }
 
     // =============================[ API Methods ]============================== \\
-/**
+    /**
      * Initialises drag-and-drop behaviour for all interactive elements in the
      * main view.
      *
      * <p>
      * This method wires up the following:
-     * 
+     *
      * <ul>
-     *   <li><b>Board tiles</b> – configured as both drag sources and drop
-     *       targets; empty slots are enabled to accept drops.</li>
-     *   <li><b>Pool tiles</b> – configured as drag sources; tiles with zero 
+     *   <li><b>Board tiles</b>: configured as both drag sources and drop
+     *       targets; only empty slots accept drops, and only tiles placed
+     *       since the last commit can be dragged.</li>
+     *   <li><b>Pool tiles</b>: configured as drag sources; tiles with zero
      *       count are made non-draggable.</li>
-     *   <li><b>Rack tiles</b> – configured as drag sources to allow moving
-     *       letters back to the rack.</li>
-     *   <li><b>Container panes</b> (pool and rack) – configured to accept drop
+     *   <li><b>Rack tiles</b>: configured as drag sources to allow moving
+     *       letters onto the board.</li>
+     *   <li><b>Container panes</b> (pool and rack): configured to accept drop
      *       events from any tile.</li>
      * </ul>
      *
      * <p>
-     * After this call, all {@link com.slinky.wordcheat.view.TileNode} and
-     * container {@code Pane}s in the {@link com.slinky.wordcheat.view.MainView}
-     * will be fully prepared to handle drag detection, drag-over, drop, and
-     * drag-done events according to their substrate (<code>BOARD</code>,
-     * <code>POOL</code>, or <code>RACK</code>).
-     * 
+     * A front end calls this again whenever it redraws the board, so the drop
+     * targets match the tiles now showing.
      */
     public void configure() {
         for (TileNode tile : view.getBoardTiles()) {
             configureDragSourceTile(tile);
             configureDragTargetTile(tile);
-            tile.setDraggable(false);
-            if (tile.isEmpty()) {
-                tile.setDropTarget(true);
-            }
+            // Only tiles placed since the last commit can move again.
+            tile.setDraggable(tile.isNewlyPlaced() && !tile.isEmpty());
+            tile.setDropTarget(tile.isEmpty());
         }
 
         for (TileNode tile : view.getPoolTiles()) {
@@ -112,97 +120,78 @@ public class DnDController {
                 tile.setDraggable(false);
             }
         }
-        
+
         for (TileNode tile : view.getRackTiles()) {
             configureDragSourceTile(tile);
         }
-        
+
         configureDragSourceContainer(view.getPoolView());
         configureDragSourceContainer(view.getRackView());
     }
 
     // ============================[ Helper Methods ]============================ \\
     /**
-     * Configures a TileNode as a drag source by registering handlers for drag
-     * start and drag completion, and marks it as draggable.
+     * Configures a tile to act as a drag source.
      *
-     * @param tile the tile to make draggable
+     * @param tile the tile to configure
      */
     private void configureDragSourceTile(TileNode tile) {
-        // when user initiates a drag gesture, delegate to handler
         tile.setOnDragDetected(evt -> handleDragDetected(evt, tile));
-        // when drag finishes, update counts or rollback
         tile.setOnDragDone(evt -> handleDragDone(evt, tile));
         tile.setDraggable(true);
     }
 
     /**
-     * Configures a TileNode as a drag target by registering handlers for
-     * drag-over, drag-enter, drag-exit, and drag-dropped events.
+     * Configures a tile to act as a drop target: accepting drags, showing a
+     * hover highlight, and handling the drop.
      *
-     * @param tile the tile that can accept drops
+     * @param tile the tile to configure
      */
     private void configureDragTargetTile(TileNode tile) {
-        // allow dropping onto this tile
         tile.setOnDragOver(evt -> handleDragOver(evt));
-
-        // highlight on drag enter
         tile.setOnDragEntered(evt -> {
             tile.setHovered(true);
             tile.syncView();
             evt.consume();
         });
-
-        // remove highlight on drag exit
         tile.setOnDragExited(evt -> {
             tile.setHovered(false);
             tile.syncView();
             evt.consume();
         });
-
-        // handle the actual drop
         tile.setOnDragDropped(evt -> handleTileDrop(evt, tile));
     }
 
     /**
-     * Configures a container pane (e.g. pool or rack) to accept drops by
-     * registering handlers for drag-over and drag-dropped events.
+     * Configures a container pane (pool or rack) to accept drops.
      *
-     * @param container the Pane to configure as a drop target
+     * @param container the pane to configure
      */
     private void configureDragSourceContainer(Pane container) {
-        // allow items to be dragged over the container
         container.setOnDragOver(ev -> handleDragOver(ev));
-        // handle dropping onto the container
         container.setOnDragDropped(evt -> handleContainerDrop(evt, container));
     }
 
     /**
-     * Begins a drag-and-drop gesture for the given tile if it is draggable and
-     * has available count.
+     * Starts a drag from a tile, unless the tile is not draggable or is a pool
+     * tile with none left.
      *
-     * <p>
-     * Creates a transparent snapshot of the tile as the drag view and places
-     * its string representation onto the clipboard content.
-     * 
-     *
-     * @param evt        the event that triggered drag detection
-     * @param sourceTile the tile node from which the drag originates
+     * @param evt        the drag-detected event
+     * @param sourceTile the tile being dragged
      */
     private void handleDragDetected(Event evt, TileNode sourceTile) {
         if (!sourceTile.isDraggable()) {
             return;
         }
-        boolean isPoolTile = sourceTile.getSubstrate() == POOL;
-        boolean hasRemaining = sourceTile.getCount() <= 0;
-        if (isPoolTile && hasRemaining) {
+
+        boolean isUsedUpPoolTile = sourceTile.getSubstrate() == POOL && sourceTile.getCount() <= 0;
+        if (isUsedUpPoolTile) {
             return;
         }
 
         var db = sourceTile.startDragAndDrop(TransferMode.COPY);
         var params = new SnapshotParameters();
         params.setFill(Color.TRANSPARENT);
-
         Image img = sourceTile.snapshot(params, null);
         db.setDragView(img, img.getWidth() / 2, img.getHeight() / 2);
 
@@ -214,14 +203,9 @@ public class DnDController {
     }
 
     /**
-     * Allows a drag gesture to be recognised when the source is a TileNode.
+     * Accepts a drag over a tile or container when it comes from a tile.
      *
-     * <p>
-     * Accepts the <code>COPY</code> transfer mode and consumes the event to
-     * prevent further propagation.
-     * 
-     *
-     * @param evt the drag event fired when an object is dragged over a target
+     * @param evt the drag-over event
      */
     private void handleDragOver(DragEvent evt) {
         if (evt.getGestureSource() instanceof TileNode) {
@@ -231,147 +215,153 @@ public class DnDController {
     }
 
     /**
-     * Handles dropping a tile onto a target TileNode, updating its letter,
-     * score, and state if the drop is valid.
+     * Handles a tile dropped onto a board tile. The target takes the source's
+     * letter and blank flag. A blank from the pool or rack has no letter yet,
+     * so the target waits for the player to choose one once the drag is done.
      *
-     * <p>
-     * If the target is not drop-enabled or the source is not a TileNode, the
-     * drop is rejected. Otherwise, the tile’s properties are set and the
-     * previous source slot is cleared if it came from the board.
-     * 
-     *
-     * @param evt    the drag event carrying the drop data
-     * @param target the tile node receiving the dropped tile
+     * @param evt    the drag-dropped event
+     * @param target the board tile receiving the drop
      */
     private void handleTileDrop(DragEvent evt, TileNode target) {
-        var src = evt.getGestureSource();
-        if (!target.isDropTarget() || !(src instanceof TileNode)) {
+        if (!target.isDropTarget() || !(evt.getGestureSource() instanceof TileNode source)) {
             evt.setDropCompleted(false);
-            dropSuccessful = false;
+            evt.consume();
             return;
         }
 
-        var source = (TileNode) src;
-        var letter = source.getLetter();
-
+        char letter      = source.getLetter();
+        boolean isBlank  = source.isWildcard() || letter == TileSet.WILDCARD;
         target.setLetter(letter);
-        target.setScore(engine.getScoreOf(letter));
-        target.setWildcard(source.isWildcard());
+        target.setScore(isBlank ? 0 : engine.getScoreOf(letter));
+        target.setWildcard(isBlank);
         target.setNewlyPlaced(true);
         target.setDraggable(true);
         target.setDropTarget(false);
         target.syncView();
 
+        if (letter == TileSet.WILDCARD) {
+            pendingBlank       = target;
+            pendingBlankOrigin = source.getSubstrate();
+        }
+
         if (source.getSubstrate() == BOARD) {
             view.emptyTile(source);
         }
 
-        dropSuccessful = true;
         evt.setDropCompleted(true);
         evt.consume();
     }
 
     /**
-     * Finalises a drag gesture for a source tile.
+     * Finalises a drag on its source tile. A completed drag from the pool
+     * lowers that letter's count, and one from the rack removes the tile from
+     * the rack. A blank waiting for its letter then gets the letter prompt.
      *
-     * <p>
-     * If the drop was successful, this method updates the UI:
-     * <ul>
-     *   <li>From the pool: decrements the tile count display.</li>
-     *   <li>From the rack: removes the tile from the rack view.</li>
-     * </ul>
-     * Regardless of outcome, the internal <code>dropSuccessful</code> flag is
-     * reset.
-     * 
-     *
-     * @param evt        the drag event indicating the drag-and-drop operation has
-     *                   completed
-     * @param sourceTile the tile node that was dragged
+     * @param evt        the drag-done event
+     * @param sourceTile the tile the drag started from
      */
     private void handleDragDone(DragEvent evt, TileNode sourceTile) {
-        if (!sourceTile.isDraggable()) {
-            return;
-        }
-
-        if (dropSuccessful) {
+        boolean completed = evt.getTransferMode() != null;
+        if (completed) {
             switch (sourceTile.getSubstrate()) {
-                case POOL ->
-                    view.updateTileCount(sourceTile.getLetter(), sourceTile.getCount() - 1);
-                case RACK ->
-                    view.removeTileFromRack(sourceTile.getLetter());
+                case POOL -> view.updateTileCount(sourceTile.getLetter(), sourceTile.getCount() - 1);
+                case RACK -> view.removeTileFromRack(sourceTile.getLetter());
+                default   -> { }
             }
         }
 
-        dropSuccessful = false; // reset for next drag cycle
+        if (pendingBlank != null) {
+            var target = pendingBlank;
+            var origin = pendingBlankOrigin;
+            pendingBlank       = null;
+            pendingBlankOrigin = null;
+            // Asked after the drag has fully ended, since a dialog cannot open inside a drag gesture.
+            Platform.runLater(() -> chooseBlankLetter(target, origin));
+        }
+
         evt.consume();
     }
 
     /**
-     * Handles a drop action on a container pane (rack or pool).
+     * Asks the player which letter a blank on the board stands for. When the
+     * player cancels, the blank leaves the board and goes back to the pool or
+     * rack it came from.
      *
-     * <p>
-     * This method determines the source substrate and target container type:
-     * <ul>
-     *   <li><b>RackView</b>:
-     *       <ul>
-     *         <li>If the rack is not full and the tile did not originate from
-     *             the rack, adds the tile to the rack.</li>
-     *       </ul>
-     *   </li>
-     *   <li><b>TileSetView</b>:
-     *       <ul>
-     *       <li>If the tile did not originate from the pool, increments its 
-     *           count in the pool.</li>
-     *       </ul>
-     *   </li>
-     * </ul>
-     * 
-     * An <code>IllegalArgumentException</code> is thrown if the target is
-     * neither.
-     *
-     * @param evt             the drag event carrying the dropped tile
-     * @param targetContainer the {@code Pane} receiving the drop (either
-     *                       {@code RackView} or {@code TileSetView})
-     * @throws IllegalArgumentException if the target container is unsupported
+     * @param target the board tile holding the blank
+     * @param origin where the blank was dragged from
      */
-    private void handleContainerDrop(DragEvent evt, Pane targetContainer) {
-        if (!(evt.getGestureSource() instanceof TileNode)) {
+    private void chooseBlankLetter(TileNode target, Substrate origin) {
+        var letters = new ArrayList<Character>();
+        for (char c = 'A'; c <= 'Z'; c++) {
+            letters.add(c);
+        }
+
+        var dialog = new ChoiceDialog<>('A', letters);
+        dialog.setTitle("Blank tile");
+        dialog.setHeaderText("Which letter does this blank stand for?");
+        dialog.setContentText("Letter:");
+
+        var choice = dialog.showAndWait();
+        if (choice.isPresent()) {
+            target.setLetter(choice.get());
+            target.syncView();
             return;
         }
 
-        var sourceTile = (TileNode) evt.getGestureSource();
-        var sourceContainer = sourceTile.getSubstrate();
-        char letter = sourceTile.getLetter();
+        view.emptyTile(target);
+        if (origin == POOL) {
+            view.updateTileCount(TileSet.WILDCARD, view.getPoolTile(TileSet.WILDCARD).getCount() + 1);
+        } else if (origin == RACK) {
+            view.addTileToRack(TileSet.WILDCARD, 0);
+        }
+        configure();
+    }
 
-        // Handle drop into rack
-        if (targetContainer instanceof RackView) {
-            if (sourceContainer == RACK || view.isRackFull()) {
-                evt.consume();
-                return;
-            }
-            view.addTileToRack(letter, engine.getScoreOf(letter));
-
-            // Handle drop into pool
-        } else if (targetContainer instanceof TileSetView) {
-            if (sourceContainer == POOL) {
-                evt.consume();
-                return;
-            }
-            view.updateTileCount(letter, view.getPoolTile(letter).getCount() + 1);
-
-            // Unsupported container
-        } else {
-            String className = targetContainer.getClass().getName();
-            evt.consume();
-            throw new IllegalArgumentException("Invalid source container: " + className);
+    /**
+     * Handles a tile dropped onto the rack or pool container. A blank taken
+     * off the board goes back as a blank, whatever letter it stood for.
+     *
+     * @param evt             the drag-dropped event
+     * @param targetContainer the container receiving the drop
+     * @throws IllegalArgumentException if the container is neither the rack
+     *                                  nor the pool
+     */
+    private void handleContainerDrop(DragEvent evt, Pane targetContainer) {
+        if (!(evt.getGestureSource() instanceof TileNode sourceTile)) {
+            return;
         }
 
-        dropSuccessful = true;
+        var sourceContainer = sourceTile.getSubstrate();
+        char letter = sourceTile.isWildcard() ? TileSet.WILDCARD : sourceTile.getLetter();
+
+        if (targetContainer instanceof RackView) {
+            if (sourceContainer == RACK || view.isRackFull()) {
+                evt.setDropCompleted(false);
+                evt.consume();
+                return;
+            }
+
+            view.addTileToRack(letter, engine.getScoreOf(letter));
+        } else if (targetContainer instanceof TileSetView) {
+            if (sourceContainer == POOL) {
+                evt.setDropCompleted(false);
+                evt.consume();
+                return;
+            }
+
+            view.updateTileCount(letter, view.getPoolTile(letter).getCount() + 1);
+        } else {
+            evt.consume();
+            throw new IllegalArgumentException("Invalid drop container: " + targetContainer.getClass().getName());
+        }
+
         if (sourceContainer == BOARD) {
             view.emptyTile(sourceTile);
         }
 
+        evt.setDropCompleted(true);
         evt.consume();
+        configure();
     }
 
 }

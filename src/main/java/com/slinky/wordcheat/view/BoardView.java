@@ -139,73 +139,43 @@ public final class BoardView extends GridPane {
     
     /**
      * Updates each tile on the board to reflect the provided letter, score and
-     * bonus values.
+     * blank flag.
      *
      * <p>
-     * The three 2D arrays must match the board’s dimensions (rows × cols). For
+     * The three 2D arrays must match the board's dimensions (rows x cols). For
      * each position:
      * <ul>
-     *   <li>The character in {@code letters[r][c]} becomes the tile’s
+     *   <li>The character in {@code letters[r][c]} becomes the tile's
      *       letter.</li>
-     *   <li>The integer in {@code scores[r][c]} becomes the tile’s score.</li>
-     *   <li>If {@code bonuses[r][c]} is non-null, that string becomes the
-     *       tile's bonus; otherwise the existing bonus is retained.</li>
-     *   <li>The wildcard flag is reset to {@code false}, and the tile’s view
-     *       is refreshed.</li>
+     *   <li>The integer in {@code scores[r][c]} becomes the tile's score.</li>
+     *   <li>The flag in {@code wildcards[r][c]} marks the tile as a blank,
+     *       which hides its score.</li>
+     *   <li>The tile's newly-placed highlight is cleared, its bonus is kept,
+     *       and its view is refreshed.</li>
      * </ul>
      *
-     * @param letters a rows×cols array of characters for each tile
-     * @param scores  a rows×cols array of integer scores corresponding to each
-     *                tile
-     * @param bonuses a rows×cols array of bonus strings; null entries leave
-     *                the tile’s bonus unchanged
-     * @throws IllegalArgumentException if any array is null or its dimensions
-     *                                  do not match the board
+     * @param letters   a rows x cols array of characters for each tile
+     * @param scores    a rows x cols array of integer scores corresponding to
+     *                  each tile
+     * @param wildcards a rows x cols array; {@code true} where the tile is a
+     *                  blank
+     * @throws NullPointerException     if any array is null
+     * @throws IllegalArgumentException if the dimensions of {@code letters} or
+     *                                  {@code scores} do not match the board
      */
-    public void updateBoard(char[][] letters, int[][] scores, String[][] bonuses) {
-        validConstructorParams(letters, scores, bonuses);
-        
+    public void updateBoard(char[][] letters, int[][] scores, boolean[][] wildcards) {
+        validConstructorParams(letters, scores, new String[rows][cols]);
+        Objects.requireNonNull(wildcards, "Wildcards matrix cannot be null");
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                char letter   = letters[r][c];
-                int score     = scores [r][c];
-                String bonus  = bonuses[r][c];
-                var tile      = tiles[r][c];
-                
-                tile.setLetter(letter);
-                tile.setScore(score);
-                tile.setBonus(bonus == null ? tile.getBonus() : bonus);
-                tile.setWildcard(false);
+                var tile = tiles[r][c];
+                tile.setLetter(letters[r][c]);
+                tile.setScore(scores[r][c]);
+                tile.setWildcard(wildcards[r][c]);
+                tile.setNewlyPlaced(false);
                 tile.syncView();
             }
         }
-    }
-    
-    /**
-     * Updates each tile on the board to reflect the provided letter, score and
-     * bonus values.
-     *
-     * <p>
-     * The three 2D arrays must match the board’s dimensions (rows × cols). For
-     * each position:
-     * <ul>
-     *   <li>The character in {@code letters[r][c]} becomes the tile’s
-     *       letter.</li>
-     *   <li>The integer in {@code scores[r][c]} becomes the tile’s score.</li>
-     *   <li>If {@code bonuses[r][c]} is non-null, that string becomes the
-     *       tile's bonus; otherwise the existing bonus is retained.</li>
-     *   <li>The wildcard flag is reset to {@code false}, and the tile’s view
-     *       is refreshed.</li>
-     * </ul>
-     *
-     * @param letters a rows×cols array of characters for each tile
-     * @param scores  a rows×cols array of integer scores corresponding to each
-     *                tile
-     * @throws IllegalArgumentException if any array is null or its dimensions
-     *                                  do not match the board
-     */
-    public void updateBoard(char[][] letters, int[][] scores) {
-        updateBoard(letters, scores, new String[rows][cols]);
     }
 
     // ===========================[ Helper Methods ]========================== \\
