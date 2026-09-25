@@ -9,42 +9,41 @@ import com.slinky.wordcheat.model.GameEngine;
 import com.slinky.wordcheat.model.LetterRack;
 import com.slinky.wordcheat.model.MoveFinder;
 import com.slinky.wordcheat.model.ScoringModule;
-import com.slinky.wordcheat.model.TileSet;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Objects;
 
 /**
- * A serialisable snapshot of a {@link GameEngine}'s state—now including where
- * wildcards were placed on the board.
+ * A serialisable snapshot of a {@link GameEngine}'s state, including where the blank tiles sit on
+ * the board.
  *
  * <p>Captures exactly:
  * <ul>
  *   <li>{@link #boardMatrix}: the 2D array of letters on the board</li>
- *   <li>{@link #wildcardPositions}: list of [row,col] pairs for each wildcard</li>
+ *   <li>{@link #wildcardPositions}: one {@code [row, col]} pair for each blank on the board</li>
  *   <li>{@link #rackLetters}: the rack contents as a simple char[]</li>
- *   <li>{@link #tileCounts}: remaining tile counts in the pool</li>
- *   <li>{@link #timestamp}: epoch ms when snapshot was taken</li>
+ *   <li>{@link #timestamp}: epoch ms when the snapshot was taken</li>
  * </ul>
+ *
+ * <p>
+ * The tile pool is left out, since {@link #toEngine(Dictionary, ScoringModule)} rebuilds it from
+ * the board.
+ *
+ * @author Kheagen Haskins
  */
 public class GameEngineSnapshot {
 
     /**
-     * full copy of the board’s character grid (rows × cols)
+     * full copy of the board's character grid (rows × cols)
      */
     private final char[][] boardMatrix;
     /**
-     * each element is a two‑int array [row, col] marking a wildcard cell
+     * each element is a two-int array [row, col] marking a blank on the board
      */
     private final int[][] wildcardPositions;
     /**
-     * the rack contents in order, wildcards as TileSet.WILDCARD
+     * the rack contents in order, blanks as TileSet.WILDCARD
      */
     private final char[] rackLetters;
-    /**
-     * counts of each tile (A→Z plus wildcard) remaining in the pool
-     */
-    private final Map<Character, Integer> tileCounts;
     /**
      * when this snapshot was captured (System.currentTimeMillis())
      */
@@ -53,27 +52,29 @@ public class GameEngineSnapshot {
     /**
      * Used by Jackson to rehydrate from JSON.
      *
+     * <p>
+     * A save written by version 0.1.0 may list unused blank slots as {@code [-1, -1]}, and may
+     * leave {@code wildcardPositions} out. {@link #toEngine(Dictionary, ScoringModule)} skips the
+     * unused slots, and a missing list counts as empty.
+     *
      * @param boardMatrix       saved board grid
-     * @param wildcardPositions saved wildcard [row,col] pairs
-     * @param rackLetters       saved rack as char[]
-     * @param tileCounts        saved pool counts
+     * @param wildcardPositions saved blank [row,col] pairs; may be null
+     * @param rackLetters       saved rack as char[]; may be null
      * @param timestamp         when snapshot was taken
      */
     @JsonCreator
     public GameEngineSnapshot(
-        @JsonProperty("boardMatrix")       char[][]               boardMatrix,
-        @JsonProperty("wildcardPositions") int[][]                wildcardPositions,
-        @JsonProperty("rackLetters")       char[]                 rackLetters,
-        @JsonProperty("tileCounts")        Map<Character,Integer> tileCounts,
-        @JsonProperty("timestamp")         long                   timestamp
+        @JsonProperty("boardMatrix")       char[][] boardMatrix,
+        @JsonProperty("wildcardPositions") int[][]  wildcardPositions,
+        @JsonProperty("rackLetters")       char[]   rackLetters,
+        @JsonProperty("timestamp")         long     timestamp
     ) {
-        this.boardMatrix       = boardMatrix;
-        this.wildcardPositions = wildcardPositions;
-        this.rackLetters       = rackLetters;
-        this.tileCounts        = tileCounts;
+        this.boardMatrix       = Objects.requireNonNull(boardMatrix, "boardMatrix is missing from the save");
+        this.wildcardPositions = wildcardPositions == null ? new int[0][] : wildcardPositions;
+        this.rackLetters       = rackLetters == null ? new char[0] : rackLetters;
         this.timestamp         = timestamp;
     }
-    
+
     /**
      * @return the saved board matrix
      */
@@ -82,7 +83,7 @@ public class GameEngineSnapshot {
     }
 
     /**
-     * @return the saved wildcard positions (row,col pairs)
+     * @return the saved blank positions (row,col pairs)
      */
     public int[][] getWildcardPositions() {
         return wildcardPositions;
@@ -96,13 +97,6 @@ public class GameEngineSnapshot {
     }
 
     /**
-     * @return the saved tile‑pool counts
-     */
-    public Map<Character, Integer> getTileCounts() {
-        return tileCounts;
-    }
-
-    /**
      * @return when the snapshot was taken
      */
     public long getTimestamp() {
@@ -110,73 +104,61 @@ public class GameEngineSnapshot {
     }
 
     /**
-     * Snapshots a live {@link GameEngine}, including wildcard positions.
+     * Snapshots a live {@link GameEngine}, including blank positions.
      *
      * @param engine the engine to capture
      * @return a new snapshot ready for JSON serialization
      */
     public static GameEngineSnapshot fromEngine(GameEngine engine) {
-        // 1) board letters
-        char[][] matrix = engine.getMatrix();
-
-        // 2) wildcard positions
-        //    getWildCardPositions() returns int[][] of [row,col] pairs
-        int[][] wilds = engine.getWildCardPositions();
-
-        // 3) rack contents
-        char[] rack = engine.getRackLetters();
-
-        // 4) tile‑pool counts
-        Map<Character,Integer> counts = new LinkedHashMap<>();
-        for (char c = 'A'; c <= 'Z'; c++) {
-            counts.put(c, engine.getRemainingTileCount(c));
-        }
-        counts.put(TileSet.WILDCARD, engine.getRemainingWildcardCount());
-
-        // 5) timestamp
-        long now = System.currentTimeMillis();
-
-        return new GameEngineSnapshot(matrix, wilds, rack, counts, now);
+        return new GameEngineSnapshot(
+            engine.getMatrix(),
+            engine.getWildCardPositions(),
+            engine.getRackLetters(),
+            System.currentTimeMillis()
+        );
     }
 
     /**
      * Rebuilds a {@link GameEngine} from this snapshot.
      * <ol>
-     *   <li>Reconstructs the {@link GameBoard}.</li>
-     *   <li>Creates a fresh {@link DefaultTileSet} and lets the
-     *       {@link GameEngine} constructor remove board‑placed letters.</li>
+     *   <li>Reconstructs the {@link GameBoard} and marks each saved blank on it.</li>
+     *   <li>Creates a fresh {@link DefaultTileSet} and lets the {@link GameEngine} constructor
+     *       remove the board's tiles, a blank tile for each blank.</li>
      *   <li>Creates a {@link LetterRack} from {@link #rackLetters}.</li>
      *   <li>Instantiates a {@link MoveFinder} and wraps up in {@link GameEngine}.</li>
-     *   <li>Replays each saved wildcard by calling
-     *       {@code engine.setWildCardPosition(row,col,index)}.</li>
      * </ol>
+     *
+     * <p>
+     * A saved blank position outside the board, or on an empty cell, is skipped.
      *
      * @param dict          dictionary for word validation
      * @param scoringModule scoring rules
      * @return the restored GameEngine
-     * @throws NullPointerException if dict or scoringModule is null
+     * @throws NullPointerException     if dict or scoringModule is null
+     * @throws IllegalArgumentException if the saved board or rack holds invalid content
+     * @throws IllegalStateException    if the saved board holds more of a tile than the game has
      */
-    public GameEngine toEngine(Dictionary dict,
-                               ScoringModule scoringModule) {
-        // 1) board
+    public GameEngine toEngine(Dictionary dict, ScoringModule scoringModule) {
         GameBoard board = new GameBoard(boardMatrix);
-
-        // 2) tile‑pool + rack
-        DefaultTileSet ts = new DefaultTileSet();
-        LetterRack     lr = new LetterRack(rackLetters);
-
-        // 3) finder + engine (removes board letters from ts)
-        MoveFinder mf     = new MoveFinder(board, dict, scoringModule);
-        GameEngine engine = new GameEngine(ts, mf, lr);
-
-        // 4) replay wildcards (using index = array order)
-        for (int i = 0; i < wildcardPositions.length; i++) {
-            int row = wildcardPositions[i][0];
-            int col = wildcardPositions[i][1];
-            engine.setWildCardPosition(row, col, i);
+        for (int[] position : wildcardPositions) {
+            if (isOnLetter(board, position)) {
+                board.setWildCardPosition(position[0], position[1]);
+            }
         }
 
-        return engine;
+        MoveFinder finder = new MoveFinder(board, dict, scoringModule);
+        return new GameEngine(new DefaultTileSet(), finder, new LetterRack(rackLetters));
+    }
+
+    /**
+     * Checks that a saved blank position lies on the board and on a letter.
+     */
+    private static boolean isOnLetter(GameBoard board, int[] position) {
+        return position != null
+            && position.length == 2
+            && position[0] >= 0 && position[0] < board.getRows()
+            && position[1] >= 0 && position[1] < board.getCols()
+            && board.hasLetterAt(position[0], position[1]);
     }
 
 }
