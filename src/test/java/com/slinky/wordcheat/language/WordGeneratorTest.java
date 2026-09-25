@@ -2,6 +2,7 @@ package com.slinky.wordcheat.language;
 
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -37,6 +38,16 @@ public class WordGeneratorTest {
                 }
             }
         );
+    }
+
+    @Test
+    void testGenerateAllWords_withUnsortedLetters_LeavesInputUnchanged() {
+        var generator = new WordGenerator(dictionary, 2, 7);
+        var letters   = "TAC".toCharArray();
+
+        generator.generateAllWords(letters);
+
+        assertArrayEquals("TAC".toCharArray(), letters);
     }
 }
 

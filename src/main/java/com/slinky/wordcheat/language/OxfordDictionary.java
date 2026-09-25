@@ -1,6 +1,7 @@
 package com.slinky.wordcheat.language;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
@@ -258,32 +259,14 @@ public final class OxfordDictionary implements Dictionary {
         }
 
         prefix = prefix.toLowerCase();
-        int left = 0;
-        int right = words.size() - 1;
-
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            String candidate = words.get(mid).toLowerCase(); // Ensure both are in lowercase
-            int minLength    = Math.min(candidate.length(), prefix.length());
-            
-            int cmp = candidate.substring(0, minLength).compareTo(prefix.substring(0, minLength));
-            if (cmp == 0) {
-                if (candidate.length() >= prefix.length()) {
-                    return true;
-                } else {
-                    // Candidate is a prefix of 'prefix', so consider it as "less than"
-                    cmp = -1;
-                }
-            }
-
-            if (cmp < 0) {
-                left = mid + 1;
-            } else {
-                right = mid - 1;
-            }
+        // In a sorted list, the first word at or after the prefix is the one that would start with it.
+        int index = Collections.binarySearch(words, prefix);
+        if (index >= 0) {
+            return true;
         }
 
-        return false;
+        int insertionPoint = -index - 1;
+        return insertionPoint < words.size() && words.get(insertionPoint).startsWith(prefix);
     }
 
     // ============================[ Private Helper Methods ]============================ \\

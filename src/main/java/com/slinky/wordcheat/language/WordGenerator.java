@@ -75,9 +75,10 @@ public class WordGenerator {
      */
     public List<String> generateAllWords(char[] letters) {
         Set<String> words = new HashSet<>();
-        // Sort letters to handle duplicates efficiently.
+        // Sort a copy of the letters to handle duplicates efficiently.
+        letters = Arrays.copyOf(letters, letters.length);
         Arrays.sort(letters);
-        
+
         StringBuilder currentWord = new StringBuilder();
         boolean[] used            = new boolean[letters.length];
         backtrack(letters, used, currentWord, words);
