@@ -242,15 +242,14 @@ public final class DefaultTileSet implements TileSet {
             default:
                 letter        = validateLetter(letter);
                 int index     = letter - 'A';
-                if (tileCounts[index] <= 0) {
-                    if (wildCardCount <= 0) {
-                        throw new InvalidTileRemovalException("No more '%c' tiles remaining".formatted(letter));
-                    }
-                    
+                if (tileCounts[index] > 0) {
+                    tileCounts[index]--;
+                } else if (wildCardCount > 0) {
+                    // Every tile of this letter is accounted for, so this one must be a blank.
                     wildCardCount--;
+                } else {
+                    throw new InvalidTileRemovalException("No more '%c' tiles remaining".formatted(letter));
                 }
-                
-                tileCounts[index]--;
         }
         
         remainingTileCount--;

@@ -165,7 +165,25 @@ public class DefaultTileSetTest {
         assertThrows(IllegalStateException.class, () -> tileSet.removeLetter('?'),
                 "Should throw exception when removing a blank tile with none remaining.");
     }
-    
+
+    /**
+     * Tests that taking a letter with none left takes a blank instead, and leaves the letter's
+     * count at zero rather than taking it below.
+     */
+    @Test
+    void testRemoveLetter_withLetterExhausted_UsesBlankAndKeepsLetterCountAtZero() {
+        DefaultTileSet tileSet = new DefaultTileSet();
+        tileSet.removeLetter('Z');
+
+        tileSet.removeLetter('Z');
+
+        assertAll(
+            () -> assertEquals(0, tileSet.getRemainingTileCount('Z')),
+            () -> assertEquals(1, tileSet.getRemainingWildcardCount()),
+            () -> assertEquals(DefaultTileSet.TOTAL_TILE_COUNT - 2, tileSet.getRemainingTileCount())
+        );
+    }
+
     /* --------------------- Tests for drawRandomTile() --------------------- */
     
     /**

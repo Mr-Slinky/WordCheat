@@ -5,7 +5,9 @@ import com.slinky.wordcheat.util.ValidationUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a letter matrix designed using a Data-Oriented Design (DOD)
@@ -34,8 +36,12 @@ import java.util.List;
  *   <li>Provides batch word placement through the <code>placeWord</code> method,
  *       which performs fail-fast boundary checks and validates pre-existing
  *       letters.</li>
- *   <li>Includes methods to extract horizontal and vertical words
- *       (<code>getWords</code>) for move evaluation and scoring.</li>
+ *   <li>Includes methods to extract horizontal and vertical words: every word
+ *       on the board (<code>getWords</code>), or only the words the new
+ *       letters form (<code>getNewWords</code>).</li>
+ *   <li>Records which letters are blank tiles (<code>isWildCard</code>). A
+ *       lowercase letter passed to <code>placeLetterAt</code> or
+ *       <code>placeWord</code> places a blank.</li>
  *   <li>Offers methods to determine the bounds of new-letter placements (e.g.
  *       <code>getNewRowLowerBound</code>, <code>getNewRowUpperBound</code>,
  *       <code>getNewColLowerBound</code>, and <code>getNewColUpperBound</code>).</li>
@@ -44,11 +50,8 @@ import java.util.List;
  *       when the state is valid (<code>preserve</code>).</li>
  *   <li>Provides utility methods for neighbour queries
  *       (<code>hasVerticalNeighbours</code> and
- *       <code>hasHorizontalNeighbours</code>), as well as conversion to JSON
- *       (<code>toJson</code>) and a textual format (<code>toString</code>).</li>
- *   <li>Includes a method (<code>areAllWordsValid</code>) to verify that all
- *       horizontal and vertical words are valid according to a supplied
- *       dictionary.</li>
+ *       <code>hasHorizontalNeighbours</code>), as well as a textual format
+ *       (<code>toString</code>).</li>
  * </ul>
  * 
  * <p>
@@ -63,10 +66,9 @@ import java.util.List;
  *       {'A', ' '},
  *       {' ', 'B'}
  *   };
- *   GameBoard board  = new GameBoard(initialGrid);
+ *   GameBoard board = new GameBoard(initialGrid);
  *   board.placeLetterAt('C', 0, 1);
- *   String json      = board.toJson();
- *   boolean allValid = board.areAllWordsValid(dictionary);
+ *   List&lt;String&gt; words = board.getNewWords(); // ["AC", "CB"]
  * </pre>
  * 
  * @author  Kheagen Haskins
@@ -79,7 +81,12 @@ public class GameBoard implements Cloneable {
      * The maximum number of new tiles that can be placed in a single move.
      */
     public final static int MAX_NEW_TILES = 7;
-    
+
+    /**
+     * The number of blank tiles in a game, and so the most the board can show.
+     */
+    public final static int MAX_BLANKS = 2;
+
     // ================================[ Fields ]================================ \\
     /**
      * An array indicating for each row whether it contains at least one letter.
@@ -132,59 +139,16 @@ public class GameBoard implements Cloneable {
      * The current count of new tiles placed on the board.
      */
     private int newTileCount = 0;
-    
-    /**
-     * The maximum allowed number of wildcards
-     */
-    private int wildCardLimit = 2;
-    
-    /**
-     * A counter for the number of Wildcards
-     */
-    private int wildCardCount = 0;
-    
-    /**
-     * The row and column index locations of wildcards
-     */
-    private int[][] wildCardPositions = new int[wildCardLimit][2];
 
     /**
-     * The smallest row index that has received a new letter.
-     * 
+     * A 2D boolean array marking the cells whose letter is a blank tile.
+     *
      * <p>
-     * Initialized to {@code Integer.MAX_VALUE} and updated upon placement of
-     * new letters.
-     * 
+     * A value of {@code true} means the letter in that cell scores nothing. A
+     * blank placed during the current move is also flagged in
+     * {@code newLetter}.
      */
-    private int firstNewLetterRow = Integer.MAX_VALUE;
-
-    /**
-     * The smallest column index that has received a new letter.
-     * 
-     * <p>
-     * Initialized to {@code Integer.MAX_VALUE} and updated upon placement of
-     * new letters.
-     * 
-     */
-    private int firstNewLetterCol = Integer.MAX_VALUE;
-
-    /**
-     * The largest row index that has received a new letter.
-     * 
-     * <p>
-     * Initialised to {@code -1} and updated upon placement of new letters.
-     * 
-     */
-    private int lastNewLetterRow = -1;
-
-    /**
-     * The largest column index that has received a new letter.
-     * 
-     * <p>
-     * Initialized to {@code -1} and updated upon placement of new letters.
-     * 
-     */
-    private int lastNewLetterCol = -1;
+    private boolean[][] blank;
 
     // =============================[ Constructors ]============================= \\
     /**
@@ -222,6 +186,7 @@ public class GameBoard implements Cloneable {
 
         newLetter    = new boolean[rows][cols];
         hasLetter    = new boolean[rows][cols];
+        blank        = new boolean[rows][cols];
         rowPopulated = new boolean[rows];
         colPopulated = new boolean[cols];
 
@@ -235,13 +200,6 @@ public class GameBoard implements Cloneable {
                 } else {
                     matrix[r][c] = DefaultTileSet.BLANK_TILE;
                 }
-            }
-        }
-        
-        // Intialise wildcards as unset
-        for (int r = 0; r < wildCardPositions.length; r++) {
-            for (int c = 0; c < wildCardPositions.length; c++) {
-                wildCardPositions[r][c] = -1;
             }
         }
     }
@@ -281,22 +239,44 @@ public class GameBoard implements Cloneable {
     }
     
     /**
-     * Returns the number of wildcard tiles currently on the board.
+     * Returns the number of blank tiles on the board, including any placed
+     * during the current move.
      *
-     * @return the count of wildcards (0 up to the configured limit)
+     * @return the count of blanks, from 0 to {@link #MAX_BLANKS}
      */
     public int getWildcardCount() {
-        return wildCardCount;
+        int count = 0;
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (blank[r][c]) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     /**
-     * Returns the coordinates of each placed wildcard.
+     * Returns the position of each blank tile on the board, in row order.
      *
-     * @return a 2D array where each element is a two‐int array '[row, column]'
-     *         of a wildcard position
+     * <p>
+     * For a board with blanks at (3, 11) and (9, 10), the method returns
+     * {@code {{3, 11}, {9, 10}}}. A board without blanks returns an empty
+     * array.
+     *
+     * @return a new array of {@code [row, column]} pairs, one per blank
      */
     public int[][] getWildCardPositions() {
-        return wildCardPositions;
+        var positions = new int[getWildcardCount()][];
+        int index = 0;
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (blank[r][c]) {
+                    positions[index++] = new int[] {r, c};
+                }
+            }
+        }
+        return positions;
     }
     
     /**
@@ -384,26 +364,18 @@ public class GameBoard implements Cloneable {
     }
     
     /**
-     * Checks whether a wildcard tile has been placed at the specified board
-     * cell.
-     *
-     * <p>
-     * This method iterates through the internal list of wildcard positions and
-     * returns {@code true} if any entry matches the given row and column.
+     * Checks whether the letter at the specified cell is a blank tile.
      *
      * @param row the zero-based row index of the cell to check
      * @param col the zero-based column index of the cell to check
-     * @return {@code true} if a wildcard occupies the specified cell;
+     * @return {@code true} if a blank occupies the specified cell;
      *         {@code false} otherwise
+     * @throws IndexOutOfBoundsException if the provided indices are out of
+     *                                   bounds.
      */
     public boolean isWildCard(int row, int col) {
-        for (int i = 0; i < wildCardPositions.length; i++) {
-            int[] position = wildCardPositions[i];
-            if (position[0] == row && position[1] == col) {
-                return true;
-            }
-        }
-        return false;
+        validateBounds(row, col);
+        return blank[row][col];
     }
 
 
@@ -498,12 +470,23 @@ public class GameBoard implements Cloneable {
      *   <li>Otherwise the cell is set to {@link DefaultTileSet#BLANK_TILE}.</li>
      * </ul>
      *
+     * <p>
+     * Every letter in the new grid counts as already played, so the board
+     * afterwards holds no new letters and no blanks. A caller marks the blanks
+     * with {@link #setWildCards(int[][])}.
+     *
      * @param letterGrid the new 2D character array to use
      * @throws IllegalArgumentException if the grid is non-rectangular or wrong
      *                                  size
      */
     public void setBoard(char[][] letterGrid) {
         ValidationUtils.validate(letterGrid, rows, cols);
+        for (int r = 0; r < rows; r++) {
+            if (letterGrid[r].length != cols) {
+                throw new IllegalArgumentException("Non rectangular grid provided");
+            }
+        }
+
         // Reset flags
         for (int r = 0; r < rows; r++) {
             rowPopulated[r] = false;
@@ -512,13 +495,12 @@ public class GameBoard implements Cloneable {
             colPopulated[c] = false;
         }
         for (int r = 0; r < rows; r++) {
-            if (letterGrid[r].length != cols) {
-                throw new IllegalArgumentException("Non rectangular grid provided");
-            }
             for (int c = 0; c < cols; c++) {
-                char letter = letterGrid[r][c];
+                char letter = Character.toUpperCase(letterGrid[r][c]);
                 boolean valid = ValidationUtils.isLetter(letter);
                 hasLetter[r][c] = valid;
+                newLetter[r][c] = false;
+                blank[r][c]     = false;
                 matrix[r][c] = valid ? letter : DefaultTileSet.BLANK_TILE;
                 if (valid) {
                     rowPopulated[r] = true;
@@ -526,77 +508,83 @@ public class GameBoard implements Cloneable {
                 }
             }
         }
+
+        newTileCount = 0;
     }
-    
+
     /**
-     * Places the next wildcard tile at the given board coordinates.
+     * Marks the letter at the given cell as a blank tile, so it scores
+     * nothing.
      *
      * <p>
-     * Validates that (row, col) lies within the board bounds. If the current
-     * number of wildcards already equals the configured limit, a
-     * {@link WildcardLimitReachedException} is thrown.
+     * Marking a cell that is already a blank leaves the board unchanged.
      *
-     * @param row the zero-based row index at which to place the wildcard
-     * @param col the zero-based column index at which to place the wildcard
+     * @param row the zero-based row index of the blank
+     * @param col the zero-based column index of the blank
      * @throws IndexOutOfBoundsException if (row, col) lies outside the board
-     * @throws WildcardLimitReachedException if adding this wildcard would
-     *                                       exceed the limit
+     * @throws IllegalArgumentException  if the cell holds no letter
+     * @throws IllegalStateException     if the board already shows
+     *                                   {@link #MAX_BLANKS} blanks
      */
     public void setWildCardPosition(int row, int col) {
         validateBounds(row, col);
-        if (wildCardCount >= wildCardLimit) {
-            throw new WildcardLimitReachedException(
-                    "Cannot place wildcard at %d, %d; GameBoard already has %d wildcards"
-                            .formatted(row, col, wildCardCount)
+        if (!hasLetter[row][col]) {
+            throw new IllegalArgumentException(
+                    "Cannot mark (%d, %d) as a blank because the cell has no letter".formatted(row, col)
             );
         }
 
-        setWildCardPosition(row, col, wildCardCount);
-        wildCardCount++;
-    }
-
-    /**
-     * Sets or moves a wildcard tile at the specified index to the given
-     * coordinates.
-     *
-     * <p>
-     * No bounds check on (row, col) is performed here; the caller must ensure
-     * validity or rely on the other overload. The index must lie between 0 and
-     * the current wildcard limit (inclusive).
-     *
-     * @param row  the zero-based row index for this wildcard
-     * @param col  the zero-based column index for this wildcard
-     * @param index the wildcard slot index (0 to wildcardLimit)
-     * @throws IllegalArgumentException if {@code index} is negative or exceeds
-     *                                                   the wildcard limit
-     */
-    public void setWildCardPosition(int row, int col, int index) {
-        if (index < 0 || index > wildCardLimit) {
-            throw new IllegalArgumentException("Index %d out of bounds for %d".formatted(index, wildCardLimit));
+        if (blank[row][col]) {
+            return;
         }
 
-        wildCardPositions[index][0] = row;
-        wildCardPositions[index][1] = col;
+        if (getWildcardCount() >= MAX_BLANKS) {
+            throw new WildcardLimitReachedException(
+                    "Cannot mark (%d, %d) as a blank because the board already has %d".formatted(row, col, MAX_BLANKS)
+            );
+        }
+
+        blank[row][col] = true;
     }
 
     /**
-     * Configures the maximum number of wildcard tiles the board may hold.
+     * Replaces every blank on the board with the given positions.
      *
      * <p>
-     * Any existing wildcard positions are reset: the positions array is
-     * re-allocated with the new limit and all entries are initialised to –1. A
-     * negative input will be treated as zero.
+     * The method checks every position before it changes anything, so a
+     * rejected call leaves the board as it was.
      *
-     * @param wildCardLimit the new maximum number of wildcards (zero or
-     * positive)
+     * @param positions the {@code [row, column]} pair of each blank; may be
+     *                  empty
+     * @throws NullPointerException      if {@code positions} is {@code null}
+     * @throws IndexOutOfBoundsException if a position lies outside the board
+     * @throws IllegalArgumentException  if a position holds no letter
+     * @throws IllegalStateException     if more than {@link #MAX_BLANKS}
+     *                                   positions are given
      */
-    public void setWildCardLimit(int wildCardLimit) {
-        this.wildCardLimit = Math.max(0, wildCardLimit);
+    public void setWildCards(int[][] positions) {
+        Objects.requireNonNull(positions, "Blank positions cannot be null");
+        if (positions.length > MAX_BLANKS) {
+            throw new WildcardLimitReachedException(
+                    "A board can show at most %d blanks, but %d were given".formatted(MAX_BLANKS, positions.length)
+            );
+        }
 
-        wildCardPositions = new int[this.wildCardLimit][2];
-        for (int[] pos : wildCardPositions) {
-            pos[0] = -1;
-            pos[1] = -1;
+        for (int[] position : positions) {
+            validateBounds(position[0], position[1]);
+            if (!hasLetter[position[0]][position[1]]) {
+                throw new IllegalArgumentException(
+                        "Cannot mark (%d, %d) as a blank because the cell has no letter".formatted(position[0], position[1])
+                );
+            }
+        }
+
+        for (boolean[] row : blank) {
+            Arrays.fill(row, false);
+        }
+
+        for (int[] position : positions) {
+            blank[position[0]][position[1]] = true;
         }
     }
 
@@ -617,19 +605,15 @@ public class GameBoard implements Cloneable {
      * If placement is permitted, the letter is placed into the {@code matrix},
      * and the corresponding flags in {@code hasLetterAt} and {@code newLetter}
      * are set to {@code true}. The row and column are marked as populated in
-     * {@code rowPopulated} and {@code colPopulated}, respectively.
+     * {@code rowPopulated} and {@code colPopulated}, respectively. Finally, the
+     * internal counter {@code newTileCount} is incremented.
+     *
      * <p>
-     * Additionally, the bounds of new-letter placements are updated:
-     * <ul>
-     *   <li>{@code firstNewLetterRow} and {@code firstNewLetterCol} are updated
-     *       to the smallest row and column indices that have received a new
-     *       letter.</li>
-     *   <li>{@code lastNewLetterRow} and {@code lastNewLetterCol} are updated to
-     *       the largest row and column indices that have received a new letter.</li>
-     * </ul>
-     * Finally, the internal counter {@code newTileCount} is incremented.
-     * 
-     * @param letter the letter to be placed.
+     * A lowercase letter stands for a blank tile. The board stores it in
+     * uppercase and marks the cell as a blank, so {@code placeLetterAt('z', 7, 6)}
+     * places a Z that scores nothing.
+     *
+     * @param letter the letter to be placed; lowercase for a blank.
      * @param row the zero-based row index where the letter should be placed.
      * @param col the zero-based column index where the letter should be placed.
      * @return {@code true} if the letter was successfully placed; {@code false}
@@ -643,16 +627,12 @@ public class GameBoard implements Cloneable {
             return false;
         }
 
-        matrix[row][col]    = letter;
+        matrix[row][col]    = Character.toUpperCase(letter);
+        blank[row][col]     = Character.isLowerCase(letter);
         hasLetter[row][col] = true;
         newLetter[row][col] = true;
         rowPopulated[row]   = true;
         colPopulated[col]   = true;
-
-        firstNewLetterRow = Math.min(row, firstNewLetterRow);
-        firstNewLetterCol = Math.min(col, firstNewLetterCol);
-        lastNewLetterRow  = Math.max(row, lastNewLetterRow);
-        lastNewLetterCol  = Math.max(col, lastNewLetterCol);
 
         newTileCount++;
         
@@ -754,13 +734,15 @@ public class GameBoard implements Cloneable {
      * board is valid.
      *
      * <p>
-     * A valid state is defined as satisfying two conditions:
+     * A valid state is defined as satisfying three conditions:
      * <ol>
      *   <li>New letters are confined to at most one row or at most one column.
      *       This is determined by iterating over all board cells and tracking
      *       distinct rows and columns that contain new letters. If new letters span
      *       more than one row <em>and</em> more than one column, the state is
      *       invalid.</li>
+     *   <li>Every cell between the first and the last new letter holds a
+     *       letter, either new or already played.</li>
      *   <li>If one or more new letters are present, at least one of those new
      *       letters must have at least one adjacent (vertical or horizontal)
      *       neighbour that contains a letter. Diagonal neighbours are not
@@ -803,6 +785,12 @@ public class GameBoard implements Cloneable {
         if (rowCount == 0) {
             return true;
         }
+
+        // Every cell between the first and last new letter must hold a letter.
+        if (!isNewLineUnbroken()) {
+            return false;
+        }
+
         // Ensure that at least one new letter has a vertical or horizontal neighbour.
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
@@ -858,6 +846,7 @@ public class GameBoard implements Cloneable {
                     matrix[r][c]    = DefaultTileSet.BLANK_TILE;
                     hasLetter[r][c] = false;
                     newLetter[r][c] = false;
+                    blank[r][c]     = false;
                 }
 
                 if (hasLetter[r][c]) {
@@ -897,14 +886,9 @@ public class GameBoard implements Cloneable {
      * <p>
      * When the board is valid, this method clears all entries in the
      * {@code newLetter} array (i.e. marks all cells as not containing a new
-     * letter) and resets the boundary tracking fields:
-     * <ul>
-     *   <li>{@code firstNewLetterRow} is reset to {@code Integer.MAX_VALUE}.</li>
-     *   <li>{@code firstNewLetterCol} is reset to {@code Integer.MAX_VALUE}.</li>
-     *   <li>{@code lastNewLetterRow} is reset to {@code -1}.</li>
-     *   <li>{@code lastNewLetterCol} is reset to {@code -1}.</li>
-     * </ul>
-     * 
+     * letter) and resets the count of new tiles. A blank placed during the move
+     * stays a blank.
+     *
      * @return {@code true} if the board was in a valid state and the new letter
      *         flags were successfully cleared; {@code false} if the board was in an
      *         invalid state and no changes were made.
@@ -920,10 +904,7 @@ public class GameBoard implements Cloneable {
             }
         }
 
-        firstNewLetterRow = Integer.MAX_VALUE;
-        firstNewLetterCol = Integer.MAX_VALUE;
-        lastNewLetterRow = -1;
-        lastNewLetterCol = -1;
+        newTileCount = 0;
 
         return true;
     }
@@ -1134,38 +1115,75 @@ public class GameBoard implements Cloneable {
                 words.add(word.toString());
             }
         }
-        
+
         return words;
+    }
+
+    /**
+     * Extracts the words that the new letters form, leaving out every other
+     * word on the board.
+     *
+     * <p>
+     * A word counts when it is at least two letters long and contains at least
+     * one new letter. For a board holding CAT across row 7, with an O above
+     * the cell after the T and a new S placed in that cell, the method returns
+     * {@code CATS} and {@code OS}. Each word appears once, however many new
+     * letters it contains.
+     *
+     * @return a {@code List<String>} of the words formed by the new letters;
+     *         empty when the board holds no new letters.
+     */
+    public List<String> getNewWords() {
+        var words = new LinkedHashMap<String, String>();
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (!newLetter[r][c]) continue;
+
+                int left  = findLeftMostLetter(r, c);
+                int right = findRightMostLetter(r, c);
+                if (right > left) {
+                    words.putIfAbsent("H" + r + "," + left, readLine(r, left, right, true));
+                }
+
+                int top    = findTopMostLetter(r, c);
+                int bottom = findBottomMostLetter(r, c);
+                if (bottom > top) {
+                    words.putIfAbsent("V" + c + "," + top, readLine(c, top, bottom, false));
+                }
+            }
+        }
+
+        return new ArrayList<>(words.values());
     }
 
     /**
      * Creates and returns a deep copy of the current {@code GameBoard}
      * instance.
-     * 
+     *
      * <p>
      * The cloning process duplicates the internal character matrix and all
      * state tracking arrays to ensure that modifications to the clone do not
      * affect the original board.
-     * 
+     *
      * @return a deep clone of the current {@code GameBoard} instance.
-     * @throws CloneNotSupportedException if the board cannot be cloned.
      */
     @Override
-    public GameBoard clone() throws CloneNotSupportedException {
-        GameBoard cloned    = (GameBoard) super.clone();
+    public GameBoard clone() {
+        GameBoard cloned;
+        try {
+            cloned = (GameBoard) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            // GameBoard implements Cloneable, so Object.clone() always succeeds.
+            throw new AssertionError(ex);
+        }
+
         cloned.matrix       = MatrixUtils.deepCopy(this.matrix);
         cloned.newLetter    = MatrixUtils.deepCopy(this.newLetter);
         cloned.hasLetter    = MatrixUtils.deepCopy(this.hasLetter);
-        
+        cloned.blank        = MatrixUtils.deepCopy(this.blank);
+
         cloned.rowPopulated = Arrays.copyOf(this.rowPopulated, this.rowPopulated.length);
         cloned.colPopulated = Arrays.copyOf(this.colPopulated, this.colPopulated.length);
-
-        // Copy other primitive fields directly
-        cloned.newTileCount      = this.newTileCount;
-        cloned.firstNewLetterRow = this.firstNewLetterRow;
-        cloned.firstNewLetterCol = this.firstNewLetterCol;
-        cloned.lastNewLetterRow  = this.lastNewLetterRow;
-        cloned.lastNewLetterCol  = this.lastNewLetterCol;
 
         return cloned;
     }
@@ -1225,6 +1243,71 @@ public class GameBoard implements Cloneable {
                     "Row and/or column index [%d][%d] out of bounds for [%d][%d]".formatted(row, col, rows, cols)
             );
         }
+    }
+
+    /**
+     * Checks that no empty cell lies between the first and the last new
+     * letter. Assumes the new letters share one row or one column.
+     *
+     * @return {@code true} if the new letters and the letters between them
+     *         form one unbroken line
+     */
+    private boolean isNewLineUnbroken() {
+        int top    = getNewRowLowerBound();
+        int bottom = getNewRowUpperBound();
+        int left   = getNewColLowerBound();
+        int right  = getNewColUpperBound();
+
+        for (int r = top; r <= bottom; r++) {
+            for (int c = left; c <= right; c++) {
+                if (!hasLetter[r][c]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Finds the topmost row index of the unbroken run of letters in the given
+     * column that passes through {@code (row, col)}.
+     */
+    private int findTopMostLetter(int row, int col) {
+        int top = row;
+        while (top > 0 && hasLetter[top - 1][col]) {
+            top--;
+        }
+        return top;
+    }
+
+    /**
+     * Finds the bottommost row index of the unbroken run of letters in the
+     * given column that passes through {@code (row, col)}.
+     */
+    private int findBottomMostLetter(int row, int col) {
+        int bottom = row;
+        while (bottom < rows - 1 && hasLetter[bottom + 1][col]) {
+            bottom++;
+        }
+        return bottom;
+    }
+
+    /**
+     * Reads the letters of one row or column between two indices, inclusive.
+     *
+     * @param line       the row index when {@code horizontal}, otherwise the
+     *                   column index
+     * @param from       the first index along the line
+     * @param to         the last index along the line
+     * @param horizontal {@code true} to read along a row
+     * @return the letters read, in order
+     */
+    private String readLine(int line, int from, int to, boolean horizontal) {
+        var word = new StringBuilder(to - from + 1);
+        for (int i = from; i <= to; i++) {
+            word.append(horizontal ? matrix[line][i] : matrix[i][line]);
+        }
+        return word.toString();
     }
 
     // ============================[ Helper Classes ]============================ \\

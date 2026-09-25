@@ -13,11 +13,10 @@ import com.slinky.wordcheat.util.BoardUtils;
  * 
  * <p>
  * The scoring algorithm evaluates the board by processing both rows and
- * columns. The logic for scoring rows and columns is now consolidated into a
- * single generic method that accepts a traversal strategy (horizontal or
- * vertical). In addition, the contiguous boundary detection logic has been
- * extracted into a common helper.
- * 
+ * columns. Letter bonuses multiply the letter under them, and word bonuses
+ * multiply each other, so a word covering a double-word and a triple-word
+ * square scores six times its letters. A blank tile scores nothing.
+ *
  * @see    ScoringModule
  * @author Kheagen Haskins
  */
@@ -152,28 +151,20 @@ public class DefaultScoringModule implements ScoringModule {
     }
     
     /**
-     * Retrieves the point value for the specified uppercase letter using the
-     * internal scoring array.
+     * Retrieves the point value for the specified letter using the internal
+     * scoring array.
      *
      * <p>
-     * This method maps characters from 'A' to 'Z' to their corresponding point
-     * values based on the game's scoring rules. Each letter's score is defined
-     * in a static array where the index 0 corresponds to 'A', index 1 to 'B',
-     * and so on up to 'Z'.
-     * 
+     * The lookup ignores case, so {@code 'q'} and {@code 'Q'} both return 10.
+     * The blank tile ({@link TileSet#WILDCARD}), and any character outside
+     * A to Z, return 0.
      *
-     * @param c the uppercase character ('A'–'Z') for which to retrieve the
-     *          point value.
+     * @param c the character for which to retrieve the point value.
      * @return the point value associated with the specified letter.
-     * @throws IllegalArgumentException if the character is not in the range
-     *                                  'A'–'Z'.
      */
     @Override
     public int getPointsOf(char c) {
-        if (c == TileSet.WILDCARD) {
-            return 0;
-        }
-        
+        c = Character.toUpperCase(c);
         if (c < 'A' || c > 'Z') {
             return 0;
         }
@@ -247,7 +238,7 @@ public class DefaultScoringModule implements ScoringModule {
      */
     private int scoreLine(GameBoard board, int fixedIndex, int start, boolean horizontal) {
         int lineScore  = 0;
-        int multiplier = 0;
+        int multiplier = 1;
 
         if (horizontal) {
             if (!board.hasLetterAt(fixedIndex, start) || !board.isNewLetter(fixedIndex, start)) {
@@ -262,7 +253,7 @@ public class DefaultScoringModule implements ScoringModule {
             for (int c = boundaries[0]; c <= boundaries[1]; c++) {
                 int tileScore = scoreTile(board, fixedIndex, c);
                 if (board.isNewLetter(fixedIndex, c)) {
-                    multiplier += getWordMultiplier  (fixedIndex, c);
+                    multiplier *= getWordMultiplier  (fixedIndex, c);
                     tileScore  *= getLetterMultiplier(fixedIndex, c);
                 }
                 
@@ -281,7 +272,7 @@ public class DefaultScoringModule implements ScoringModule {
             for (int r = boundaries[0]; r <= boundaries[1]; r++) {
                 int tileScore = scoreTile(board, r, fixedIndex);
                 if (board.isNewLetter(r, fixedIndex)) {
-                    multiplier += getWordMultiplier(r, fixedIndex);
+                    multiplier *= getWordMultiplier(r, fixedIndex);
                     tileScore *= getLetterMultiplier(r, fixedIndex);
                 }
                 
@@ -289,7 +280,7 @@ public class DefaultScoringModule implements ScoringModule {
             }
         }
         
-        return lineScore * Math.max(1, multiplier);
+        return lineScore * multiplier;
     }
 
     /**
@@ -339,28 +330,9 @@ public class DefaultScoringModule implements ScoringModule {
             return 0;
         }
         
-        return getLetterPoints(board.getLetterAt(row, col));
+        return getPointsOf(board.getLetterAt(row, col));
     }
     
-    /**
-     * Retrieves the point value for a given letter.
-     *
-     * <p>
-     * The method converts the input letter to uppercase and then computes its
-     * index based on the ASCII value of 'A'. The corresponding point value from
-     * the {@code POINTS} array is then returned.
-     * 
-     *
-     * @param letter the letter for which to retrieve the point value.
-     * @return the point value associated with the specified letter.
-     * @throws ArrayIndexOutOfBoundsException if the letter is not in the range
-     * A-Z.
-     */
-    public int getLetterPoints(char letter) {
-        letter    = Character.toUpperCase(letter);
-        int index = letter - 'A';
-        return POINTS[index];
-    }
     
     /**
      * Retrieves the word multiplier from the bonus layout at the specified
@@ -368,12 +340,12 @@ public class DefaultScoringModule implements ScoringModule {
      *
      * @param row the row index in the bonus layout.
      * @param col the column index in the bonus layout.
-     * @return the bonus multiplier for the word at that position, or 0 if none
+     * @return the bonus multiplier for the word at that position, or 1 if none
      *         applies.
      */
     private int getWordMultiplier(int row, int col) {
         if (row >= bonusTiles.length || col >= bonusTiles[0].length) {
-            return 0;
+            return 1;
         }
         var bonus = bonusTiles[row][col];
         if (bonus != null) {
@@ -381,10 +353,10 @@ public class DefaultScoringModule implements ScoringModule {
                 case DW, TW ->
                     bonus.value;
                 default ->
-                    0;
+                    1;
             };
         }
-        return 0;
+        return 1;
     }
 
     /**
