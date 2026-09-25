@@ -5,11 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.slinky.wordcheat</groupId>
     <artifactId>WordCheat</artifactId>
-    <version>0.1.0</version>
+    <version>1.0.0</version>
 
     <properties>
         <java.version>17</java.version>
         <javafx.version>21</javafx.version>
+        <!-- Overridden by the platform profiles below, which match the build machine -->
         <javafx.platform>win</javafx.platform>
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -79,8 +80,13 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.slinky.wordcheat.App</mainClass>
+                    <mainClass>com.slinky.wordcheat/com.slinky.wordcheat.App</mainClass>
                     <modules>javafx.controls,javafx.swing</modules>
+                    <!-- javafx:jlink builds a trimmed Java runtime holding the app, which jpackage turns into an installer -->
+                    <jlinkImageName>runtime</jlinkImageName>
+                    <stripDebug>true</stripDebug>
+                    <noHeaderFiles>true</noHeaderFiles>
+                    <noManPages>true</noManPages>
                 </configuration>
                 <executions>
                     <execution>
@@ -133,4 +139,127 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- JavaFX ships one build per operating system; each profile picks the one for the build machine -->
+    <profiles>
+        <!--
+            Builds the Windows installer: mvn -Pinstaller clean package
+            Needs the WiX Toolset on the PATH. The installer lands in target/installer.
+        -->
+        <profile>
+            <id>installer</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.openjfx</groupId>
+                        <artifactId>javafx-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>runtime-image</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jlink</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument>
+                                        <argument>exe</argument>
+                                        <argument>--name</argument>
+                                        <argument>WordCheat</argument>
+                                        <argument>--app-version</argument>
+                                        <argument>${project.version}</argument>
+                                        <argument>--vendor</argument>
+                                        <argument>Kheagen Haskins</argument>
+                                        <argument>--description</argument>
+                                        <argument>Finds the highest scoring Words With Friends moves</argument>
+                                        <argument>--icon</argument>
+                                        <argument>${project.basedir}/src/main/packaging/WordCheat.ico</argument>
+                                        <argument>--runtime-image</argument>
+                                        <argument>${project.build.directory}/runtime</argument>
+                                        <argument>--module</argument>
+                                        <argument>com.slinky.wordcheat/com.slinky.wordcheat.App</argument>
+                                        <argument>--java-options</argument>
+                                        <argument>--enable-native-access=javafx.graphics</argument>
+                                        <argument>--dest</argument>
+                                        <argument>${project.build.directory}/installer</argument>
+                                        <argument>--win-per-user-install</argument>
+                                        <argument>--win-dir-chooser</argument>
+                                        <argument>--win-menu</argument>
+                                        <argument>--win-menu-group</argument>
+                                        <argument>WordCheat</argument>
+                                        <argument>--win-shortcut</argument>
+                                        <argument>--win-shortcut-prompt</argument>
+                                        <!-- Keeps the same ID in every release, so a newer installer replaces the older one -->
+                                        <argument>--win-upgrade-uuid</argument>
+                                        <argument>174acd96-292f-42d7-8133-da842b884de6</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>platform-windows</id>
+            <activation>
+                <os><family>windows</family></os>
+            </activation>
+            <properties>
+                <javafx.platform>win</javafx.platform>
+            </properties>
+        </profile>
+        <profile>
+            <id>platform-mac-x64</id>
+            <activation>
+                <os><family>mac</family><arch>x86_64</arch></os>
+            </activation>
+            <properties>
+                <javafx.platform>mac</javafx.platform>
+            </properties>
+        </profile>
+        <profile>
+            <id>platform-mac-arm</id>
+            <activation>
+                <os><family>mac</family><arch>aarch64</arch></os>
+            </activation>
+            <properties>
+                <javafx.platform>mac-aarch64</javafx.platform>
+            </properties>
+        </profile>
+        <profile>
+            <id>platform-linux-x64</id>
+            <activation>
+                <os><name>Linux</name><arch>amd64</arch></os>
+            </activation>
+            <properties>
+                <javafx.platform>linux</javafx.platform>
+            </properties>
+        </profile>
+        <profile>
+            <id>platform-linux-arm</id>
+            <activation>
+                <os><name>Linux</name><arch>aarch64</arch></os>
+            </activation>
+            <properties>
+                <javafx.platform>linux-aarch64</javafx.platform>
+            </properties>
+        </profile>
+    </profiles>
 </project>
